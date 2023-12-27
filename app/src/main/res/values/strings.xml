@@ -4,4 +4,7 @@
     <string name="title_category">分类</string>
     <string name="title_cart">购物车</string>
     <string name="title_myself">我的</string>
+    <string name="searchbar_hint">搜索商品</string>
+    <string name="edit">编辑</string>
+    <string name="finish">完成</string>
 </resources>
