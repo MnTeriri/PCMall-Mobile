@@ -13,6 +13,9 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.pcmall.databinding.FragmentCartBinding;
 import com.example.pcmall.ui.viewmodel.HomeViewModel;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class CartFragment extends Fragment {
     private FragmentCartBinding binding;
 

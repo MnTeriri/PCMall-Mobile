@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_pay"
+        android:icon="@drawable/ic_order_pay"
+        android:title="@string/title_pay" />
+
+    <item
+        android:id="@+id/navigation_send"
+        android:icon="@drawable/ic_order_send"
+        android:title="@string/title_send" />
+
+    <item
+        android:id="@+id/navigation_deliver"
+        android:icon="@drawable/ic_order_deliver"
+        android:title="@string/title_deliver" />
+
+    <item
+        android:id="@+id/navigation_comment"
+        android:icon="@drawable/ic_order_comment"
+        android:title="@string/title_comment" />
+
+    <item
+        android:id="@+id/navigation_refund"
+        android:icon="@drawable/ic_order_refund"
+        android:title="@string/title_refund" />
+</menu>

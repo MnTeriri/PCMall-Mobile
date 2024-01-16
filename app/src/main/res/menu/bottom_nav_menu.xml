@@ -4,22 +4,22 @@
 
     <item
         android:id="@+id/navigation_home"
-        android:icon="@drawable/home"
+        android:icon="@drawable/ic_bottom_home"
         android:title="@string/title_home" />
 
     <item
         android:id="@+id/navigation_category"
-        android:icon="@drawable/category"
+        android:icon="@drawable/ic_bottom_category"
         android:title="@string/title_category" />
 
     <item
         android:id="@+id/navigation_cart"
-        android:icon="@drawable/cart"
+        android:icon="@drawable/ic_bottom_cart"
         android:title="@string/title_cart" />
 
     <item
         android:id="@+id/navigation_myself"
-        android:icon="@drawable/myself"
+        android:icon="@drawable/ic_bottom_myself"
         android:title="@string/title_myself" />
 
 </menu>

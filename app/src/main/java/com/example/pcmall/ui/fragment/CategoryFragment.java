@@ -13,6 +13,9 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.pcmall.databinding.FragmentCategoryBinding;
 import com.example.pcmall.ui.viewmodel.DashboardViewModel;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class CategoryFragment extends Fragment {
 
     private FragmentCategoryBinding binding;

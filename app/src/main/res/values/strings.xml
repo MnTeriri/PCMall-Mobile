@@ -7,4 +7,9 @@
     <string name="searchbar_hint">搜索商品</string>
     <string name="edit">编辑</string>
     <string name="finish">完成</string>
+    <string name="title_pay">待付款</string>
+    <string name="title_send">待发货</string>
+    <string name="title_deliver">待收货</string>
+    <string name="title_comment">待评价</string>
+    <string name="title_refund">退款/售后</string>
 </resources>

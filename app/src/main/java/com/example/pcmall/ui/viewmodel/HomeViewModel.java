@@ -30,7 +30,7 @@ public class HomeViewModel extends ViewModel {
         this.loginService1 = loginService1;
         this.loginService2 = loginService2;
         User user = new User();
-        Log.d("user", user);
+        Log.d("user", user.toString());
     }
 
     public HomeViewModel() {
