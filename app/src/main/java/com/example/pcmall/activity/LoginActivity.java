@@ -2,6 +2,7 @@ package com.example.pcmall.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -12,13 +13,17 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.pcmall.databinding.ActivityLoginBinding;
 import com.example.pcmall.model.User;
+import com.example.pcmall.model.response.ResponseResult;
 import com.example.pcmall.ui.viewmodel.LoginViewModel;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class LoginActivity extends AppCompatActivity {
+    private final String TAG = "LoginActivity";
     private ActivityLoginBinding binding;
 
     @Override
@@ -29,31 +34,28 @@ public class LoginActivity extends AppCompatActivity {
 
         LoginViewModel loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
-
-        loginViewModel.getLoginUser().observe(this, new Observer<User>() {
-            @Override
-            public void onChanged(User user) {
-                Log.d("LoginActivity", user.toString());
-            }
-        });
-
-        loginViewModel.login("000000000","12345");
-
         Button registerButton = binding.registerButton;
-        registerButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-                startActivity(intent);
-            }
+        registerButton.setOnClickListener(view -> {
+            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+            startActivity(intent);
         });
+
+        Button loginButton = binding.loginButton;
+        loginButton.setOnClickListener(view -> {
+            TextInputLayout uidTextInputLayout = binding.uidTextInputLayout;
+            TextInputLayout passwordTextInputLayout = binding.passwordTextInputLayout;
+            String uid = uidTextInputLayout.getEditText().getText().toString();
+            String password = passwordTextInputLayout.getEditText().getText().toString();
+            loginViewModel.login(uid, password);
+        });
+
+        loginViewModel.getLoginData().observe(this, responseResult -> {
+            System.out.println("akshfjkjasf");
+            Log.d(TAG, responseResult.toString());
+        });
+
 
         MaterialToolbar topAppBar = binding.topAppBar;
-        topAppBar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        topAppBar.setNavigationOnClickListener(v -> finish());
     }
 }
