@@ -84,7 +84,7 @@
         app:layout_constraintTop_toBottomOf="@id/linearLayout1">
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/uid"
+            android:id="@+id/uid_textInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="UID">
@@ -95,7 +95,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/password"
+            android:id="@+id/password_textInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
