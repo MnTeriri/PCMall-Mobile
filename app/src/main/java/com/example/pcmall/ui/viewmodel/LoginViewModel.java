@@ -28,46 +28,61 @@ public class LoginViewModel extends ViewModel {
     private final String TAG = "LoginViewModel";
     public LoginService loginService;
     @Getter
-    private final MutableLiveData<User> loginUser;
-    @Getter
     private final MutableLiveData<ResponseResult<User>> loginData;
+    @Getter
+    private final MutableLiveData<String> captchaImageString;
     private final CompositeDisposable compositeDisposable;
 
     @Inject
     public LoginViewModel(LoginService loginService) {
         this.loginService = loginService;
-        this.loginUser = new MutableLiveData<>();
         this.loginData = new MutableLiveData<>();
+        this.captchaImageString = new MutableLiveData<>();
         this.compositeDisposable = new CompositeDisposable();
         Log.d(TAG, "自动注入loginService完成");
         Log.d(TAG, "MutableLiveData初始化完成");
     }
 
-    public void login(String uid, String password) {
-        User user = new User();
-        user.setUid(uid);
-        Observable<String> login = loginService.login(uid, password);
-        Disposable subscribe = login.subscribeOn(Schedulers.io()).
-                observeOn(AndroidSchedulers.mainThread())
+    public void login(String uid, String password, String code) {
+        Observable<String> observable = loginService.login(uid, password, code);
+        Disposable subscribe = observable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(message -> {
                     ResponseResult responseResult = JSON.parseObject(message, ResponseResult.class);
-                    System.out.println(responseResult);
+                    Log.d(TAG, "登录信息：" + responseResult.toString());
                     loginData.setValue(responseResult);
                 }, throwable -> {
                     String errorMessage = RetrofitUtils.getErrorMessage(throwable);
                     ResponseResult responseResult = JSON.parseObject(errorMessage, ResponseResult.class);
+                    Log.d(TAG, "登录信息：" + responseResult.toString());
                     loginData.setValue(responseResult);
-                    System.out.println(responseResult);
                 });
         compositeDisposable.add(subscribe);
-        loginUser.setValue(user);
+    }
+
+    public void captchaImageString() {
+        Observable<String> observable = loginService.getCaptcha();
+        Disposable disposable = observable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(imageString -> {
+                    captchaImageString.setValue(imageString);
+                    Log.d(TAG, "验证码图片：" + imageString);
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Throwable {
+
+                    }
+                });
+        compositeDisposable.add(disposable);
     }
 
     @Override
     protected void onCleared() {
         super.onCleared();
-        Log.d(TAG, "销毁LoginViewModel，清除compositeDisposable");
         compositeDisposable.clear();
         compositeDisposable.dispose();
+        Log.d(TAG, "销毁LoginViewModel，清除compositeDisposable");
     }
 }
