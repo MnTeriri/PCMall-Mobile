@@ -13,5 +13,6 @@
     <string name="title_deliver">待收货</string>
     <string name="title_comment">待评价</string>
     <string name="title_refund">退款/售后</string>
+    <string name="remember_me">记住我</string>
 
 </resources>
