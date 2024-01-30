@@ -11,6 +11,6 @@ public class PCMallApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        NetworkModule.setOkHttpClientInstance(getApplicationContext());
+        NetworkModule.getOkHttpClientInstance(getApplicationContext());
     }
 }
