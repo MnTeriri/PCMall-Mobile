@@ -18,7 +18,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.pcmall.databinding.ActivityLoginBinding;
 import com.example.pcmall.databinding.DialogCaptchaBinding;
 import com.example.pcmall.model.response.ResponseStatus;
-import com.example.pcmall.ui.viewmodel.LoginViewModel;
+import com.example.pcmall.ui.viewmodel.LoginRegisterViewModel;
 import com.example.pcmall.utils.ImageUtils;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputLayout;
@@ -32,7 +32,7 @@ public class LoginActivity extends AppCompatActivity {
     private final String TAG = "LoginActivity";
     private ActivityLoginBinding binding;
     private DialogCaptchaBinding dialogBinding;
-    private LoginViewModel loginViewModel;
+    private LoginRegisterViewModel loginRegisterViewModel;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -41,7 +41,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         dialogBinding = DialogCaptchaBinding.inflate(getLayoutInflater());
-        loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+        loginRegisterViewModel = new ViewModelProvider(this).get(LoginRegisterViewModel.class);
 
         //初始化一些简单的操作
         //点击registerButton启动RegisterActivity
@@ -59,7 +59,7 @@ public class LoginActivity extends AppCompatActivity {
             dialogBinding.progressIndicator.setVisibility(View.VISIBLE);
             dialogBinding.captchaLinearLayout.setVisibility(View.GONE);
             dialogBinding.captcha.setImageBitmap(null);
-            loginViewModel.captchaImageString();//重新获取验证码图片
+            loginRegisterViewModel.captchaImageString();//重新获取验证码图片
         });
 
         //TextInputLayout聚焦事件
@@ -101,7 +101,7 @@ public class LoginActivity extends AppCompatActivity {
 
         //点击loginButton进行登录操作
         loginButton.setOnClickListener(view -> {
-            loginViewModel.captchaImageString();//获取验证码图片
+            loginRegisterViewModel.captchaImageString();//获取验证码图片
             TextInputLayout uidTextInputLayout = binding.uidTextInputLayout;
             TextInputLayout passwordTextInputLayout = binding.passwordTextInputLayout;
             if (!uidValidate(uidTextInputLayout) && !passwordValidate(passwordTextInputLayout)) {
@@ -114,14 +114,14 @@ public class LoginActivity extends AppCompatActivity {
                         String uid = uidTextInputLayout.getEditText().getText().toString();
                         String password = passwordTextInputLayout.getEditText().getText().toString();
                         String code = captchaTextInputLayout.getEditText().getText().toString();
-                        loginViewModel.login(uid, password, code);
+                        loginRegisterViewModel.login(uid, password, code);
                     }
                 });
             }
         });
 
         //登录返回结果操作
-        loginViewModel.getLoginData().observe(this, responseResult -> {
+        loginRegisterViewModel.getLoginResponse().observe(this, responseResult -> {
             Toast.makeText(this, responseResult.toString(), Toast.LENGTH_SHORT).show();
             Log.d(TAG, responseResult.toString());
             if (Objects.equals(responseResult.getCode(), ResponseStatus.CAPTCHA_ERROR.getCode())) {
@@ -130,10 +130,10 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         //验证码图片获取后处理
-        loginViewModel.getCaptchaImageString().observe(this, s -> {
+        loginRegisterViewModel.getCaptchaImageResponse().observe(this, responseResult -> {
             dialogBinding.progressIndicator.setVisibility(View.GONE);
             ImageView captcha = dialogBinding.captcha;
-            Bitmap bitmap = ImageUtils.decodeImageString(s);
+            Bitmap bitmap = ImageUtils.decodeImageString(responseResult.getData());
             captcha.setImageBitmap(bitmap);
             dialogBinding.captchaLinearLayout.setVisibility(View.VISIBLE);
         });
@@ -189,7 +189,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onDestroy();
         binding = null;
         dialogBinding = null;
-        loginViewModel = null;
+        loginRegisterViewModel = null;
         Log.d(TAG, "LoginActivity销毁");
     }
 }
