@@ -2,7 +2,8 @@ package com.example.pcmall.module;
 
 import android.content.Context;
 
-import com.example.pcmall.service.LoginService;
+import com.example.pcmall.converter.FastJsonConverterFactory;
+import com.example.pcmall.service.LoginRegisterService;
 import com.example.pcmall.service.UserService;
 import com.franmontiel.persistentcookiejar.ClearableCookieJar;
 import com.franmontiel.persistentcookiejar.PersistentCookieJar;
@@ -18,7 +19,6 @@ import dagger.hilt.components.SingletonComponent;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory;
-import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 @Module
 @InstallIn(SingletonComponent.class)
@@ -26,7 +26,7 @@ public class NetworkModule {
     public static String baseUrl = "http://192.168.31.109:10000/api/";
     private static OkHttpClient okHttpClientInstance;
 
-    public static OkHttpClient setOkHttpClientInstance(Context context) {
+    public static OkHttpClient getOkHttpClientInstance(Context context) {
         if (okHttpClientInstance == null) {
             ClearableCookieJar cookieJar =
                     new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(context));
@@ -39,14 +39,14 @@ public class NetworkModule {
 
     @Singleton
     @Provides
-    public static LoginService provideLoginService() {
+    public static LoginRegisterService provideLoginService() {
         return new Retrofit.Builder()
                 .baseUrl(baseUrl)
                 .client(okHttpClientInstance)
-                .addConverterFactory(ScalarsConverterFactory.create())
+                .addConverterFactory(FastJsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                 .build()
-                .create(LoginService.class);
+                .create(LoginRegisterService.class);
     }
 
     @Singleton
@@ -54,7 +54,7 @@ public class NetworkModule {
     public static UserService provideUserService() {
         return new Retrofit.Builder()
                 .baseUrl(baseUrl)
-                .addConverterFactory(ScalarsConverterFactory.create())
+                .addConverterFactory(FastJsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                 .build()
                 .create(UserService.class);
