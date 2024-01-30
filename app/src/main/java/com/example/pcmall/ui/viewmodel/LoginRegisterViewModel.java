@@ -5,17 +5,15 @@ import android.util.Log;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.alibaba.fastjson2.JSON;
 import com.example.pcmall.model.User;
 import com.example.pcmall.model.response.ResponseResult;
-import com.example.pcmall.service.LoginService;
+import com.example.pcmall.service.LoginRegisterService;
 import com.example.pcmall.utils.RetrofitUtils;
 
 import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Consumer;
@@ -25,7 +23,7 @@ import lombok.Getter;
 @HiltViewModel
 public class LoginRegisterViewModel extends ViewModel {
     private final String TAG = "LoginViewModel";
-    public LoginService loginService;
+    public LoginRegisterService loginRegisterService;
     @Getter
     private final MutableLiveData<ResponseResult<User>> loginResponse;
     @Getter
@@ -35,8 +33,8 @@ public class LoginRegisterViewModel extends ViewModel {
     private final CompositeDisposable compositeDisposable;
 
     @Inject
-    public LoginRegisterViewModel(LoginService loginService) {
-        this.loginService = loginService;
+    public LoginRegisterViewModel(LoginRegisterService loginRegisterService) {
+        this.loginRegisterService = loginRegisterService;
         this.loginResponse = new MutableLiveData<>();
         this.registerResponse = new MutableLiveData<>();
         this.captchaImageResponse = new MutableLiveData<>();
@@ -46,7 +44,7 @@ public class LoginRegisterViewModel extends ViewModel {
     }
 
     public void login(String uid, String password, String code) {
-        Disposable disposable = loginService.login(uid, password, code)
+        Disposable disposable = loginRegisterService.login(uid, password, code)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(responseResult -> {
@@ -61,7 +59,7 @@ public class LoginRegisterViewModel extends ViewModel {
     }
 
     public void register(String uid, String password, String code) {
-        Disposable disposable = loginService.register(uid, password, code)
+        Disposable disposable = loginRegisterService.register(uid, password, code)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<ResponseResult<String>>() {
@@ -80,7 +78,7 @@ public class LoginRegisterViewModel extends ViewModel {
 
 
     public void captchaImageString() {
-        Disposable disposable = loginService.getCaptcha()
+        Disposable disposable = loginRegisterService.getCaptcha()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<ResponseResult<String>>() {
