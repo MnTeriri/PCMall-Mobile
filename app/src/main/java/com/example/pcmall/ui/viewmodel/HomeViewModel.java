@@ -17,13 +17,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 public class HomeViewModel extends ViewModel {
     private final MutableLiveData<String> mText;
 
-    @Inject
-    public HomeViewModel(LoginRegisterService loginRegisterService1, LoginRegisterService loginRegisterService2) {
-        mText = new MutableLiveData<>();
-        mText.setValue("This is home fragment");
-
-    }
-
     public HomeViewModel() {
         mText = new MutableLiveData<>();
         mText.setValue("This is home fragment");
