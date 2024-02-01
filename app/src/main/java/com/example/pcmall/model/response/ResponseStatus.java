@@ -8,8 +8,7 @@ public enum ResponseStatus {
     NO_TOKEN_ERROR(500000, "没有token"),
     TOKEN_EXPIRE_ERROR(500001, "token过期"),
     CAPTCHA_ERROR(500002, "验证码错误"),
-    UID_ERROR(500002, "账号错误"),
-    PASSWORD_ERROR(500002, "密码错误"),
+    ACCOUNT_ERROR(500003, "账号或密码错误"),
     AUTHORIZED_ERROR(401, "没有权限，需要登录"),
     FORBIDDEN_ERROR(403, "权限不够，被拒绝");
 
