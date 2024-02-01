@@ -1,6 +1,8 @@
 package com.example.pcmall.activity;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.example.pcmall.R;
 import com.example.pcmall.service.LoginRegisterService;
@@ -19,9 +21,10 @@ import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
-    private ActivityMainBinding binding;
+    private final String TAG = "MainActivity";
     @Inject
-    public LoginRegisterService loginRegisterService;
+    public SharedPreferences sharedPreferences;
+    private ActivityMainBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +46,27 @@ public class MainActivity extends AppCompatActivity {
 //        Disposable subscribe = captcha.subscribeOn(Schedulers.io())
 //                .observeOn(AndroidSchedulers.mainThread())
 //                .subscribe(System.out::println);
+        Log.d(TAG, sharedPreferences.getString("data", ""));
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        System.out.println("onStop");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        System.out.println("onRestart");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.remove("data");
+        editor.apply();
+        Log.d(TAG, "MainActivity销毁");
+    }
 }
