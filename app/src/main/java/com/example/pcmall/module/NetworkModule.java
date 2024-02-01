@@ -15,6 +15,7 @@ import javax.inject.Singleton;
 import dagger.Module;
 import dagger.Provides;
 import dagger.hilt.InstallIn;
+import dagger.hilt.android.qualifiers.ApplicationContext;
 import dagger.hilt.components.SingletonComponent;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
@@ -39,10 +40,10 @@ public class NetworkModule {
 
     @Singleton
     @Provides
-    public static LoginRegisterService provideLoginService() {
+    public static LoginRegisterService provideLoginService(@ApplicationContext Context context) {
         return new Retrofit.Builder()
                 .baseUrl(baseUrl)
-                .client(okHttpClientInstance)
+                .client(getOkHttpClientInstance(context))
                 .addConverterFactory(FastJsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                 .build()
