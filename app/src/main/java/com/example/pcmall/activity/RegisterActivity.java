@@ -3,7 +3,6 @@ package com.example.pcmall.activity;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.text.Editable;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -13,15 +12,12 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.pcmall.databinding.ActivityRegisterBinding;
 import com.example.pcmall.databinding.DialogCaptchaBinding;
-import com.example.pcmall.model.response.ResponseResult;
 import com.example.pcmall.ui.viewmodel.LoginRegisterViewModel;
 import com.example.pcmall.utils.ImageUtils;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -56,7 +52,7 @@ public class RegisterActivity extends AppCompatActivity {
             dialogBinding.progressIndicator.setVisibility(View.VISIBLE);
             dialogBinding.captchaLinearLayout.setVisibility(View.GONE);
             dialogBinding.captcha.setImageBitmap(null);
-            loginRegisterViewModel.captchaImageString();//重新获取验证码图片
+            loginRegisterViewModel.getCaptcha();//重新获取验证码图片
         });
 
         //TextInputLayout聚焦事件
@@ -101,7 +97,7 @@ public class RegisterActivity extends AppCompatActivity {
                 }).create();//验证码弹窗
 
         registerButton.setOnClickListener(view -> {
-            loginRegisterViewModel.captchaImageString();//获取验证码图片
+            loginRegisterViewModel.getCaptcha();//获取验证码图片
             TextInputLayout uidTextInputLayout = binding.uidTextInputLayout;
             TextInputLayout passwordTextInputLayout = binding.passwordTextInputLayout;
             //账号密码不违法后
@@ -125,7 +121,7 @@ public class RegisterActivity extends AppCompatActivity {
         });
 
         //验证码图片获取后处理
-        loginRegisterViewModel.getCaptchaImageResponse().observe(this, responseResult -> {
+        loginRegisterViewModel.getCaptchaResponse().observe(this, responseResult -> {
             dialogBinding.progressIndicator.setVisibility(View.GONE);
             ImageView captcha = dialogBinding.captcha;
             Bitmap bitmap = ImageUtils.decodeImageString(responseResult.getData());
