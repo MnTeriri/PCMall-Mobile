@@ -2,11 +2,14 @@ package com.example.pcmall.activity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -15,21 +18,28 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.alibaba.fastjson2.JSON;
 import com.example.pcmall.databinding.ActivityLoginBinding;
 import com.example.pcmall.databinding.DialogCaptchaBinding;
 import com.example.pcmall.model.response.ResponseStatus;
 import com.example.pcmall.ui.viewmodel.LoginRegisterViewModel;
 import com.example.pcmall.utils.ImageUtils;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.Objects;
+
+import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class LoginActivity extends AppCompatActivity {
     private final String TAG = "LoginActivity";
+    @Inject
+    public SharedPreferences sharedPreferences;
+
     private ActivityLoginBinding binding;
     private DialogCaptchaBinding dialogBinding;
     private LoginRegisterViewModel loginRegisterViewModel;
@@ -59,7 +69,7 @@ public class LoginActivity extends AppCompatActivity {
             dialogBinding.progressIndicator.setVisibility(View.VISIBLE);
             dialogBinding.captchaLinearLayout.setVisibility(View.GONE);
             dialogBinding.captcha.setImageBitmap(null);
-            loginRegisterViewModel.captchaImageString();//重新获取验证码图片
+            loginRegisterViewModel.getCaptcha();//重新获取验证码图片
         });
 
         //TextInputLayout聚焦事件
@@ -101,7 +111,7 @@ public class LoginActivity extends AppCompatActivity {
 
         //点击loginButton进行登录操作
         loginButton.setOnClickListener(view -> {
-            loginRegisterViewModel.captchaImageString();//获取验证码图片
+            loginRegisterViewModel.getCaptcha();//获取验证码图片
             TextInputLayout uidTextInputLayout = binding.uidTextInputLayout;
             TextInputLayout passwordTextInputLayout = binding.passwordTextInputLayout;
             if (!uidValidate(uidTextInputLayout) && !passwordValidate(passwordTextInputLayout)) {
@@ -122,15 +132,33 @@ public class LoginActivity extends AppCompatActivity {
 
         //登录返回结果操作
         loginRegisterViewModel.getLoginResponse().observe(this, responseResult -> {
-            Toast.makeText(this, responseResult.toString(), Toast.LENGTH_SHORT).show();
-            Log.d(TAG, responseResult.toString());
             if (Objects.equals(responseResult.getCode(), ResponseStatus.CAPTCHA_ERROR.getCode())) {
                 dialogBinding.captchaTextInputLayout.setError(ResponseStatus.CAPTCHA_ERROR.getMessage());
+                loginRegisterViewModel.getCaptcha();
+                return;
+            }
+            if (Objects.equals(responseResult.getCode(), ResponseStatus.ACCOUNT_ERROR.getCode())) {
+                //账号或密码错误
+                dialog.dismiss();
+                Toast.makeText(this, "账号或密码错误！", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (Objects.equals(responseResult.getCode(), ResponseStatus.OK.getCode())) {
+                //登录成功
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString("data", JSON.toJSONString(responseResult.getData()));
+                editor.putString("token", responseResult.getMessage());
+                editor.putBoolean("remember", binding.rememberCheckBox.isChecked());
+                editor.apply();
+                dialog.dismiss();
+                Toast.makeText(this, "登录成功！", Toast.LENGTH_SHORT).show();
+                //关闭Activity
+                new Handler().postDelayed(this::finish, 2000);//延 5秒
             }
         });
 
         //验证码图片获取后处理
-        loginRegisterViewModel.getCaptchaImageResponse().observe(this, responseResult -> {
+        loginRegisterViewModel.getCaptchaResponse().observe(this, responseResult -> {
             dialogBinding.progressIndicator.setVisibility(View.GONE);
             ImageView captcha = dialogBinding.captcha;
             Bitmap bitmap = ImageUtils.decodeImageString(responseResult.getData());
