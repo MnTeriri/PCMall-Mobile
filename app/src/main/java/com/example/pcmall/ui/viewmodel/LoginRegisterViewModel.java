@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel;
 import com.example.pcmall.model.User;
 import com.example.pcmall.model.response.ResponseResult;
 import com.example.pcmall.service.LoginRegisterService;
-import com.example.pcmall.utils.RetrofitUtils;
 
 import javax.inject.Inject;
 
@@ -22,14 +21,14 @@ import lombok.Getter;
 
 @HiltViewModel
 public class LoginRegisterViewModel extends ViewModel {
-    private final String TAG = "LoginViewModel";
+    private final String TAG = "LoginRegisterViewModel";
     public LoginRegisterService loginRegisterService;
     @Getter
     private final MutableLiveData<ResponseResult<User>> loginResponse;
     @Getter
     private final MutableLiveData<ResponseResult<String>> registerResponse;
     @Getter
-    private final MutableLiveData<ResponseResult<String>> captchaImageResponse;
+    private final MutableLiveData<ResponseResult<String>> captchaResponse;
     private final CompositeDisposable compositeDisposable;
 
     @Inject
@@ -37,7 +36,7 @@ public class LoginRegisterViewModel extends ViewModel {
         this.loginRegisterService = loginRegisterService;
         this.loginResponse = new MutableLiveData<>();
         this.registerResponse = new MutableLiveData<>();
-        this.captchaImageResponse = new MutableLiveData<>();
+        this.captchaResponse = new MutableLiveData<>();
         this.compositeDisposable = new CompositeDisposable();
         Log.d(TAG, "自动注入loginService完成");
         Log.d(TAG, "MutableLiveData初始化完成");
@@ -51,9 +50,7 @@ public class LoginRegisterViewModel extends ViewModel {
                     Log.d(TAG, "登录信息：" + responseResult);
                     loginResponse.setValue(responseResult);
                 }, throwable -> {
-                    ResponseResult<User> responseResult = RetrofitUtils.getErrorMessage(throwable);
-                    Log.d(TAG, "登录信息：" + responseResult);
-                    loginResponse.setValue(responseResult);
+                    Log.d(TAG, throwable.toString());
                 });
         compositeDisposable.add(disposable);
     }
@@ -67,24 +64,21 @@ public class LoginRegisterViewModel extends ViewModel {
                     public void accept(ResponseResult<String> responseResult) throws Throwable {
 
                     }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Throwable {
-
-                    }
+                }, throwable -> {
+                    Log.d(TAG, throwable.toString());
                 });
         compositeDisposable.add(disposable);
     }
 
 
-    public void captchaImageString() {
+    public void getCaptcha() {
         Disposable disposable = loginRegisterService.getCaptcha()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<ResponseResult<String>>() {
                     @Override
                     public void accept(ResponseResult<String> responseResult) throws Throwable {
-                        captchaImageResponse.setValue(responseResult);
+                        captchaResponse.setValue(responseResult);
                         Log.d(TAG, "验证码图片：" + responseResult);
                     }
                 }, new Consumer<Throwable>() {
