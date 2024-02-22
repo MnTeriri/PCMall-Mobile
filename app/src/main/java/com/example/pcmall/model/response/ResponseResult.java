@@ -14,21 +14,29 @@ public class ResponseResult<T> {
 
     public static <T> ResponseResult<T> ok(T data) {
         ResponseResult<T> result = new ResponseResult<>();
-        result.setCode(ResponseStatus.OK.getCode());
-        result.setMessage(ResponseStatus.OK.getMessage());
+        result.setCode(ResponseCode.OK.getCode());
+        result.setMessage(ResponseCode.OK.getMessage());
         result.setData(data);
         return result;
     }
 
     public static <T> ResponseResult<T> ok(T data, String msg) {
         ResponseResult<T> result = new ResponseResult<>();
-        result.setCode(ResponseStatus.OK.getCode());
+        result.setCode(ResponseCode.OK.getCode());
         result.setMessage(msg);
         result.setData(data);
         return result;
     }
 
-    public static ResponseResult<String> error(ResponseStatus status) {
+    public static <T> ResponseResult<T> error(T data) {
+        ResponseResult<T> result = new ResponseResult<>();
+        result.setCode(ResponseCode.ERROR.getCode());
+        result.setMessage(ResponseCode.ERROR.getMessage());
+        result.setData(data);
+        return result;
+    }
+
+    public static ResponseResult<String> error(ResponseCode status) {
         return new ResponseResult<>(status.getCode(), status.getMessage(), null);
     }
 
