@@ -3,19 +3,24 @@ package com.example.pcmall.model.response;
 import lombok.Getter;
 
 @Getter
-public enum ResponseStatus {
+public enum ResponseCode {
     OK(200, "操作成功"),
+    ERROR(100000, "操作失败"),
     NO_TOKEN_ERROR(500000, "没有token"),
     TOKEN_EXPIRE_ERROR(500001, "token过期"),
     CAPTCHA_ERROR(500002, "验证码错误"),
     ACCOUNT_ERROR(500003, "账号或密码错误"),
+    USER_EXIST_ERROR(500004, "账号存在"),
+    ENTITY_NOT_FOUND(500005, "查询信息失败"),
+    STORAGE_NOT_ENOUGH_ERROR(500006, "商品库存不足"),
     AUTHORIZED_ERROR(401, "没有权限，需要登录"),
-    FORBIDDEN_ERROR(403, "权限不够，被拒绝");
+    FORBIDDEN_ERROR(403, "权限不够，被拒绝"),
+    INTERNAL_SERVER_ERROR(500, "服务器内部错误");
 
     private final Integer code;
     private final String message;
 
-    ResponseStatus(Integer code, String message) {
+    ResponseCode(Integer code, String message) {
         this.code = code;
         this.message = message;
     }
