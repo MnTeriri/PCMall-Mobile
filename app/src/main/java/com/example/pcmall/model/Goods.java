@@ -15,7 +15,9 @@ import java.time.LocalDateTime;
 public class Goods {
     private Integer id;//商品编号
     private Integer cid;//分类编号，参考category的主键
+    private Category category;
     private Integer bid;//品牌编号，参考brand的主键
+    private Brand brand;
     private String gname;//商品名称
     private LocalDateTime createdTime;//创建时间
     private LocalDateTime updateTime;//修改时间
