@@ -3,6 +3,8 @@ package com.example.pcmall.module;
 import android.content.Context;
 
 import com.example.pcmall.converter.FastJsonConverterFactory;
+import com.example.pcmall.interceptor.HeaderInterceptor;
+import com.example.pcmall.service.GoodsService;
 import com.example.pcmall.service.LoginRegisterService;
 import com.example.pcmall.service.UserService;
 import com.franmontiel.persistentcookiejar.ClearableCookieJar;
@@ -33,6 +35,7 @@ public class NetworkModule {
                     new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(context));
             okHttpClientInstance = new OkHttpClient.Builder()
                     .cookieJar(cookieJar)
+                    .addInterceptor(new HeaderInterceptor(context))
                     .build();
         }
         return okHttpClientInstance;
@@ -48,6 +51,18 @@ public class NetworkModule {
                 .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                 .build()
                 .create(LoginRegisterService.class);
+    }
+
+    @Singleton
+    @Provides
+    public static GoodsService provideGoodsService(@ApplicationContext Context context) {
+        return new Retrofit.Builder()
+                .baseUrl(baseUrl + "mobile/goods/")
+                .client(getOkHttpClientInstance(context))
+                .addConverterFactory(FastJsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+                .build()
+                .create(GoodsService.class);
     }
 
     @Singleton
