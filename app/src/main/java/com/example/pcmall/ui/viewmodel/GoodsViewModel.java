@@ -9,6 +9,7 @@ import com.example.pcmall.model.Goods;
 import com.example.pcmall.model.response.ResponseResult;
 import com.example.pcmall.service.GoodsService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -23,36 +24,39 @@ import lombok.Getter;
 
 @HiltViewModel
 public class GoodsViewModel extends ViewModel {
-    private final String TAG = "HomeViewModel";
+    private final String TAG = "GoodsViewModel";
     private GoodsService goodsService;
+    private List<Goods> goodsList;
     @Getter
-    private final MutableLiveData<ResponseResult<List<Goods>>> goodsList;
+    private final MutableLiveData<List<Goods>> goodsLiveData;
     private final CompositeDisposable compositeDisposable;
 
     @Inject
     public GoodsViewModel(GoodsService goodsService) {
         this.goodsService = goodsService;
-        this.goodsList = new MutableLiveData<>();
+        this.goodsLiveData = new MutableLiveData<>();
+        this.goodsList = new ArrayList<>();
         this.compositeDisposable = new CompositeDisposable();
+        getGoodsList(1, 20, true);
         Log.d(TAG, "自动注入goodsService完成");
         Log.d(TAG, "MutableLiveData初始化完成");
     }
 
-    public void getGoodsList(Integer currentPage, Integer pageSize) {
+    public void getGoodsList(Integer currentPage, Integer pageSize, boolean reFresh) {
         Disposable disposable = goodsService.searchGoodsList(currentPage, pageSize)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<ResponseResult<List<Goods>>>() {
-                    @Override
-                    public void accept(ResponseResult<List<Goods>> responseResult) throws Throwable {
-
-                        goodsList.setValue(responseResult);
+                .subscribe(responseResult -> {
+                    Log.d(TAG, responseResult.toString());
+                    if (reFresh) {
+                        goodsList.clear();
+                        goodsList = responseResult.getData();
+                    } else {
+                        goodsList.addAll(responseResult.getData());
                     }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Throwable {
-
-                    }
+                    goodsLiveData.setValue(goodsList);
+                }, throwable -> {
+                    goodsLiveData.setValue(null);
                 });
         compositeDisposable.add(disposable);
     }
