@@ -9,7 +9,6 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -21,11 +20,10 @@ import androidx.lifecycle.ViewModelProvider;
 import com.alibaba.fastjson2.JSON;
 import com.example.pcmall.databinding.ActivityLoginBinding;
 import com.example.pcmall.databinding.DialogCaptchaBinding;
-import com.example.pcmall.model.response.ResponseStatus;
+import com.example.pcmall.model.response.ResponseCode;
 import com.example.pcmall.ui.viewmodel.LoginRegisterViewModel;
 import com.example.pcmall.utils.ImageUtils;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.Objects;
@@ -132,18 +130,18 @@ public class LoginActivity extends AppCompatActivity {
 
         //登录返回结果操作
         loginRegisterViewModel.getLoginResponse().observe(this, responseResult -> {
-            if (Objects.equals(responseResult.getCode(), ResponseStatus.CAPTCHA_ERROR.getCode())) {
-                dialogBinding.captchaTextInputLayout.setError(ResponseStatus.CAPTCHA_ERROR.getMessage());
+            if (Objects.equals(responseResult.getCode(), ResponseCode.CAPTCHA_ERROR.getCode())) {
+                dialogBinding.captchaTextInputLayout.setError(ResponseCode.CAPTCHA_ERROR.getMessage());
                 loginRegisterViewModel.getCaptcha();
                 return;
             }
-            if (Objects.equals(responseResult.getCode(), ResponseStatus.ACCOUNT_ERROR.getCode())) {
+            if (Objects.equals(responseResult.getCode(), ResponseCode.ACCOUNT_ERROR.getCode())) {
                 //账号或密码错误
                 dialog.dismiss();
                 Toast.makeText(this, "账号或密码错误！", Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (Objects.equals(responseResult.getCode(), ResponseStatus.OK.getCode())) {
+            if (Objects.equals(responseResult.getCode(), ResponseCode.OK.getCode())) {
                 //登录成功
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putString("data", JSON.toJSONString(responseResult.getData()));
