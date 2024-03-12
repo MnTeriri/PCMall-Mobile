@@ -4,15 +4,13 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.example.pcmall.R;
-import com.example.pcmall.service.LoginRegisterService;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.example.pcmall.R;
 import com.example.pcmall.databinding.ActivityMainBinding;
 
 import javax.inject.Inject;
@@ -42,10 +40,6 @@ public class MainActivity extends AppCompatActivity {
         //NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
 
-//        Observable<String> captcha = loginService.getCaptcha();
-//        Disposable subscribe = captcha.subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(System.out::println);
         Log.d(TAG, sharedPreferences.getString("data", ""));
     }
 
