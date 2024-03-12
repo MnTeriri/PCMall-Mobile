@@ -1,11 +1,11 @@
 package com.example.pcmall.application;
 
 import android.app.Application;
-import android.content.BroadcastReceiver;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import com.example.pcmall.module.NetworkModule;
+import com.alibaba.fastjson2.JSON;
+import com.example.pcmall.model.User;
 
 import javax.inject.Inject;
 
@@ -26,13 +26,24 @@ public class PCMallApplication extends Application {
         if (!remember) {
             Log.d(TAG, "用户没有记住账号，清空token和登录信息");
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString("data", "");
-            editor.putString("token", "");
+            editor.putString("data", null);
+            editor.putString("token", null);
             editor.apply();
         }
 //        SharedPreferences.Editor editor = sharedPreferences.edit();
-//        editor.putString("data", "");
-//        editor.putString("token", "");
+//        editor.putString("data", null);
+//        editor.putString("token", null);
 //        editor.apply();
+    }
+
+    public User getUserData() {
+        User user = null;
+        String data = sharedPreferences.getString("data", null);
+        if ("".equals(data)) {
+            Log.d(TAG, "用户没登陆");
+            return null;
+        }
+        user = JSON.parseObject(data, User.class);
+        return user;
     }
 }
