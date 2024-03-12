@@ -6,7 +6,6 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.pcmall.model.Goods;
-import com.example.pcmall.model.response.ResponseResult;
 import com.example.pcmall.service.GoodsService;
 
 import java.util.ArrayList;
@@ -18,25 +17,31 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.Getter;
 
 @HiltViewModel
-public class GoodsViewModel extends ViewModel {
-    private final String TAG = "GoodsViewModel";
-    private GoodsService goodsService;
+public class HomeViewModel extends ViewModel {
+    private final String TAG = "HomeViewModel";
+    public final static Integer LOAD_ERROR = -1;
+    public final static Integer LOAD_MORE_SUCCESS = 1;
+    public final static Integer REFRESH_SUCCESS = 2;
+    private final GoodsService goodsService;
+    private final CompositeDisposable compositeDisposable;
+
     private List<Goods> goodsList;
     @Getter
     private final MutableLiveData<List<Goods>> goodsLiveData;
-    private final CompositeDisposable compositeDisposable;
+    @Getter
+    private final MutableLiveData<Integer> flagLiveData;
 
     @Inject
-    public GoodsViewModel(GoodsService goodsService) {
+    public HomeViewModel(GoodsService goodsService) {
         this.goodsService = goodsService;
-        this.goodsLiveData = new MutableLiveData<>();
-        this.goodsList = new ArrayList<>();
         this.compositeDisposable = new CompositeDisposable();
+        this.goodsLiveData = new MutableLiveData<>();
+        this.flagLiveData = new MutableLiveData<>();
+        this.goodsList = new ArrayList<>();
         getGoodsList(1, 20, true);
         Log.d(TAG, "自动注入goodsService完成");
         Log.d(TAG, "MutableLiveData初始化完成");
@@ -51,12 +56,14 @@ public class GoodsViewModel extends ViewModel {
                     if (reFresh) {
                         goodsList.clear();
                         goodsList = responseResult.getData();
+                        flagLiveData.setValue(HomeViewModel.REFRESH_SUCCESS);
                     } else {
                         goodsList.addAll(responseResult.getData());
+                        flagLiveData.setValue(HomeViewModel.LOAD_MORE_SUCCESS);
                     }
                     goodsLiveData.setValue(goodsList);
                 }, throwable -> {
-                    goodsLiveData.setValue(null);
+                    flagLiveData.setValue(HomeViewModel.LOAD_ERROR);
                 });
         compositeDisposable.add(disposable);
     }

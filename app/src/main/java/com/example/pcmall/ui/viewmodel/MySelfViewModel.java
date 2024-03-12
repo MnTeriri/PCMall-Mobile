@@ -2,6 +2,8 @@ package com.example.pcmall.ui.viewmodel;
 
 import android.util.Log;
 
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.pcmall.service.OrderService;
@@ -12,13 +14,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 
 @HiltViewModel
-public class OrderViewModel extends ViewModel {
-    private final String TAG = "OrderViewModel";
+public class MySelfViewModel extends ViewModel {
+    private final String TAG = "MySelfViewModel";
     private final OrderService orderService;
     private final CompositeDisposable compositeDisposable;
 
     @Inject
-    public OrderViewModel(OrderService orderService) {
+    public MySelfViewModel(OrderService orderService) {
         this.orderService = orderService;
         this.compositeDisposable = new CompositeDisposable();
         Log.d(TAG, "自动注入OrderService完成");
