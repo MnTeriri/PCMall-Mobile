@@ -11,10 +11,13 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @Data
 @Accessors(chain = true)
-public class Category {
-    private Integer id;//分类编号
-    private String cname;//分类名称
+public class Cart {
+    private Integer id;//购物车信息编号
+    private String uid;//用户编号
+    private Integer gid;//商品编号
+    private Goods goods;
+    private Integer count;//选购数量
     private LocalDateTime createdTime;//创建时间
-    private LocalDateTime updateTime;//修改时间
+    private Integer isSelect;//0为未选购，1为选购
     private Integer isDelete;//是否删除（0正常 1删除）
 }
