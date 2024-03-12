@@ -1,7 +1,5 @@
 package com.example.pcmall.ui.fragment;
 
-import static android.content.Context.MODE_PRIVATE;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -10,8 +8,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
@@ -25,8 +21,7 @@ import com.example.pcmall.activity.LoginActivity;
 import com.example.pcmall.activity.OrderActivity;
 import com.example.pcmall.databinding.FragmentMyselfBinding;
 import com.example.pcmall.model.User;
-import com.example.pcmall.ui.viewmodel.NotificationsViewModel;
-import com.google.android.material.badge.BadgeDrawable;
+import com.example.pcmall.ui.viewmodel.MySelfViewModel;
 import com.google.android.material.badge.ExperimentalBadgeUtils;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.card.MaterialCardView;
@@ -46,8 +41,8 @@ public class MySelfFragment extends Fragment {
 
     @OptIn(markerClass = ExperimentalBadgeUtils.class)
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        NotificationsViewModel notificationsViewModel =
-                new ViewModelProvider(this).get(NotificationsViewModel.class);
+        MySelfViewModel mySelfViewModel =
+                new ViewModelProvider(this).get(MySelfViewModel.class);
         binding = FragmentMyselfBinding.inflate(inflater, container, false);
         activity = getActivity();
 
