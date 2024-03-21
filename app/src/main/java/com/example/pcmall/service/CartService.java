@@ -21,4 +21,16 @@ public interface CartService {
     @FormUrlEncoded
     @POST("getTotalCount")
     Observable<ResponseResult<Long>> getTotalCount(@Field("uid") String uid);
+
+    @FormUrlEncoded
+    @POST("addCartCount")
+    public Observable<ResponseResult<String>> addCartCount(@Field("id") Integer id);
+
+    @FormUrlEncoded
+    @POST("subCartCount")
+    public Observable<ResponseResult<String>> subCartCount(@Field("id") Integer id);
+
+    @FormUrlEncoded
+    @POST("selectCart")
+    public Observable<ResponseResult<String>> selectCart(@Field("id") Integer id, @Field("isSelect") Integer isSelect);
 }
