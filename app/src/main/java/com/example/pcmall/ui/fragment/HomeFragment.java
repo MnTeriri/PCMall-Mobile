@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.pcmall.adapter.GoodsListAdapter;
 import com.example.pcmall.databinding.FragmentHomeBinding;
 import com.example.pcmall.model.Goods;
+import com.example.pcmall.model.Pagination;
 import com.example.pcmall.service.GoodsService;
 import com.example.pcmall.ui.viewmodel.HomeViewModel;
 import com.scwang.smart.refresh.footer.ClassicsFooter;
@@ -37,6 +38,7 @@ public class HomeFragment extends Fragment {
     private HomeViewModel homeViewModel;
     private GoodsListAdapter goodsListAdapter;
     private List<Goods> goodsList;
+    private Pagination pagination;
     @Inject
     public GoodsService goodsService;
 
@@ -54,9 +56,12 @@ public class HomeFragment extends Fragment {
     }
 
     //初始化数据
-    private void initData(){
+    private void initData() {
         Log.d(TAG, "加载数据");
         goodsList = new ArrayList<>();
+        pagination = new Pagination();
+        homeViewModel.getGoodsList(pagination.getCurrentPage(), pagination.getPageSize(), true);
+        homeViewModel.getTotalCount();
     }
 
     //初始化View
@@ -67,11 +72,6 @@ public class HomeFragment extends Fragment {
         goodsListAdapter = new GoodsListAdapter(goodsList);
         recycleView.setAdapter(goodsListAdapter);
         recycleView.setLayoutManager(new GridLayoutManager(this.getContext(), 2));
-
-        //初始化RefreshLayout
-        RefreshLayout refreshLayout = binding.refreshLayout;
-        refreshLayout.setRefreshHeader(new ClassicsHeader(this.getContext()));
-        refreshLayout.setRefreshFooter(new ClassicsFooter(this.getContext()));
     }
 
     //添加事件
@@ -81,12 +81,18 @@ public class HomeFragment extends Fragment {
         //上拉刷新
         refreshLayout.setOnRefreshListener(refreshlayout -> {
             Log.d(TAG, "上拉刷新RefreshLayout");
-            homeViewModel.getGoodsList(1, 20, true);
+            pagination.setCurrentPage(1);
+            homeViewModel.getGoodsList(pagination.getCurrentPage(), pagination.getPageSize(), true);
+            homeViewModel.getTotalCount();
         });
         //下拉加载更多
         refreshLayout.setOnLoadMoreListener(refreshlayout -> {
             Log.d(TAG, "下拉加载RefreshLayout");
-            homeViewModel.getGoodsList(1, 20, false);
+            if (pagination.nextPage()) {
+                homeViewModel.getGoodsList(pagination.getCurrentPage(), pagination.getPageSize(), false);
+            } else {
+                binding.refreshLayout.setNoMoreData(true);
+            }
         });
     }
 
@@ -97,6 +103,10 @@ public class HomeFragment extends Fragment {
             goodsList.clear();
             goodsList.addAll(list);
             goodsListAdapter.notifyDataSetChanged();
+        });
+
+        homeViewModel.getTotalCountLiveData().observe(getViewLifecycleOwner(), totalCount -> {
+            pagination.setTotalCount(Math.toIntExact(totalCount));
         });
 
         homeViewModel.getFlagLiveData().observe(getViewLifecycleOwner(), flag -> {
