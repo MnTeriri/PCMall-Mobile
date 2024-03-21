@@ -50,9 +50,11 @@ public class Pagination {
     }
 
     public Integer getTotalPage() {
-        totalPage = totalCount / pageSize;
-        if (totalCount % pageSize != 0) {
-            totalPage++;
+        if (totalCount != null) {
+            totalPage = totalCount / pageSize;
+            if (totalCount % pageSize != 0) {
+                totalPage++;
+            }
         }
         return totalPage;
     }
