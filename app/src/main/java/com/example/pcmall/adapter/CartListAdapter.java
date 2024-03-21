@@ -1,10 +1,10 @@
 package com.example.pcmall.adapter;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -44,21 +44,35 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.CartIt
         GlideApp.with(context)
                 .load(NetworkModule.baseUrl + "image/" + goods.getImage())
                 .into(holder.binding.imageView);
-        holder.binding.gnameTextView.setText(goods.getGname());
-        holder.binding.descriptionTextView.setText(goods.getDescription());
-        holder.binding.priceTextView.setText("￥" + goods.getPrice().toString());
-        holder.binding.count.setText(cart.getCount().toString());
-
-        if (addListener != null) {
-            holder.binding.addButton.setOnClickListener(v -> addListener.onClick(v, cart));
+        holder.binding.gnameTextView.setText(goods.getBrand().getBname() + goods.getGname());
+        if (goods.getStatus() == 0 && goods.getIsDelete() == 0) {
+            holder.binding.descriptionTextView.setText(goods.getDescription());
+            holder.binding.priceLinearLayout.setVisibility(View.VISIBLE);
+            holder.binding.selectCheckBox.setEnabled(true);
+            holder.binding.selectCheckBox.setChecked(cart.getIsSelect() == 1);
+            holder.binding.priceTextView.setText("￥" + goods.getPrice().toString());
+            holder.binding.count.setText(cart.getCount().toString());
+            if (addListener != null) {
+                holder.binding.addButton.setOnClickListener(v -> addListener.onClick(v, cart));
+            }
+            if (divListener != null) {
+                holder.binding.divBotton.setOnClickListener(v -> divListener.onClick(v, cart));
+            }
+            if (selectListener != null) {
+                holder.binding.selectCheckBox.setOnClickListener(v -> selectListener.onCheckedChanged(v, cart));
+            }
+        } else {
+            holder.binding.priceLinearLayout.setVisibility(View.GONE);
+            holder.binding.selectCheckBox.setEnabled(false);
+            holder.binding.selectCheckBox.setChecked(false);
+            if (goods.getStatus() == 1) {
+                holder.binding.descriptionTextView.setText("该商品缺货！");
+            } else if (goods.getStatus() == 2) {
+                holder.binding.descriptionTextView.setText("该商品已下架！");
+            } else if (goods.getIsDelete() == 1) {
+                holder.binding.descriptionTextView.setText("该商品已删除！");
+            }
         }
-        if (divListener != null) {
-            holder.binding.divBotton.setOnClickListener(v -> divListener.onClick(v, cart));
-        }
-        if (selectListener != null) {
-            holder.binding.selectCheckBox.setOnClickListener(v -> selectListener.onCheckedChanged(v, cart));
-        }
-
     }
 
     public void setAddListener(OnItemButtonClickListener<Cart> listener) {
