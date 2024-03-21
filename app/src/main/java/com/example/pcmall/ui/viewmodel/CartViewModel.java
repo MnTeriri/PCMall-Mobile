@@ -8,9 +8,11 @@ import androidx.lifecycle.ViewModel;
 import com.example.pcmall.model.Cart;
 import com.example.pcmall.model.Goods;
 import com.example.pcmall.model.User;
+import com.example.pcmall.model.response.ResponseCode;
 import com.example.pcmall.model.response.ResponseResult;
 import com.example.pcmall.service.CartService;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,16 +31,18 @@ import lombok.Setter;
 @HiltViewModel
 public class CartViewModel extends ViewModel {
     private final String TAG = "CartViewModel";
-    public final static Integer ERROR = -2;
-    public final static Integer LOAD_ERROR = -1;
-    public final static Integer LOAD_MORE_SUCCESS = 1;
-    public final static Integer REFRESH_SUCCESS = 2;
+    public final static Integer ERROR = -2;//错误
+    public final static Integer LOAD_ERROR = -1;//加载错误
+    public final static Integer LOAD_MORE_SUCCESS = 1;//加载更多成功
+    public final static Integer REFRESH_SUCCESS = 2;//刷新成功
     private final CartService cartService;
     private final CompositeDisposable compositeDisposable;
     private List<Cart> cartList;
 
     @Getter
     private final MutableLiveData<List<Cart>> cartLiveData;
+    @Getter
+    private final MutableLiveData<BigDecimal> totalPriceLiveData;
     @Getter
     private final MutableLiveData<Long> totalCountLiveData;
     @Getter
@@ -49,6 +53,7 @@ public class CartViewModel extends ViewModel {
         this.cartService = cartService;
         this.compositeDisposable = new CompositeDisposable();
         this.cartLiveData = new MutableLiveData<>();
+        this.totalPriceLiveData = new MutableLiveData<>();
         this.totalCountLiveData = new MutableLiveData<>();
         this.flagLiveData = new MutableLiveData<>();
         this.cartList = new ArrayList<>();
@@ -71,10 +76,22 @@ public class CartViewModel extends ViewModel {
                         flagLiveData.setValue(CartViewModel.LOAD_MORE_SUCCESS);
                     }
                     cartLiveData.setValue(cartList);
+                    selectPriceHandel();
                 }, throwable -> {
                     flagLiveData.setValue(CartViewModel.LOAD_ERROR);
                 });
         compositeDisposable.add(disposable);
+    }
+
+    private void selectPriceHandel() {
+        BigDecimal total = new BigDecimal("0");
+        for (Cart cart : cartList) {
+            Goods goods = cart.getGoods();
+            if (cart.getIsSelect() == 1 && goods.getStatus() == 0 && goods.getIsDelete() == 0) {
+                total = total.add(goods.getPrice().multiply(BigDecimal.valueOf(cart.getCount())));
+            }
+        }
+        totalPriceLiveData.setValue(total);
     }
 
     public void getTotalCount(String uid) {
@@ -86,6 +103,39 @@ public class CartViewModel extends ViewModel {
                 }, throwable -> {
                     flagLiveData.setValue(CartViewModel.ERROR);
                 });
+        compositeDisposable.add(disposable);
+    }
+
+    public void addCartCount(Integer gid) {
+        Disposable disposable = cartService.addCartCount(gid)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        stringResponseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
+                        throwable -> flagLiveData.setValue(ResponseCode.GOODS_NOT_ENOUGH_ERROR.getCode())
+                );
+        compositeDisposable.add(disposable);
+    }
+
+    public void subCartCount(Integer gid) {
+        Disposable disposable = cartService.subCartCount(gid)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        stringResponseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
+                        throwable -> flagLiveData.setValue(ResponseCode.CART_MIN_COUNT_ERROR.getCode())
+                );
+        compositeDisposable.add(disposable);
+    }
+
+    public void selectCart(Integer gid, Integer isSelect) {
+        Disposable disposable = cartService.selectCart(gid, isSelect)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        stringResponseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
+                        throwable -> flagLiveData.setValue(ResponseCode.CART_GOODS_ERROR.getCode())
+                );
         compositeDisposable.add(disposable);
     }
 
