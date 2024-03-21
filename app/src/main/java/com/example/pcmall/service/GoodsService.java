@@ -16,4 +16,7 @@ public interface GoodsService {
     Observable<ResponseResult<List<Goods>>> searchGoodsList(
             @Field("currentPage") Integer currentPage,
             @Field("pageSize") Integer pageSize);
+
+    @POST("searchTotalCount")
+    Observable<ResponseResult<Long>> searchTotalCount();
 }
