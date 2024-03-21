@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,8 +22,11 @@ import com.example.pcmall.databinding.FragmentCartBinding;
 import com.example.pcmall.model.Cart;
 import com.example.pcmall.model.Pagination;
 import com.example.pcmall.model.User;
+import com.example.pcmall.model.response.ResponseCode;
 import com.example.pcmall.ui.viewmodel.CartViewModel;
+import com.google.android.material.checkbox.MaterialCheckBox;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -48,11 +52,16 @@ public class CartFragment extends Fragment {
         binding = FragmentCartBinding.inflate(inflater, container, false);
         cartViewModel = new ViewModelProvider(this).get(CartViewModel.class);
         View root = binding.getRoot();
-
-        initData();
-        initView();
-        initListener();
-        handelObserve();
+        user = ((PCMallApplication) getActivity().getApplication()).getUserData();
+        if (user != null) {
+            initData();
+            initView();
+            initListener();
+            handelObserve();
+        } else {
+            binding.information.setVisibility(View.VISIBLE);
+            binding.refreshLayout.setVisibility(View.GONE);
+        }
         Log.d(TAG, "CartFragment启动");
         return root;
     }
@@ -60,7 +69,6 @@ public class CartFragment extends Fragment {
     //初始化数据
     private void initData() {
         Log.d(TAG, "加载数据");
-        user = ((PCMallApplication) getActivity().getApplication()).getUserData();
         cartList = new ArrayList<>();
         pagination = new Pagination();
         cartViewModel.getCartList(user.getUid(), pagination.getCurrentPage(), pagination.getPageSize(), true);
@@ -97,18 +105,16 @@ public class CartFragment extends Fragment {
         });
         //增加购物车商品数量
         cartListAdapter.setAddListener((v, data) -> {
-            Log.d(TAG, v.toString());
-            Log.d(TAG, data.toString());
+            cartViewModel.addCartCount(data.getId());
         });
         //减少购物车商品数量
         cartListAdapter.setDivListener((v, data) -> {
-            Log.d(TAG, v.toString());
-            Log.d(TAG, data.toString());
+            cartViewModel.subCartCount(data.getId());
         });
         //购物车商品选中
         cartListAdapter.setSelectListener((v, data) -> {
-            Log.d(TAG, v.toString());
-            Log.d(TAG, data.toString());
+            MaterialCheckBox checkBox = (MaterialCheckBox) v;
+            cartViewModel.selectCart(data.getId(), checkBox.getCheckedState());
         });
     }
 
@@ -120,6 +126,8 @@ public class CartFragment extends Fragment {
             cartList.addAll(list);
             cartListAdapter.notifyDataSetChanged();
         });
+
+        cartViewModel.getTotalPriceLiveData().observe(getViewLifecycleOwner(), bigDecimal -> binding.totalPriceTextView.setText("合计：￥" + bigDecimal.toString()));
 
         cartViewModel.getTotalCountLiveData().observe(getViewLifecycleOwner(), totalCount -> {
             pagination.setTotalCount(Math.toIntExact(totalCount));
@@ -133,6 +141,16 @@ public class CartFragment extends Fragment {
             } else if (Objects.equals(flag, CartViewModel.LOAD_ERROR)) {
                 binding.refreshLayout.finishRefresh(false);//传入false表示刷新失败
                 binding.refreshLayout.finishLoadMore(false);
+            } else if (Objects.equals(flag, ResponseCode.OK.getCode())) {
+                cartViewModel.getCartList(user.getUid(), 1, pagination.getCurrentPage() * pagination.getPageSize(), true);
+            } else if (Objects.equals(flag, ResponseCode.GOODS_NOT_ENOUGH_ERROR.getCode())) {
+                Toast.makeText(getContext(), "商品库存不足！", Toast.LENGTH_SHORT).show();
+                cartViewModel.getCartList(user.getUid(), 1, pagination.getCurrentPage() * pagination.getPageSize(), true);
+            } else if (Objects.equals(flag, ResponseCode.CART_MIN_COUNT_ERROR.getCode())) {
+                Toast.makeText(getContext(), "购物车数量最小！", Toast.LENGTH_SHORT).show();
+                cartViewModel.getCartList(user.getUid(), 1, pagination.getCurrentPage() * pagination.getPageSize(), true);
+            } else if (Objects.equals(flag, ResponseCode.CART_GOODS_ERROR.getCode())) {
+                cartViewModel.getCartList(user.getUid(), 1, pagination.getCurrentPage() * pagination.getPageSize(), true);
             } else if (Objects.equals(flag, CartViewModel.ERROR)) {
                 Toast.makeText(getContext(), "错误！", Toast.LENGTH_SHORT).show();
             }
