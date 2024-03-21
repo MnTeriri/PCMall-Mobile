@@ -13,15 +13,15 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class HeaderInterceptor implements Interceptor {
-    private final String token;
+    private final SharedPreferences sharedPreferences;
 
     public HeaderInterceptor(Context context) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences("userData", MODE_PRIVATE);
-        token = sharedPreferences.getString("token", "");
+        sharedPreferences = context.getSharedPreferences("userData", MODE_PRIVATE);
     }
 
     @Override
     public Response intercept(Chain chain) throws IOException {
+        String token = sharedPreferences.getString("token", "");
         Request request = chain.request().newBuilder()
                 .addHeader("token", token)
                 .build();
