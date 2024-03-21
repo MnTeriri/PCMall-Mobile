@@ -23,6 +23,7 @@ import lombok.Getter;
 @HiltViewModel
 public class HomeViewModel extends ViewModel {
     private final String TAG = "HomeViewModel";
+    public final static Integer ERROR = -2;//错误
     public final static Integer LOAD_ERROR = -1;
     public final static Integer LOAD_MORE_SUCCESS = 1;
     public final static Integer REFRESH_SUCCESS = 2;
@@ -33,6 +34,8 @@ public class HomeViewModel extends ViewModel {
     @Getter
     private final MutableLiveData<List<Goods>> goodsLiveData;
     @Getter
+    private final MutableLiveData<Long> totalCountLiveData;
+    @Getter
     private final MutableLiveData<Integer> flagLiveData;
 
     @Inject
@@ -40,9 +43,9 @@ public class HomeViewModel extends ViewModel {
         this.goodsService = goodsService;
         this.compositeDisposable = new CompositeDisposable();
         this.goodsLiveData = new MutableLiveData<>();
+        this.totalCountLiveData = new MutableLiveData<>();
         this.flagLiveData = new MutableLiveData<>();
         this.goodsList = new ArrayList<>();
-        getGoodsList(1, 20, true);
         Log.d(TAG, "自动注入goodsService完成");
         Log.d(TAG, "MutableLiveData初始化完成");
     }
@@ -64,6 +67,18 @@ public class HomeViewModel extends ViewModel {
                     goodsLiveData.setValue(goodsList);
                 }, throwable -> {
                     flagLiveData.setValue(HomeViewModel.LOAD_ERROR);
+                });
+        compositeDisposable.add(disposable);
+    }
+
+    public void getTotalCount() {
+        Disposable disposable = goodsService.searchTotalCount()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(responseResult -> {
+                    totalCountLiveData.setValue(responseResult.getData());
+                }, throwable -> {
+                    flagLiveData.setValue(HomeViewModel.ERROR);
                 });
         compositeDisposable.add(disposable);
     }
