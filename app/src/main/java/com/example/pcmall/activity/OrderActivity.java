@@ -10,8 +10,6 @@ import com.google.android.material.tabs.TabLayout;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
-;
-
 @AndroidEntryPoint
 public class OrderActivity extends AppCompatActivity {
     private ActivityOrderBinding binding;
