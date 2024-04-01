@@ -26,6 +26,9 @@
             android:name=".activity.OrderActivity"
             android:exported="false" />
         <activity
+            android:name=".activity.GoodsActivity"
+            android:exported="false" />
+        <activity
             android:name=".activity.MainActivity"
             android:exported="true"
             android:label="@string/app_name">
