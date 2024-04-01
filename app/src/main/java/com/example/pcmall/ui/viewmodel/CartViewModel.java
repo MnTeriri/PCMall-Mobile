@@ -98,44 +98,64 @@ public class CartViewModel extends ViewModel {
         Disposable disposable = cartService.getTotalCount(uid)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(responseResult -> {
-                    totalCountLiveData.setValue(responseResult.getData());
-                }, throwable -> {
-                    flagLiveData.setValue(CartViewModel.ERROR);
-                });
+                .subscribe(
+                        responseResult -> totalCountLiveData.setValue(responseResult.getData()),
+                        throwable -> flagLiveData.setValue(CartViewModel.ERROR)
+                );
         compositeDisposable.add(disposable);
     }
 
-    public void addCartCount(Integer gid) {
-        Disposable disposable = cartService.addCartCount(gid)
+    public void addCartCount(Integer id) {
+        Disposable disposable = cartService.addCartCount(id)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        stringResponseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
+                        responseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
                         throwable -> flagLiveData.setValue(ResponseCode.GOODS_NOT_ENOUGH_ERROR.getCode())
                 );
         compositeDisposable.add(disposable);
     }
 
-    public void subCartCount(Integer gid) {
-        Disposable disposable = cartService.subCartCount(gid)
+    public void subCartCount(Integer id) {
+        Disposable disposable = cartService.subCartCount(id)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        stringResponseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
+                        responseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
                         throwable -> flagLiveData.setValue(ResponseCode.CART_MIN_COUNT_ERROR.getCode())
                 );
         compositeDisposable.add(disposable);
     }
 
-    public void selectCart(Integer gid, Integer isSelect) {
-        Disposable disposable = cartService.selectCart(gid, isSelect)
+    public void selectCart(Integer id, Integer isSelect) {
+        Disposable disposable = cartService.selectCart(id, isSelect)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        stringResponseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
+                        responseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
                         throwable -> flagLiveData.setValue(ResponseCode.CART_GOODS_ERROR.getCode())
                 );
+        compositeDisposable.add(disposable);
+    }
+
+    public void selectAllCart(String uid, Integer isSelect) {
+        Disposable disposable = cartService.selectAllCart(uid, isSelect)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        responseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
+                        throwable -> flagLiveData.setValue(CartViewModel.ERROR)
+                );
+        compositeDisposable.add(disposable);
+    }
+
+    public void deleteCart(Integer id) {
+        Disposable disposable = cartService.deleteCart(id)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        responseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
+                        throwable -> flagLiveData.setValue(CartViewModel.ERROR));
         compositeDisposable.add(disposable);
     }
 
