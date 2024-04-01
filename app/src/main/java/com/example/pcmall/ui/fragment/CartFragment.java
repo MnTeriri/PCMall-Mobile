@@ -1,21 +1,24 @@
 package com.example.pcmall.ui.fragment;
 
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.alibaba.fastjson2.JSON;
+import com.example.pcmall.R;
+import com.example.pcmall.activity.GoodsActivity;
 import com.example.pcmall.adapter.CartListAdapter;
 import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.FragmentCartBinding;
@@ -25,8 +28,8 @@ import com.example.pcmall.model.User;
 import com.example.pcmall.model.response.ResponseCode;
 import com.example.pcmall.ui.viewmodel.CartViewModel;
 import com.google.android.material.checkbox.MaterialCheckBox;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -94,6 +97,7 @@ public class CartFragment extends Fragment {
             cartViewModel.getCartList(user.getUid(), pagination.getCurrentPage(), pagination.getPageSize(), true);
             cartViewModel.getTotalCount(user.getUid());
         });
+
         //下拉加载更多
         binding.refreshLayout.setOnLoadMoreListener(refreshlayout -> {
             Log.d(TAG, "下拉加载RefreshLayout");
@@ -103,18 +107,55 @@ public class CartFragment extends Fragment {
                 binding.refreshLayout.setNoMoreData(true);
             }
         });
+
+        //点击打开商品页面
+        cartListAdapter.setOnClickListener((v, cart) -> {
+            Intent intent = new Intent(getActivity(), GoodsActivity.class);
+            intent.putExtra("goods", JSON.toJSONString(cart.getGoods()));
+            getActivity().startActivity(intent);
+        });
+
+        //长按进行购物车删除
+        cartListAdapter.setOnLongClickListener((v, cart) -> {
+            new MaterialAlertDialogBuilder(getContext())
+                    .setMessage("确认要将这件商品删除？")
+                    .setNeutralButton("取消", null)
+                    .setPositiveButton(
+                            "确认",
+                            (dialog, which) -> cartViewModel.deleteCart(cart.getId())
+                    )
+                    .show();
+            return true;
+        });
+
         //增加购物车商品数量
         cartListAdapter.setAddListener((v, data) -> {
             cartViewModel.addCartCount(data.getId());
         });
+
         //减少购物车商品数量
         cartListAdapter.setDivListener((v, data) -> {
             cartViewModel.subCartCount(data.getId());
         });
+
         //购物车商品选中
         cartListAdapter.setSelectListener((v, data) -> {
             MaterialCheckBox checkBox = (MaterialCheckBox) v;
             cartViewModel.selectCart(data.getId(), checkBox.getCheckedState());
+        });
+
+        //购物车全选和全不选
+        binding.selectAllCheckBox.setOnClickListener(v -> {
+            MaterialCheckBox checkBox = (MaterialCheckBox) binding.selectAllCheckBox;
+            cartViewModel.selectAllCart(user.getUid(), checkBox.getCheckedState());
+        });
+
+        //结算按钮
+        binding.addOrderButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
         });
     }
 

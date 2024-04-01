@@ -1,5 +1,6 @@
 package com.example.pcmall.ui.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,6 +14,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.alibaba.fastjson2.JSON;
+import com.example.pcmall.activity.GoodsActivity;
 import com.example.pcmall.adapter.GoodsListAdapter;
 import com.example.pcmall.databinding.FragmentHomeBinding;
 import com.example.pcmall.model.Goods;
@@ -85,6 +88,7 @@ public class HomeFragment extends Fragment {
             homeViewModel.getGoodsList(pagination.getCurrentPage(), pagination.getPageSize(), true);
             homeViewModel.getTotalCount();
         });
+
         //下拉加载更多
         refreshLayout.setOnLoadMoreListener(refreshlayout -> {
             Log.d(TAG, "下拉加载RefreshLayout");
@@ -93,6 +97,13 @@ public class HomeFragment extends Fragment {
             } else {
                 binding.refreshLayout.setNoMoreData(true);
             }
+        });
+
+        //点击打开商品页面
+        goodsListAdapter.setOnClickListener((v, goods) -> {
+            Intent intent = new Intent(getActivity(), GoodsActivity.class);
+            intent.putExtra("goods", JSON.toJSONString(goods));
+            getActivity().startActivity(intent);
         });
     }
 
