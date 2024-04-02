@@ -16,7 +16,7 @@ public class Pagination {
     public Pagination() {
         this.currentPage = 1;
         this.totalPage = 1;
-        this.pageSize = 10;
+        this.pageSize = 20;
     }
 
     public Pagination(Integer pageSize) {
