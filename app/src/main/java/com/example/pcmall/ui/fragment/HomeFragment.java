@@ -3,11 +3,15 @@ package com.example.pcmall.ui.fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -22,6 +26,8 @@ import com.example.pcmall.model.Goods;
 import com.example.pcmall.model.Pagination;
 import com.example.pcmall.service.GoodsService;
 import com.example.pcmall.ui.viewmodel.HomeViewModel;
+import com.google.android.material.search.SearchBar;
+import com.google.android.material.search.SearchView;
 import com.scwang.smart.refresh.footer.ClassicsFooter;
 import com.scwang.smart.refresh.header.ClassicsHeader;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
@@ -40,7 +46,11 @@ public class HomeFragment extends Fragment {
     private FragmentHomeBinding binding;
     private HomeViewModel homeViewModel;
     private GoodsListAdapter goodsListAdapter;
+    private GoodsListAdapter searchListAdapter;
     private List<Goods> goodsList;
+    private List<Goods> searchList;
+    private String searchValue = "";
+    private Pagination searchPagination;
     private Pagination pagination;
     @Inject
     public GoodsService goodsService;
@@ -62,7 +72,9 @@ public class HomeFragment extends Fragment {
     private void initData() {
         Log.d(TAG, "加载数据");
         goodsList = new ArrayList<>();
+        searchList = new ArrayList<>();
         pagination = new Pagination();
+        searchPagination = new Pagination();
         homeViewModel.getGoodsList(pagination.getCurrentPage(), pagination.getPageSize(), true);
         homeViewModel.getTotalCount();
     }
@@ -72,16 +84,20 @@ public class HomeFragment extends Fragment {
         Log.d(TAG, "初始化View");
         //初始化RecyclerView，添加Adapter和LayoutManager
         RecyclerView recycleView = binding.recycleView;
+        RecyclerView searchRecycleView = binding.searchRecycleView;
         goodsListAdapter = new GoodsListAdapter(goodsList);
+        searchListAdapter = new GoodsListAdapter(searchList);
         recycleView.setAdapter(goodsListAdapter);
+        searchRecycleView.setAdapter(searchListAdapter);
         recycleView.setLayoutManager(new GridLayoutManager(this.getContext(), 2));
+        searchRecycleView.setLayoutManager(new GridLayoutManager(this.getContext(), 2));
     }
 
     //添加事件
     private void initListener() {
         Log.d(TAG, "添加事件");
         RefreshLayout refreshLayout = binding.refreshLayout;
-        //上拉刷新
+        //主页上拉刷新
         refreshLayout.setOnRefreshListener(refreshlayout -> {
             Log.d(TAG, "上拉刷新RefreshLayout");
             pagination.setCurrentPage(1);
@@ -89,7 +105,7 @@ public class HomeFragment extends Fragment {
             homeViewModel.getTotalCount();
         });
 
-        //下拉加载更多
+        //主页下拉加载更多
         refreshLayout.setOnLoadMoreListener(refreshlayout -> {
             Log.d(TAG, "下拉加载RefreshLayout");
             if (pagination.nextPage()) {
@@ -105,6 +121,49 @@ public class HomeFragment extends Fragment {
             intent.putExtra("goods", JSON.toJSONString(goods));
             getActivity().startActivity(intent);
         });
+
+        //搜索界面
+        binding.searchView.getEditText().setOnEditorActionListener((v, actionId, event) -> {
+            searchValue = v.getText().toString();
+            homeViewModel.getSearchList(searchValue, searchPagination.getCurrentPage(), searchPagination.getPageSize(), true);
+            homeViewModel.getSearchTotalCount(searchValue);
+            return true;
+        });
+
+        //SearchView隐藏
+        binding.searchView.addTransitionListener((searchView, transitionState, transitionState1) -> {
+            if (transitionState == SearchView.TransitionState.HIDDEN || transitionState == SearchView.TransitionState.HIDING) {
+                searchList.clear();
+                searchListAdapter.notifyDataSetChanged();
+            }
+        });
+
+        RefreshLayout searchRefreshLayout = binding.searchRefreshLayout;
+        //SearchView上拉刷新
+        searchRefreshLayout.setOnRefreshListener(refreshlayout -> {
+            Log.d(TAG, "上拉刷新SearchRefreshLayout");
+            pagination.setCurrentPage(1);
+            homeViewModel.getSearchList(searchValue, searchPagination.getCurrentPage(), searchPagination.getPageSize(), true);
+            homeViewModel.getSearchTotalCount(searchValue);
+        });
+
+        //SearchView下拉加载更多
+        searchRefreshLayout.setOnLoadMoreListener(refreshlayout -> {
+            Log.d(TAG, "下拉加载SearchRefreshLayout");
+            if (searchPagination.nextPage()) {
+                homeViewModel.getSearchList(searchValue, searchPagination.getCurrentPage(), searchPagination.getPageSize(), false);
+            } else {
+                binding.searchRefreshLayout.setNoMoreData(true);
+            }
+        });
+
+        //点击打开商品页面
+        searchListAdapter.setOnClickListener((v, goods) -> {
+            Intent intent = new Intent(getActivity(), GoodsActivity.class);
+            intent.putExtra("goods", JSON.toJSONString(goods));
+            getActivity().startActivity(intent);
+        });
+
     }
 
     //ViewModel返回结果
@@ -116,18 +175,32 @@ public class HomeFragment extends Fragment {
             goodsListAdapter.notifyDataSetChanged();
         });
 
+        homeViewModel.getSearchLiveData().observe(getViewLifecycleOwner(), list -> {
+            searchList.clear();
+            searchList.addAll(list);
+            searchListAdapter.notifyDataSetChanged();
+        });
+
         homeViewModel.getTotalCountLiveData().observe(getViewLifecycleOwner(), totalCount -> {
             pagination.setTotalCount(Math.toIntExact(totalCount));
+        });
+
+        homeViewModel.getSearchCountLiveData().observe(getViewLifecycleOwner(), totalCount -> {
+            searchPagination.setTotalCount(Math.toIntExact(totalCount));
         });
 
         homeViewModel.getFlagLiveData().observe(getViewLifecycleOwner(), flag -> {
             if (Objects.equals(flag, HomeViewModel.LOAD_MORE_SUCCESS)) {
                 binding.refreshLayout.finishLoadMore(true);
+                binding.searchRefreshLayout.finishLoadMore(true);
             } else if (Objects.equals(flag, HomeViewModel.REFRESH_SUCCESS)) {
                 binding.refreshLayout.finishRefresh(true);
+                binding.searchRefreshLayout.finishRefresh(true);
             } else if (Objects.equals(flag, HomeViewModel.LOAD_ERROR)) {
                 binding.refreshLayout.finishRefresh(false);//传入false表示刷新失败
                 binding.refreshLayout.finishLoadMore(false);
+                binding.searchRefreshLayout.finishRefresh(false);
+                binding.searchRefreshLayout.finishLoadMore(false);
             }
         });
     }
