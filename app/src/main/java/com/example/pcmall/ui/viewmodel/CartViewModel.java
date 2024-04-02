@@ -164,6 +164,6 @@ public class CartViewModel extends ViewModel {
         super.onCleared();
         compositeDisposable.clear();
         compositeDisposable.dispose();
-        Log.d(TAG, "销毁GoodsViewModel，清除compositeDisposable");
+        Log.d(TAG, "销毁CartViewModel，清除compositeDisposable");
     }
 }

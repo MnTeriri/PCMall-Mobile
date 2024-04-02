@@ -29,12 +29,17 @@ public class HomeViewModel extends ViewModel {
     public final static Integer REFRESH_SUCCESS = 2;
     private final GoodsService goodsService;
     private final CompositeDisposable compositeDisposable;
-
     private List<Goods> goodsList;
+    private List<Goods> searchList;
+
     @Getter
     private final MutableLiveData<List<Goods>> goodsLiveData;
     @Getter
+    private final MutableLiveData<List<Goods>> searchLiveData;
+    @Getter
     private final MutableLiveData<Long> totalCountLiveData;
+    @Getter
+    private final MutableLiveData<Long> searchCountLiveData;
     @Getter
     private final MutableLiveData<Integer> flagLiveData;
 
@@ -43,9 +48,12 @@ public class HomeViewModel extends ViewModel {
         this.goodsService = goodsService;
         this.compositeDisposable = new CompositeDisposable();
         this.goodsLiveData = new MutableLiveData<>();
+        this.searchLiveData = new MutableLiveData<>();
         this.totalCountLiveData = new MutableLiveData<>();
+        this.searchCountLiveData = new MutableLiveData<>();
         this.flagLiveData = new MutableLiveData<>();
         this.goodsList = new ArrayList<>();
+        this.searchList = new ArrayList<>();
         Log.d(TAG, "自动注入goodsService完成");
         Log.d(TAG, "MutableLiveData初始化完成");
     }
@@ -77,6 +85,39 @@ public class HomeViewModel extends ViewModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(responseResult -> {
                     totalCountLiveData.setValue(responseResult.getData());
+                }, throwable -> {
+                    flagLiveData.setValue(HomeViewModel.ERROR);
+                });
+        compositeDisposable.add(disposable);
+    }
+
+    public void getSearchList(String searchValue, Integer currentPage, Integer pageSize, boolean reFresh) {
+        Disposable disposable = goodsService.searchGoodsList(currentPage, pageSize)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(responseResult -> {
+                    Log.d(TAG, responseResult.toString());
+                    if (reFresh) {
+                        searchList.clear();
+                        searchList = responseResult.getData();
+                        flagLiveData.setValue(HomeViewModel.REFRESH_SUCCESS);
+                    } else {
+                        searchList.addAll(responseResult.getData());
+                        flagLiveData.setValue(HomeViewModel.LOAD_MORE_SUCCESS);
+                    }
+                    searchLiveData.setValue(searchList);
+                }, throwable -> {
+                    flagLiveData.setValue(HomeViewModel.LOAD_ERROR);
+                });
+        compositeDisposable.add(disposable);
+    }
+
+    public void getSearchTotalCount(String searchValue) {
+        Disposable disposable = goodsService.searchTotalCount()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(responseResult -> {
+                    searchCountLiveData.setValue(responseResult.getData());
                 }, throwable -> {
                     flagLiveData.setValue(HomeViewModel.ERROR);
                 });
