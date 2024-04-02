@@ -54,6 +54,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="price"
+                    android:textColor="@color/danger"
                     android:textAppearance="?attr/textAppearanceTitleSmall" />
             </LinearLayout>
             <!-- Buttons -->

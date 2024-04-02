@@ -50,7 +50,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="222"
-                android:textAppearance="?attr/textAppearanceTitleMedium" />
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textSize="21sp" />
 
             <TextView
                 android:id="@+id/description_textView"
@@ -59,7 +60,8 @@
                 android:layout_marginTop="8dp"
                 android:text="333"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?android:attr/textColorSecondary" />
+                android:textColor="?android:attr/textColorSecondary"
+                android:textSize="15sp" />
 
             <TextView
                 android:id="@+id/price_textView"
@@ -67,29 +69,54 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="4444"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?android:attr/textColorSecondary" />
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="@color/danger"
+                android:textSize="18sp" />
 
         </LinearLayout>
 
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
+
+    <com.google.android.material.divider.MaterialDivider
+        android:id="@+id/materialDivider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/constraintLayout" />
+
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
         android:layout_width="match_parent"
         android:layout_height="65dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <Button
-            android:id="@+id/add_order_button"
-            style="@style/Widget.Material3.Button"
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="15dp"
-            android:text="结算"
-            app:backgroundTint="@color/yellow"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <Button
+                android:id="@+id/add_cart_button"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:text="加入购物车"
+                app:backgroundTint="@color/yellow" />
+
+            <Button
+                android:id="@+id/buy_button"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:text="立即购买"
+                app:backgroundTint="@color/red_btn_bg_color" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
