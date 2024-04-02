@@ -38,6 +38,9 @@ public interface CartService {
     @POST("selectAllCart")
     public Observable<ResponseResult<String>> selectAllCart(@Field("uid") String uid, @Field("isSelect") Integer isSelect);
 
+    @FormUrlEncoded
+    @POST("addCart")
+    public Observable<ResponseResult<String>> addCart(@Field("uid") String uid, @Field("gid") Integer gid);
 
     @FormUrlEncoded
     @POST("deleteCart")
