@@ -8,9 +8,10 @@ import java.io.IOException;
 import retrofit2.HttpException;
 
 public class RetrofitUtils {
-    public static <T> ResponseResult<T> getErrorMessage(Throwable throwable) throws IOException {
-        ResponseResult<T> responseResult = new ResponseResult<>();
+    public static ResponseResult<String> getErrorMessage(Throwable throwable) throws IOException {
+        ResponseResult<String> responseResult = null;
         if (throwable instanceof HttpException) {
+            responseResult = new ResponseResult<>();
             String errorMessage = "";
             HttpException httpException = (HttpException) throwable;
             errorMessage = httpException.response().errorBody().string();
