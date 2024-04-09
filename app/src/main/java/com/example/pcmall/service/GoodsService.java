@@ -14,11 +14,13 @@ public interface GoodsService {
     @FormUrlEncoded
     @POST("searchGoodsList")
     Observable<ResponseResult<List<Goods>>> searchGoodsList(
+            @Field("searchValue") String searchValue,
             @Field("currentPage") Integer currentPage,
             @Field("pageSize") Integer pageSize);
 
-    @POST("searchTotalCount")
-    Observable<ResponseResult<Long>> searchTotalCount();
+    @FormUrlEncoded
+    @POST("getRecordsFiltered")
+    Observable<ResponseResult<Long>> getRecordsFiltered(@Field("searchValue") String searchValue);
 
 
 }
