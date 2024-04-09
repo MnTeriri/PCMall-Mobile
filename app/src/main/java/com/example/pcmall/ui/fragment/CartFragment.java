@@ -63,6 +63,7 @@ public class CartFragment extends Fragment {
         } else {
             binding.information.setVisibility(View.VISIBLE);
             binding.refreshLayout.setVisibility(View.GONE);
+            binding.selectLayout.setVisibility(View.GONE);
         }
         Log.d(TAG, "CartFragment启动");
         return root;

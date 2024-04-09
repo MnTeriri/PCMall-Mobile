@@ -1,57 +1,75 @@
 package com.example.pcmall.ui.fragment;
 
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.alibaba.fastjson2.JSON;
 import com.example.pcmall.R;
 import com.example.pcmall.activity.LoginActivity;
 import com.example.pcmall.activity.OrderActivity;
+import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.FragmentMyselfBinding;
+import com.example.pcmall.dialog.AddressDialog;
+import com.example.pcmall.dialog.CartDialog;
 import com.example.pcmall.model.User;
 import com.example.pcmall.ui.viewmodel.MySelfViewModel;
+import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.badge.ExperimentalBadgeUtils;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.card.MaterialCardView;
-
-import javax.inject.Inject;
+import com.google.android.material.navigation.NavigationBarView;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class MySelfFragment extends Fragment {
     private final String TAG = "MySelfFragment";
-    @Inject
-    public SharedPreferences sharedPreferences;
 
+    private MySelfViewModel mySelfViewModel;
+    private User user;
     private FragmentMyselfBinding binding;
-    private FragmentActivity activity;
 
     @OptIn(markerClass = ExperimentalBadgeUtils.class)
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        MySelfViewModel mySelfViewModel =
-                new ViewModelProvider(this).get(MySelfViewModel.class);
         binding = FragmentMyselfBinding.inflate(inflater, container, false);
-        activity = getActivity();
+        mySelfViewModel = new ViewModelProvider(this).get(MySelfViewModel.class);
+        user = ((PCMallApplication) getActivity().getApplication()).getUserData();
 
-        BottomNavigationView orderNavigation = binding.orderNavigation;
+        if (user != null) {
+            initData();
+            initView();
+            handelObserve();
+        }
+        initListener();
 
-//        BadgeDrawable badgeDrawable = orderNavigation.getOrCreateBadge(R.id.navigation_pay);
-//        badgeDrawable.setNumber(5);
-        orderNavigation.setOnItemSelectedListener(menuItem -> {
-            Intent intent = new Intent(activity, OrderActivity.class);
+        return binding.getRoot();
+    }
+
+    private void initData() {
+        mySelfViewModel.getNotPayCount(user.getUid());
+        mySelfViewModel.getNotSendCount(user.getUid());
+        mySelfViewModel.getNotDeliverCount(user.getUid());
+        mySelfViewModel.getRefundCount(user.getUid());
+    }
+
+    private void initView() {
+
+    }
+
+    private void initListener() {
+        //订单导航栏
+        binding.orderNavigation.setOnItemSelectedListener(menuItem -> {
+            Intent intent = new Intent(getActivity(), OrderActivity.class);
             int itemId = menuItem.getItemId();
             if (itemId == R.id.navigation_pay) {
                 intent.putExtra("tabId", 1);
@@ -66,48 +84,75 @@ public class MySelfFragment extends Fragment {
             } else {
                 return false;
             }
-            activity.startActivity(intent);
-            Log.d(TAG, "准备启动LoginActivity");
+            getActivity().startActivity(intent);
+            Log.d(TAG, "准备启动OrderActivity");
             return true;
         });
 
+        //服务导航栏
+        binding.serviceNavigation.setOnItemSelectedListener(menuItem -> {
+            int itemId = menuItem.getItemId();
+            if (itemId == R.id.navigation_address) {
+                AddressDialog addressDialog = new AddressDialog();
+                addressDialog.show(getActivity());
+            } else if (itemId == R.id.navigation_cart) {
+                CartDialog cartDialog = new CartDialog();
+                cartDialog.show(getActivity());
+            }
+            return true;
+        });
 
-        MaterialCardView orderCard = binding.orderCard;
-        orderCard.setOnClickListener(view -> {
-            Intent intent = new Intent(activity, OrderActivity.class);
+        binding.orderCard.setOnClickListener(view -> {
+            Intent intent = new Intent(getActivity(), OrderActivity.class);
             intent.putExtra("tabId", 0);
-            activity.startActivity(intent);
+            getActivity().startActivity(intent);
             Log.d(TAG, "准备启动OrderActivity");
         });
 
-        Button loginButton = binding.loginButton;
-        loginButton.setOnClickListener(view -> {
-            Intent intent = new Intent(activity, LoginActivity.class);
-            activity.startActivity(intent);
+        binding.loginButton.setOnClickListener(view -> {
+            Intent intent = new Intent(getActivity(), LoginActivity.class);
+            getActivity().startActivity(intent);
         });
 
-        initUserData();
-        return binding.getRoot();
+    }
+
+    private void handelObserve() {
+        //未付款订单个数
+        mySelfViewModel.getNotPayCountLiveData().observe(getViewLifecycleOwner(), count -> {
+            BadgeDrawable badgeDrawable = binding.orderNavigation.getOrCreateBadge(R.id.navigation_pay);
+            badgeDrawable.setNumber(count.intValue());
+        });
+
+        //未发货订单个数
+        mySelfViewModel.getNotSendCountLiveData().observe(getViewLifecycleOwner(), count -> {
+            BadgeDrawable badgeDrawable = binding.orderNavigation.getOrCreateBadge(R.id.navigation_send);
+            badgeDrawable.setNumber(count.intValue());
+        });
+
+        //未收货订单个数
+        mySelfViewModel.getNotDeliverCountLiveData().observe(getViewLifecycleOwner(), count -> {
+            BadgeDrawable badgeDrawable = binding.orderNavigation.getOrCreateBadge(R.id.navigation_deliver);
+            badgeDrawable.setNumber(count.intValue());
+        });
+
+        //退款订单个数
+        mySelfViewModel.getRefundCountLiveData().observe(getViewLifecycleOwner(), count -> {
+            BadgeDrawable badgeDrawable = binding.orderNavigation.getOrCreateBadge(R.id.navigation_refund);
+            badgeDrawable.setNumber(count.intValue());
+        });
     }
 
     @Override
     public void onStart() {
         super.onStart();
         Log.d(TAG, "MySelfFragment.onStart()");
-        initUserData();
-    }
-
-    private void initUserData() {
-        String data = sharedPreferences.getString("data", "");
-        if ("".equals(data)) {
-            Log.d(TAG, "用户没登录");
-            return;
+        user = ((PCMallApplication) getActivity().getApplication()).getUserData();
+        if (user != null) {
+            binding.loginButton.setVisibility(View.GONE);
+            binding.userInformationLinearLayout.setVisibility(View.VISIBLE);
+            binding.userName.setText(user.getUname());
+            binding.uid.setText(user.getUid());
         }
-        User user = JSON.parseObject(data, User.class);
-        binding.loginButton.setVisibility(View.GONE);
-        binding.userInformationLinearLayout.setVisibility(View.VISIBLE);
-        binding.userName.setText(user.getUname());
-        binding.uid.setText(user.getUid());
     }
 
     @Override

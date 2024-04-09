@@ -125,6 +125,7 @@ public class HomeFragment extends Fragment {
         //搜索界面
         binding.searchView.getEditText().setOnEditorActionListener((v, actionId, event) -> {
             searchValue = v.getText().toString();
+            searchPagination.setCurrentPage(1);
             homeViewModel.getSearchList(searchValue, searchPagination.getCurrentPage(), searchPagination.getPageSize(), true);
             homeViewModel.getSearchTotalCount(searchValue);
             return true;
@@ -142,7 +143,7 @@ public class HomeFragment extends Fragment {
         //SearchView上拉刷新
         searchRefreshLayout.setOnRefreshListener(refreshlayout -> {
             Log.d(TAG, "上拉刷新SearchRefreshLayout");
-            pagination.setCurrentPage(1);
+            searchPagination.setCurrentPage(1);
             homeViewModel.getSearchList(searchValue, searchPagination.getCurrentPage(), searchPagination.getPageSize(), true);
             homeViewModel.getSearchTotalCount(searchValue);
         });
