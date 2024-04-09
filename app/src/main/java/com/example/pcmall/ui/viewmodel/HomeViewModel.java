@@ -59,7 +59,7 @@ public class HomeViewModel extends ViewModel {
     }
 
     public void getGoodsList(Integer currentPage, Integer pageSize, boolean reFresh) {
-        Disposable disposable = goodsService.searchGoodsList(currentPage, pageSize)
+        Disposable disposable = goodsService.searchGoodsList("", currentPage, pageSize)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(responseResult -> {
@@ -80,7 +80,7 @@ public class HomeViewModel extends ViewModel {
     }
 
     public void getTotalCount() {
-        Disposable disposable = goodsService.searchTotalCount()
+        Disposable disposable = goodsService.getRecordsFiltered("")
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(responseResult -> {
@@ -92,7 +92,7 @@ public class HomeViewModel extends ViewModel {
     }
 
     public void getSearchList(String searchValue, Integer currentPage, Integer pageSize, boolean reFresh) {
-        Disposable disposable = goodsService.searchGoodsList(currentPage, pageSize)
+        Disposable disposable = goodsService.searchGoodsList(searchValue, currentPage, pageSize)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(responseResult -> {
@@ -113,7 +113,7 @@ public class HomeViewModel extends ViewModel {
     }
 
     public void getSearchTotalCount(String searchValue) {
-        Disposable disposable = goodsService.searchTotalCount()
+        Disposable disposable = goodsService.getRecordsFiltered(searchValue)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(responseResult -> {
