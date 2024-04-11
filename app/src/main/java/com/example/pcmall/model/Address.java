@@ -17,7 +17,7 @@ public class Address {
     private String province;//省
     private String city;//市
     private String district;//区
-    private String address;//详细地址
+    private String addressDetail;//详细地址
     private String receiverName;//收件人
     private String phone;//手机号码
     private LocalDateTime createTime;//创建时间
