@@ -93,11 +93,11 @@ public class MySelfFragment extends Fragment {
         binding.serviceNavigation.setOnItemSelectedListener(menuItem -> {
             int itemId = menuItem.getItemId();
             if (itemId == R.id.navigation_address) {
-                AddressDialog addressDialog = new AddressDialog();
-                addressDialog.show(getActivity());
+                AddressDialog addressDialog = new AddressDialog(getActivity());
+                addressDialog.show();
             } else if (itemId == R.id.navigation_cart) {
-                CartDialog cartDialog = new CartDialog();
-                cartDialog.show(getActivity());
+                CartDialog cartDialog = new CartDialog(getActivity());
+                cartDialog.show();
             }
             return true;
         });
