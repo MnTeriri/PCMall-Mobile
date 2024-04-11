@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:background="@color/background"
     tools:context=".dialog.AddressDialog">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -29,7 +29,6 @@
         android:layout_height="match_parent"
         android:layout_marginTop="?attr/actionBarSize"
         android:layout_marginBottom="65dp"
-        android:background="@color/background"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/appBarLayout">
@@ -60,12 +59,12 @@
         app:layout_constraintBottom_toBottomOf="parent">
 
         <Button
-            android:id="@+id/login_button"
+            android:id="@+id/add_button"
             style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="20dp"
-            android:text="添加地址"
+            android:text="添加新地址"
             app:backgroundTint="@color/yellow"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
