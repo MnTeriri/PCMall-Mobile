@@ -18,6 +18,11 @@ import com.google.android.material.R;
 
 public class FullScreenDialog extends DialogFragment {
     private final String TAG = "FullScreenDialog";
+    private final FragmentActivity activity;
+
+    public FullScreenDialog(FragmentActivity activity) {
+        this.activity = activity;
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -34,7 +39,11 @@ public class FullScreenDialog extends DialogFragment {
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
-    public void show(FragmentActivity activity, String tag) {
+    public void show() {
+
+    }
+
+    public void show(String tag) {
         Log.d(TAG, "FullScreenDialog.show()");
         FragmentManager fragmentManager = activity.getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();

@@ -15,6 +15,10 @@ public class CartDialog extends FullScreenDialog {
     private final String TAG = "CartDialog";
     private DialogFragmentCartBinding binding;
 
+    public CartDialog(FragmentActivity activity) {
+        super(activity);
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -23,7 +27,8 @@ public class CartDialog extends FullScreenDialog {
         return binding.getRoot();
     }
 
-    public void show(FragmentActivity activity) {
-        super.show(activity, TAG);
+    @Override
+    public void show() {
+        super.show(TAG);
     }
 }
