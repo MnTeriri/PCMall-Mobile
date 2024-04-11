@@ -87,8 +87,8 @@ dependencies {
     implementation  'io.github.scwang90:refresh-footer-ball:2.1.0'        //球脉冲加载
     implementation  'io.github.scwang90:refresh-footer-classics:2.1.0'    //经典加载
 
-    //citypicker 地址选择器
-    implementation 'com.github.crazyandcoder:citypicker:6.0.2'
+    //AddressPicker 地址选择器
+    implementation 'com.github.gzu-liyujiang.AndroidPicker:AddressPicker:4.1.13'
 
     //sweetalert
     implementation 'com.github.f0ris.sweetalert:library:1.6.2'
