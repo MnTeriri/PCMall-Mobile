@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.example.pcmall.converter.FastJsonConverterFactory;
 import com.example.pcmall.interceptor.HeaderInterceptor;
+import com.example.pcmall.service.AddressService;
 import com.example.pcmall.service.CartService;
 import com.example.pcmall.service.CategoryService;
 import com.example.pcmall.service.GoodsService;
@@ -96,6 +97,19 @@ public class NetworkModule {
                 .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                 .build()
                 .create(CartService.class);
+    }
+
+    @Singleton
+    @Provides
+    public static AddressService provideAddressService(@ApplicationContext Context context) {
+        Log.d(TAG, "CartService生成");
+        return new Retrofit.Builder()
+                .baseUrl(baseUrl + "mobile/address/")
+                .client(getOkHttpClientInstance(context))
+                .addConverterFactory(FastJsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+                .build()
+                .create(AddressService.class);
     }
 
     @Singleton
