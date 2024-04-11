@@ -6,15 +6,16 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.pcmall.adapter.listener.AdapterInterface;
 import com.example.pcmall.databinding.RecyclerviewAddressItemBinding;
 import com.example.pcmall.model.Address;
-import com.example.pcmall.model.Cart;
 
 import java.util.List;
 
 
 public class AddressListAdapter extends RecyclerView.Adapter<AddressListAdapter.AddressItmeViewHolder> {
     private final List<Address> list;
+    private AdapterInterface.OnClickListener<Address> cardClickListener;
 
     public AddressListAdapter(List<Address> list) {
         this.list = list;
@@ -30,7 +31,17 @@ public class AddressListAdapter extends RecyclerView.Adapter<AddressListAdapter.
     @Override
     public void onBindViewHolder(@NonNull AddressItmeViewHolder holder, int position) {
         Address address = list.get(position);
+        holder.binding.areaTextView.setText(address.getProvince() + address.getCity() + address.getDistrict());
+        holder.binding.addressTextView.setText(address.getAddressDetail());
+        holder.binding.receiverTextView.setText(address.getReceiverName() + " " + address.getPhone());
 
+        if (cardClickListener != null) {
+            holder.binding.addressCardView.setOnClickListener(v -> cardClickListener.onClick(v, address));
+        }
+    }
+
+    public void setOnCartClickListener(AdapterInterface.OnClickListener<Address> listener) {
+        this.cardClickListener = listener;
     }
 
     @Override
