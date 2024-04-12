@@ -1,6 +1,7 @@
 package com.example.pcmall.adapter;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -34,6 +35,11 @@ public class AddressListAdapter extends RecyclerView.Adapter<AddressListAdapter.
         holder.binding.areaTextView.setText(address.getProvince() + address.getCity() + address.getDistrict());
         holder.binding.addressTextView.setText(address.getAddressDetail());
         holder.binding.receiverTextView.setText(address.getReceiverName() + " " + address.getPhone());
+        if (address.getIsDefault() == 1) {
+            holder.binding.isDefaultChip.setVisibility(View.VISIBLE);
+        } else {
+            holder.binding.isDefaultChip.setVisibility(View.GONE);
+        }
 
         if (cardClickListener != null) {
             holder.binding.addressCardView.setOnClickListener(v -> cardClickListener.onClick(v, address));
