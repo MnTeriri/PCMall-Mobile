@@ -173,7 +173,7 @@
                         app:layout_constraintTop_toTopOf="parent" />
 
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/address_input_text"
+                        android:id="@+id/address_detail_input_text"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_marginStart="90dp"

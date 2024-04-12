@@ -31,18 +31,49 @@
                 android:layout_marginRight="60dp"
                 app:layout_constraintTop_toTopOf="parent">
 
-
-                <TextView
-                    android:id="@+id/area_textView"
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/area_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxEms="8"
-                    android:singleLine="true"
-                    android:text="area"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?android:attr/textColorSecondary"
-                    app:layout_constraintTop_toTopOf="@+id/constraintLayout" />
+                    app:layout_constraintTop_toTopOf="@+id/constraintLayout">
+
+                    <TextView
+                        android:id="@+id/area_textView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:ellipsize="end"
+                        android:maxEms="8"
+                        android:singleLine="true"
+                        android:text="area"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?android:attr/textColorSecondary"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/is_default_chip"
+                        style="@style/Widget.Material3.Chip.Suggestion"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="5dp"
+                        android:checkable="false"
+                        android:text="默认"
+                        android:textColor="@color/white"
+                        app:chipBackgroundColor="@color/danger"
+                        app:chipStartPadding="0dp"
+                        app:chipEndPadding="0dp"
+                        app:chipMinHeight="0dp"
+                        app:chipStrokeWidth="0dp"
+                        app:ensureMinTouchTargetSize="false"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/area_textView"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:shapeAppearance="?attr/shapeAppearanceSmallComponent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
 
                 <TextView
                     android:id="@+id/address_textView"
@@ -55,7 +86,7 @@
                     android:text="address"
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textSize="18sp"
-                    app:layout_constraintTop_toBottomOf="@+id/area_textView" />
+                    app:layout_constraintTop_toBottomOf="@+id/area_layout" />
 
                 <TextView
                     android:id="@+id/receiver_textView"
@@ -79,12 +110,12 @@
                 app:layout_constraintTop_toTopOf="parent">
 
                 <TextView
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:gravity="center"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:gravity="center"
                     android:text="编辑"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="?android:attr/textColorSecondary"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
