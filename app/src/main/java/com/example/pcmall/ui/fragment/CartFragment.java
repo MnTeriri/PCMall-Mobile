@@ -192,7 +192,7 @@ public class CartFragment extends Fragment {
                 cartViewModel.getCartList(user.getUid(), 1, pagination.getCurrentPage() * pagination.getPageSize(), true);
             } else if (Objects.equals(flag, ResponseCode.CART_GOODS_ERROR.getCode())) {
                 cartViewModel.getCartList(user.getUid(), 1, pagination.getCurrentPage() * pagination.getPageSize(), true);
-            } else if (Objects.equals(flag, CartViewModel.ERROR)) {
+            } else if (Objects.equals(flag, ResponseCode.ERROR.getCode())) {
                 Toast.makeText(getContext(), "错误！", Toast.LENGTH_SHORT).show();
             }
         });
