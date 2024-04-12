@@ -1,5 +1,6 @@
 package com.example.pcmall.dialog;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,6 +20,7 @@ import com.google.android.material.R;
 public class FullScreenDialog extends DialogFragment {
     private final String TAG = "FullScreenDialog";
     private final FragmentActivity activity;
+    private OnDialogClosedListener listener;
 
     public FullScreenDialog(FragmentActivity activity) {
         this.activity = activity;
@@ -26,8 +28,8 @@ public class FullScreenDialog extends DialogFragment {
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        Log.d(TAG, "FullScreenDialog.onCreate()");
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "FullScreenDialog.onCreate()");
         setStyle(STYLE_NO_FRAME, R.style.MaterialAlertDialog_Material3);
     }
 
@@ -53,5 +55,21 @@ public class FullScreenDialog extends DialogFragment {
         }
         fragmentTransaction.addToBackStack(null);
         this.show(fragmentManager, tag);
+    }
+
+    @Override
+    public void onDismiss(@NonNull DialogInterface dialog) {
+        super.onDismiss(dialog);
+        if (listener != null) {
+            listener.onDialogClosed(this);
+        }
+    }
+
+    public void setOnDialogClosedListener(OnDialogClosedListener listener) {
+        this.listener = listener;
+    }
+
+    public interface OnDialogClosedListener {
+        void onDialogClosed(DialogFragment dialogFragment);
     }
 }
