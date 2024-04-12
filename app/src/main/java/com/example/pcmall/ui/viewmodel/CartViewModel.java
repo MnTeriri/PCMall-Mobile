@@ -100,7 +100,7 @@ public class CartViewModel extends ViewModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         responseResult -> totalCountLiveData.setValue(responseResult.getData()),
-                        throwable -> flagLiveData.setValue(CartViewModel.ERROR)
+                        throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
                 );
         compositeDisposable.add(disposable);
     }
@@ -144,7 +144,7 @@ public class CartViewModel extends ViewModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         responseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
-                        throwable -> flagLiveData.setValue(CartViewModel.ERROR)
+                        throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
                 );
         compositeDisposable.add(disposable);
     }
@@ -155,7 +155,7 @@ public class CartViewModel extends ViewModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         responseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
-                        throwable -> flagLiveData.setValue(CartViewModel.ERROR));
+                        throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode()));
         compositeDisposable.add(disposable);
     }
 

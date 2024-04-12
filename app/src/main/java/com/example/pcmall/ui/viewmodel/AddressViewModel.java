@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.pcmall.model.Address;
+import com.example.pcmall.model.response.ResponseCode;
 import com.example.pcmall.model.response.ResponseResult;
 import com.example.pcmall.service.AddressService;
 
@@ -62,6 +63,31 @@ public class AddressViewModel extends ViewModel {
         compositeDisposable.add(disposable);
     }
 
+    public void addAddress(Address address) {
+        Disposable disposable = addressService.addAddress(address)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        responseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
+                        throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
+                );
+        compositeDisposable.add(disposable);
+    }
+
+    public void updateAddress(Address address) {
+        Disposable disposable = addressService.updateAddress(address)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        responseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
+                        throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
+                );
+        compositeDisposable.add(disposable);
+    }
+
+    public void deleteAddress(Address address) {
+
+    }
 
     @Override
     protected void onCleared() {
