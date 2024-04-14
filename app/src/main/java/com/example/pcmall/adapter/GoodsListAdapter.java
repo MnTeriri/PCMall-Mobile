@@ -7,9 +7,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.pcmall.adapter.listener.AdapterInterface;
+import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.databinding.RecyclerviewGoodsItemBinding;
-import com.example.pcmall.model.Cart;
 import com.example.pcmall.model.Goods;
 import com.example.pcmall.module.GlideApp;
 import com.example.pcmall.module.NetworkModule;
@@ -19,7 +18,7 @@ import java.util.List;
 public class GoodsListAdapter extends RecyclerView.Adapter<GoodsListAdapter.GoodsItmeViewHolder> {
     private final List<Goods> list;
     private Context context;
-    private AdapterInterface.OnClickListener<Goods> clickListener;
+    private ListenerInterface.OnClickListener<Goods> clickListener;
 
     public GoodsListAdapter(List<Goods> list) {
         this.list = list;
@@ -42,13 +41,13 @@ public class GoodsListAdapter extends RecyclerView.Adapter<GoodsListAdapter.Good
         holder.binding.gnameTextView.setText(goods.getBrand().getBname() + " " + goods.getGname());
         holder.binding.descriptionTextView.setText(goods.getDescription());
         holder.binding.priceTextView.setText("￥" + goods.getPrice().toString());
-        //点击事件
+        //点击事件，进入商品界面
         if (clickListener != null) {
             holder.binding.getRoot().setOnClickListener(v -> clickListener.onClick(v, goods));
         }
     }
 
-    public void setOnClickListener(AdapterInterface.OnClickListener<Goods> listener) {
+    public void setOnClickListener(ListenerInterface.OnClickListener<Goods> listener) {
         this.clickListener = listener;
     }
 

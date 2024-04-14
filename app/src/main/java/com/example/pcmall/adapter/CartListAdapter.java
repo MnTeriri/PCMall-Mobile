@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.pcmall.adapter.listener.AdapterInterface;
+import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.databinding.RecyclerviewCartItemBinding;
 import com.example.pcmall.model.Cart;
 import com.example.pcmall.model.Goods;
@@ -20,11 +20,11 @@ import java.util.List;
 public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.CartItmeViewHolder> {
     private final List<Cart> list;
     private Context context;
-    private AdapterInterface.OnClickListener<Cart> clickListener;
-    private AdapterInterface.OnLongClickListener<Cart> longClickListener;
-    private AdapterInterface.OnItemButtonClickListener<Cart> addListener;
-    private AdapterInterface.OnItemButtonClickListener<Cart> divListener;
-    private AdapterInterface.OnItemCheckBoxClickListener<Cart> selectListener;
+    private ListenerInterface.OnClickListener<Cart> clickListener;
+    private ListenerInterface.OnLongClickListener<Cart> longClickListener;
+    private ListenerInterface.OnItemButtonClickListener<Cart> addListener;
+    private ListenerInterface.OnItemButtonClickListener<Cart> divListener;
+    private ListenerInterface.OnItemCheckBoxClickListener<Cart> selectListener;
 
     public CartListAdapter(List<Cart> list) {
         this.list = list;
@@ -46,11 +46,11 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.CartIt
                 .load(NetworkModule.baseUrl + "image/" + goods.getImage())
                 .into(holder.binding.imageView);
         holder.binding.gnameTextView.setText(goods.getBrand().getBname() + goods.getGname());
-        //点击事件
+        //点击事件，进入商品界面
         if (clickListener != null) {
             holder.binding.getRoot().setOnClickListener(v -> clickListener.onClick(v, cart));
         }
-        //长按点击事件
+        //长按点击事件，进行购物车删除
         if (longClickListener != null) {
             holder.binding.getRoot().setOnLongClickListener(v -> longClickListener.onLongClick(v, cart));
         }
@@ -61,12 +61,15 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.CartIt
             holder.binding.selectCheckBox.setChecked(cart.getIsSelect() == 1);
             holder.binding.priceTextView.setText("￥" + goods.getPrice().toString());
             holder.binding.count.setText(cart.getCount().toString());
+            //添加数目button
             if (addListener != null) {
                 holder.binding.addButton.setOnClickListener(v -> addListener.onClick(v, cart));
             }
+            //减少数目button
             if (divListener != null) {
                 holder.binding.divBotton.setOnClickListener(v -> divListener.onClick(v, cart));
             }
+            //选中购物车
             if (selectListener != null) {
                 holder.binding.selectCheckBox.setOnClickListener(v -> selectListener.onCheckedChanged(v, cart));
             }
@@ -84,23 +87,23 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.CartIt
         }
     }
 
-    public void setOnClickListener(AdapterInterface.OnClickListener<Cart> listener) {
+    public void setOnClickListener(ListenerInterface.OnClickListener<Cart> listener) {
         this.clickListener = listener;
     }
 
-    public void setOnLongClickListener(AdapterInterface.OnLongClickListener<Cart> listener) {
+    public void setOnLongClickListener(ListenerInterface.OnLongClickListener<Cart> listener) {
         this.longClickListener = listener;
     }
 
-    public void setAddListener(AdapterInterface.OnItemButtonClickListener<Cart> listener) {
+    public void setAddListener(ListenerInterface.OnItemButtonClickListener<Cart> listener) {
         this.addListener = listener;
     }
 
-    public void setDivListener(AdapterInterface.OnItemButtonClickListener<Cart> listener) {
+    public void setDivListener(ListenerInterface.OnItemButtonClickListener<Cart> listener) {
         this.divListener = listener;
     }
 
-    public void setSelectListener(AdapterInterface.OnItemCheckBoxClickListener<Cart> listener) {
+    public void setSelectListener(ListenerInterface.OnItemCheckBoxClickListener<Cart> listener) {
         this.selectListener = listener;
     }
 
