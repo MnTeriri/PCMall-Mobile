@@ -55,6 +55,7 @@ public class AddressAddDialog extends FullScreenDialog {
         initView();
         initListener();
         handelObserve();
+
         return binding.getRoot();
     }
 

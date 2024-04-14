@@ -59,6 +59,7 @@ public class AddressUpdateDialog extends FullScreenDialog {
         initView();
         initListener();
         handelObserve();
+
         return binding.getRoot();
     }
 

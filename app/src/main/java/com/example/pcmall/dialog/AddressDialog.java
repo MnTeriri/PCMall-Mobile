@@ -1,6 +1,5 @@
 package com.example.pcmall.dialog;
 
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,22 +8,17 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.pcmall.adapter.AddressListAdapter;
-import com.example.pcmall.adapter.listener.AdapterInterface;
 import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.DialogFragmentAddressBinding;
 import com.example.pcmall.model.Address;
 import com.example.pcmall.model.User;
 import com.example.pcmall.ui.viewmodel.AddressViewModel;
-import com.scwang.smart.refresh.layout.api.RefreshLayout;
-import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,13 +52,17 @@ public class AddressDialog extends FullScreenDialog {
         initView();
         initListener();
         handelObserve();
+
+        //请求数据
+        addressViewModel.getAddressList(user.getUid());
+
         return binding.getRoot();
     }
 
     private void initData() {
         Log.d(TAG, "加载数据");
         addressList = new ArrayList<>();
-        addressViewModel.getAddressList(user.getUid());
+
     }
 
     private void initView() {
@@ -110,7 +108,7 @@ public class AddressDialog extends FullScreenDialog {
 
     private void handelObserve() {
         Log.d(TAG, "添加ViewModel返回结果方法");
-        addressViewModel.getAddressLiveData().observe(getViewLifecycleOwner(), list -> {
+        addressViewModel.getAddressListLiveData().observe(getViewLifecycleOwner(), list -> {
             addressList.clear();
             addressList.addAll(list);
             addressListAdapter.notifyDataSetChanged();

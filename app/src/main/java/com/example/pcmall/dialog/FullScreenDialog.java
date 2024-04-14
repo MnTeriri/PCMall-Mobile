@@ -15,12 +15,13 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.example.pcmall.listener.ListenerInterface;
 import com.google.android.material.R;
 
 public class FullScreenDialog extends DialogFragment {
     private final String TAG = "FullScreenDialog";
     private final FragmentActivity activity;
-    private OnDialogClosedListener listener;
+    private ListenerInterface.OnDialogClosedListener closeListener;
 
     public FullScreenDialog(FragmentActivity activity) {
         this.activity = activity;
@@ -60,16 +61,12 @@ public class FullScreenDialog extends DialogFragment {
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
         super.onDismiss(dialog);
-        if (listener != null) {
-            listener.onDialogClosed(this);
+        if (closeListener != null) {
+            closeListener.onDialogClosed(this);
         }
     }
 
-    public void setOnDialogClosedListener(OnDialogClosedListener listener) {
-        this.listener = listener;
-    }
-
-    public interface OnDialogClosedListener {
-        void onDialogClosed(DialogFragment dialogFragment);
+    public void setOnDialogClosedListener(ListenerInterface.OnDialogClosedListener listener) {
+        this.closeListener = listener;
     }
 }
