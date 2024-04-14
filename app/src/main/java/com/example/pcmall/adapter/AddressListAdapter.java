@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.pcmall.adapter.listener.AdapterInterface;
+import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.databinding.RecyclerviewAddressItemBinding;
 import com.example.pcmall.model.Address;
 
@@ -16,7 +16,7 @@ import java.util.List;
 
 public class AddressListAdapter extends RecyclerView.Adapter<AddressListAdapter.AddressItmeViewHolder> {
     private final List<Address> list;
-    private AdapterInterface.OnClickListener<Address> cardClickListener;
+    private ListenerInterface.OnClickListener<Address> cardClickListener;
 
     public AddressListAdapter(List<Address> list) {
         this.list = list;
@@ -41,12 +41,13 @@ public class AddressListAdapter extends RecyclerView.Adapter<AddressListAdapter.
             holder.binding.isDefaultChip.setVisibility(View.GONE);
         }
 
+        //点击卡片编辑地址
         if (cardClickListener != null) {
             holder.binding.addressCardView.setOnClickListener(v -> cardClickListener.onClick(v, address));
         }
     }
 
-    public void setOnCartClickListener(AdapterInterface.OnClickListener<Address> listener) {
+    public void setOnCartClickListener(ListenerInterface.OnClickListener<Address> listener) {
         this.cardClickListener = listener;
     }
 
