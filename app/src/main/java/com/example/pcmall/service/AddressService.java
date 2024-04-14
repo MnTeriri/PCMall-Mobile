@@ -16,6 +16,10 @@ public interface AddressService {
     @POST("searchAddressList")
     Observable<ResponseResult<List<Address>>> searchAddressList(@Field("uid") String uid);
 
+    @FormUrlEncoded
+    @POST("searchDefaultAddress")
+    Observable<ResponseResult<Address>> searchDefaultAddress(@Field("uid") String uid);
+
     @POST("addAddress")
     Observable<ResponseResult<String>> addAddress(@Body Address address);
 

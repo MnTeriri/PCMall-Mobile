@@ -19,6 +19,10 @@ public interface CartService {
             @Field("pageSize") Integer pageSize);
 
     @FormUrlEncoded
+    @POST("searchSelectCartList")
+    Observable<ResponseResult<List<Cart>>> searchSelectCartList(@Field("uid") String uid);
+
+    @FormUrlEncoded
     @POST("getTotalCount")
     Observable<ResponseResult<Long>> getTotalCount(@Field("uid") String uid);
 
