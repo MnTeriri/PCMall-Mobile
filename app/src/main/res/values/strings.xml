@@ -7,6 +7,8 @@
     <string name="title_address">收货地址</string>
     <string name="title_address_add">新增地址</string>
     <string name="title_address_update">编辑地址</string>
+    <string name="title_address_select">选择地址</string>
+    <string name="title_order_create">确认订单</string>
     <string name="searchbar_hint">搜索商品</string>
     <string name="edit">编辑</string>
     <string name="finish">完成</string>
