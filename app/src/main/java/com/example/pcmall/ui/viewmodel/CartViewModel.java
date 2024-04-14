@@ -7,9 +7,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.pcmall.model.Cart;
 import com.example.pcmall.model.Goods;
-import com.example.pcmall.model.User;
 import com.example.pcmall.model.response.ResponseCode;
-import com.example.pcmall.model.response.ResponseResult;
 import com.example.pcmall.service.CartService;
 
 import java.math.BigDecimal;
@@ -20,13 +18,10 @@ import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.Getter;
-import lombok.Setter;
 
 @HiltViewModel
 public class CartViewModel extends ViewModel {
@@ -40,7 +35,7 @@ public class CartViewModel extends ViewModel {
     private List<Cart> cartList;
 
     @Getter
-    private final MutableLiveData<List<Cart>> cartLiveData;
+    private final MutableLiveData<List<Cart>> cartListLiveData;
     @Getter
     private final MutableLiveData<BigDecimal> totalPriceLiveData;
     @Getter
@@ -52,7 +47,7 @@ public class CartViewModel extends ViewModel {
     public CartViewModel(CartService cartService) {
         this.cartService = cartService;
         this.compositeDisposable = new CompositeDisposable();
-        this.cartLiveData = new MutableLiveData<>();
+        this.cartListLiveData = new MutableLiveData<>();
         this.totalPriceLiveData = new MutableLiveData<>();
         this.totalCountLiveData = new MutableLiveData<>();
         this.flagLiveData = new MutableLiveData<>();
@@ -75,7 +70,7 @@ public class CartViewModel extends ViewModel {
                         cartList.addAll(responseResult.getData());
                         flagLiveData.setValue(CartViewModel.LOAD_MORE_SUCCESS);
                     }
-                    cartLiveData.setValue(cartList);
+                    cartListLiveData.setValue(cartList);
                     selectPriceHandel();
                 }, throwable -> {
                     flagLiveData.setValue(CartViewModel.LOAD_ERROR);

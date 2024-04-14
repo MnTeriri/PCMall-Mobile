@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.pcmall.model.Address;
 import com.example.pcmall.model.response.ResponseCode;
-import com.example.pcmall.model.response.ResponseResult;
 import com.example.pcmall.service.AddressService;
 
 import java.util.ArrayList;
@@ -19,7 +18,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.Getter;
 
@@ -34,7 +32,7 @@ public class AddressViewModel extends ViewModel {
     private final List<Address> addressList;
 
     @Getter
-    private final MutableLiveData<List<Address>> addressLiveData;
+    private final MutableLiveData<List<Address>> addressListLiveData;
     @Getter
     private final MutableLiveData<Integer> flagLiveData;
 
@@ -43,7 +41,7 @@ public class AddressViewModel extends ViewModel {
         this.addressService = addressService;
         this.compositeDisposable = new CompositeDisposable();
         this.addressList = new ArrayList<>();
-        this.addressLiveData = new MutableLiveData<>();
+        this.addressListLiveData = new MutableLiveData<>();
         this.flagLiveData = new MutableLiveData<>();
         Log.d(TAG, "自动注入AddressViewModel完成");
         Log.d(TAG, "MutableLiveData初始化完成");
@@ -55,7 +53,7 @@ public class AddressViewModel extends ViewModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(responseResult -> {
                     Log.d(TAG, responseResult.toString());
-                    addressLiveData.setValue(responseResult.getData());
+                    addressListLiveData.setValue(responseResult.getData());
                     flagLiveData.setValue(REFRESH_SUCCESS);
                 }, throwable -> {
                     flagLiveData.setValue(LOAD_ERROR);
