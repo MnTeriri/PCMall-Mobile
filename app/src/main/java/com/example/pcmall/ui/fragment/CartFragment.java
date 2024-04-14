@@ -16,11 +16,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.alibaba.fastjson2.JSON;
-import com.example.pcmall.R;
 import com.example.pcmall.activity.GoodsActivity;
 import com.example.pcmall.adapter.CartListAdapter;
 import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.FragmentCartBinding;
+import com.example.pcmall.dialog.CreateOrderDialog;
 import com.example.pcmall.model.Cart;
 import com.example.pcmall.model.Pagination;
 import com.example.pcmall.model.User;
@@ -151,18 +151,16 @@ public class CartFragment extends Fragment {
         });
 
         //结算按钮
-        binding.addOrderButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
+        binding.addOrderButton.setOnClickListener(v -> {
+            CreateOrderDialog dialog = new CreateOrderDialog(getActivity());
+            dialog.show();
         });
     }
 
     //ViewModel返回结果
     private void handelObserve() {
         Log.d(TAG, "添加ViewModel返回结果方法");
-        cartViewModel.getCartLiveData().observe(getViewLifecycleOwner(), list -> {
+        cartViewModel.getCartListLiveData().observe(getViewLifecycleOwner(), list -> {
             cartList.clear();
             cartList.addAll(list);
             cartListAdapter.notifyDataSetChanged();
