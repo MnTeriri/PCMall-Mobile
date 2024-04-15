@@ -85,10 +85,10 @@
         android:id="@+id/materialDivider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/constraintLayout" />
+        app:layout_constraintBottom_toTopOf="@+id/address_layout" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraintLayout"
+        android:id="@+id/address_layout"
         android:layout_width="match_parent"
         android:layout_height="65dp"
         app:layout_constraintBottom_toBottomOf="parent">
