@@ -12,16 +12,19 @@ import com.example.pcmall.databinding.RecyclerviewAddressSelectItemBinding;
 import com.example.pcmall.model.Address;
 
 import java.util.List;
+import java.util.Objects;
 
 public class AddressSelectListAdapter extends RecyclerView.Adapter<AddressSelectListAdapter.AddressSelectItmeViewHolder> {
     private final List<Address> list;
+    private final Address selectAddress;
     private int selectedItem = -1; //用来跟踪当前选中的项
 
     private ListenerInterface.OnClickListener<Address> editListener;
     private ListenerInterface.OnItemRadioButtonClickListener<Address> selectListener;
 
-    public AddressSelectListAdapter(List<Address> list) {
+    public AddressSelectListAdapter(List<Address> list, Address selectAddress) {
         this.list = list;
+        this.selectAddress = selectAddress;
     }
 
     @NonNull
@@ -37,7 +40,7 @@ public class AddressSelectListAdapter extends RecyclerView.Adapter<AddressSelect
         holder.binding.areaTextView.setText(address.getProvince() + address.getCity() + address.getDistrict());
         holder.binding.addressTextView.setText(address.getAddressDetail());
         holder.binding.receiverTextView.setText(address.getReceiverName() + " " + address.getPhone());
-        if (selectedItem == -1 && address.getIsDefault() == 1) {
+        if (selectedItem == -1 && selectAddress != null && Objects.equals(selectAddress.getId(), address.getId())) {
             selectedItem = position;
             holder.binding.selectRadioButton.setChecked(true);
         } else {
