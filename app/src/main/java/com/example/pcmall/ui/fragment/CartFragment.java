@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -21,6 +22,8 @@ import com.example.pcmall.adapter.CartListAdapter;
 import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.FragmentCartBinding;
 import com.example.pcmall.dialog.CreateOrderDialog;
+import com.example.pcmall.dialog.MessageDialog;
+import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.model.Cart;
 import com.example.pcmall.model.Pagination;
 import com.example.pcmall.model.User;
@@ -35,6 +38,7 @@ import java.util.Objects;
 
 import javax.inject.Inject;
 
+import cn.pedant.SweetAlert.SweetAlertDialog;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -45,7 +49,7 @@ public class CartFragment extends Fragment {
     private User user;
     private CartListAdapter cartListAdapter;
     private List<Cart> cartList;
-    private Pagination pagination;
+    private Pagination pagination = new Pagination();
     @Inject
     public SharedPreferences sharedPreferences;
 
@@ -55,16 +59,21 @@ public class CartFragment extends Fragment {
         cartViewModel = new ViewModelProvider(this).get(CartViewModel.class);
         View root = binding.getRoot();
         user = ((PCMallApplication) getActivity().getApplication()).getUserData();
+
         if (user != null) {
             initData();
             initView();
             initListener();
             handelObserve();
+
+            cartViewModel.getCartList(user.getUid(), pagination.getCurrentPage(), pagination.getPageSize(), true);
+            cartViewModel.getTotalCount(user.getUid());
         } else {
             binding.information.setVisibility(View.VISIBLE);
             binding.refreshLayout.setVisibility(View.GONE);
             binding.selectLayout.setVisibility(View.GONE);
         }
+
         Log.d(TAG, "CartFragment启动");
         return root;
     }
@@ -73,9 +82,6 @@ public class CartFragment extends Fragment {
     private void initData() {
         Log.d(TAG, "加载数据");
         cartList = new ArrayList<>();
-        pagination = new Pagination();
-        cartViewModel.getCartList(user.getUid(), pagination.getCurrentPage(), pagination.getPageSize(), true);
-        cartViewModel.getTotalCount(user.getUid());
     }
 
     //初始化View
@@ -151,9 +157,18 @@ public class CartFragment extends Fragment {
         });
 
         //结算按钮
-        binding.addOrderButton.setOnClickListener(v -> {
-            CreateOrderDialog dialog = new CreateOrderDialog(getActivity());
-            dialog.show();
+        binding.createOrderButton.setOnClickListener(v -> {
+            if (cartViewModel.getSelectCountLiveData().getValue() > 0) {
+                CreateOrderDialog dialog = new CreateOrderDialog(getActivity());
+                dialog.setOnDialogClosedListener(dialogFragment -> {
+                    pagination.setCurrentPage(1);
+                    cartViewModel.getCartList(user.getUid(), pagination.getCurrentPage(), pagination.getPageSize(), true);
+                    cartViewModel.getTotalCount(user.getUid());
+                });
+                dialog.show();
+            } else {
+                new MessageDialog(getContext(), SweetAlertDialog.WARNING_TYPE).setTitleText("购物车为空！").show();
+            }
         });
     }
 
@@ -166,7 +181,7 @@ public class CartFragment extends Fragment {
             cartListAdapter.notifyDataSetChanged();
         });
 
-        cartViewModel.getTotalPriceLiveData().observe(getViewLifecycleOwner(), bigDecimal -> binding.totalPriceTextView.setText("合计：￥" + bigDecimal.toString()));
+        cartViewModel.getTotalPriceLiveData().observe(getViewLifecycleOwner(), bigDecimal -> binding.totalPriceTextView.setText("￥" + bigDecimal.toString()));
 
         cartViewModel.getTotalCountLiveData().observe(getViewLifecycleOwner(), totalCount -> {
             pagination.setTotalCount(Math.toIntExact(totalCount));
