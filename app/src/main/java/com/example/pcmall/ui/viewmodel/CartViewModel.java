@@ -39,6 +39,8 @@ public class CartViewModel extends ViewModel {
     @Getter
     private final MutableLiveData<BigDecimal> totalPriceLiveData;
     @Getter
+    private final MutableLiveData<Integer> selectCountLiveData;
+    @Getter
     private final MutableLiveData<Long> totalCountLiveData;
     @Getter
     private final MutableLiveData<Integer> flagLiveData;
@@ -49,6 +51,7 @@ public class CartViewModel extends ViewModel {
         this.compositeDisposable = new CompositeDisposable();
         this.cartListLiveData = new MutableLiveData<>();
         this.totalPriceLiveData = new MutableLiveData<>();
+        this.selectCountLiveData = new MutableLiveData<>();
         this.totalCountLiveData = new MutableLiveData<>();
         this.flagLiveData = new MutableLiveData<>();
         this.cartList = new ArrayList<>();
@@ -63,7 +66,6 @@ public class CartViewModel extends ViewModel {
                 .subscribe(responseResult -> {
                     Log.d(TAG, responseResult.toString());
                     if (reFresh) {
-                        cartList.clear();
                         cartList = responseResult.getData();
                         flagLiveData.setValue(CartViewModel.REFRESH_SUCCESS);
                     } else {
@@ -72,6 +74,7 @@ public class CartViewModel extends ViewModel {
                     }
                     cartListLiveData.setValue(cartList);
                     selectPriceHandel();
+                    selectCountHandel();
                 }, throwable -> {
                     flagLiveData.setValue(CartViewModel.LOAD_ERROR);
                 });
@@ -87,6 +90,17 @@ public class CartViewModel extends ViewModel {
             }
         }
         totalPriceLiveData.setValue(total);
+    }
+
+    private void selectCountHandel() {
+        int total = 0;
+        for (Cart cart : cartList) {
+            Goods goods = cart.getGoods();
+            if (cart.getIsSelect() == 1 && goods.getStatus() == 0 && goods.getIsDelete() == 0) {
+                total = total + cart.getCount();
+            }
+        }
+        selectCountLiveData.setValue(total);
     }
 
     public void getTotalCount(String uid) {
