@@ -45,8 +45,9 @@ public class AddressSelectDialog extends BottomSheetDialogFragment {
     private List<Address> addressList;
     private Address selectAddress;
 
-    public AddressSelectDialog(FragmentActivity activity) {
+    public AddressSelectDialog(FragmentActivity activity, Address selectAddress) {
         this.activity = activity;
+        this.selectAddress = selectAddress;
     }
 
     @Nullable
@@ -83,7 +84,7 @@ public class AddressSelectDialog extends BottomSheetDialogFragment {
     private void initView() {
         Log.d(TAG, "初始化View");
         RecyclerView recycleView = binding.recycleView;
-        addressSelectListAdapter = new AddressSelectListAdapter(addressList);
+        addressSelectListAdapter = new AddressSelectListAdapter(addressList, selectAddress);
         recycleView.setAdapter(addressSelectListAdapter);
         recycleView.setLayoutManager(new LinearLayoutManager(this.getContext()));
     }
@@ -112,6 +113,14 @@ public class AddressSelectDialog extends BottomSheetDialogFragment {
         //点击选择地址按钮
         addressSelectListAdapter.setSelectListener((v, data) -> {
             selectAddress = data;
+            new Thread(() -> {
+                try {
+                    Thread.sleep(800);
+                    dismiss();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }).start();
         });
     }
 

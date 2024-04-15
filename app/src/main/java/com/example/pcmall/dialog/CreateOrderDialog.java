@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,13 +24,17 @@ import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.model.Address;
 import com.example.pcmall.model.Cart;
 import com.example.pcmall.model.User;
+import com.example.pcmall.model.response.ResponseCode;
 import com.example.pcmall.ui.viewmodel.AddressViewModel;
 import com.example.pcmall.ui.viewmodel.CartViewModel;
 import com.example.pcmall.ui.viewmodel.OrderViewModel;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
+import cn.pedant.SweetAlert.SweetAlertDialog;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -41,6 +46,7 @@ public class CreateOrderDialog extends FullScreenDialog {
     private User user;
     private OrderCartListAdapter orderCartListAdapter;
     private List<Cart> cartList;
+    private Address selectAddress;
 
     public CreateOrderDialog(FragmentActivity activity) {
         super(activity);
@@ -91,32 +97,87 @@ public class CreateOrderDialog extends FullScreenDialog {
 
     private void initListener() {
         Log.d(TAG, "添加事件");
+        //点击topAppBar的按钮返回
+        binding.topAppBar.setNavigationOnClickListener(v -> dismiss());
+
         //点击地址卡片弹出选择地址窗口
         binding.addressInformationCard.setOnClickListener(v -> {
-            AddressSelectDialog dialog = new AddressSelectDialog(getActivity());
-            dialog.setOnDialogClosedListener(new ListenerInterface.OnDialogClosedReturnDataListener<Address>() {
-                @Override
-                public void onDialogClosed(DialogFragment dialogFragment, Address data) {
-                    Log.d(TAG, data+"");
+            AddressSelectDialog dialog = new AddressSelectDialog(getActivity(), selectAddress);
+            dialog.setOnDialogClosedListener((dialogFragment, address) -> {
+                selectAddress = address;
+                if (address != null) {
+                    binding.addressLayout.setVisibility(View.VISIBLE);
+                    binding.warningLayout.setVisibility(View.GONE);
+                    binding.areaTextView.setText(address.getProvince() + address.getCity() + address.getDistrict());
+                    binding.addressTextView.setText(address.getAddressDetail());
+                    binding.receiverTextView.setText(address.getReceiverName() + " " + address.getPhone());
+                } else {
+                    binding.addressLayout.setVisibility(View.GONE);
+                    binding.warningLayout.setVisibility(View.VISIBLE);
                 }
             });
             dialog.show();
+        });
+
+        //点击创建订单按钮
+        binding.createButton.setOnClickListener(v -> {
+            if (selectAddress != null) {
+                orderViewModel.createOrder(user.getUid(), selectAddress.getId());
+            } else {
+                Toast.makeText(getContext(), "没选择地址！", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
     private void handelObserve() {
         Log.d(TAG, "添加ViewModel返回结果方法");
+        //加载选中购物车数据
         orderViewModel.getCartListLiveData().observe(getViewLifecycleOwner(), list -> {
-            Log.d(TAG, list.size() + "");
             cartList.clear();
             cartList.addAll(list);
             orderCartListAdapter.notifyDataSetChanged();
         });
 
+        //加载默认地址数据
         orderViewModel.getAddressLiveData().observe(getViewLifecycleOwner(), address -> {
-            binding.areaTextView.setText(address.getProvince() + address.getCity() + address.getDistrict());
-            binding.addressTextView.setText(address.getAddressDetail());
-            binding.receiverTextView.setText(address.getReceiverName() + " " + address.getPhone());
+            selectAddress = address;
+            if (address != null) {
+                binding.addressLayout.setVisibility(View.VISIBLE);
+                binding.warningLayout.setVisibility(View.GONE);
+                binding.areaTextView.setText(address.getProvince() + address.getCity() + address.getDistrict());
+                binding.addressTextView.setText(address.getAddressDetail());
+                binding.receiverTextView.setText(address.getReceiverName() + " " + address.getPhone());
+            } else {
+                binding.addressLayout.setVisibility(View.GONE);
+                binding.warningLayout.setVisibility(View.VISIBLE);
+            }
+        });
+
+        //加载总价格
+        orderViewModel.getTotalPriceLiveData().observe(getViewLifecycleOwner(), totalPrice -> {
+            binding.priceTextView.setText("￥" + totalPrice);
+            binding.totalPriceTextView.setText("￥" + totalPrice);
+        });
+
+        //加载商品总件数
+        orderViewModel.getTotalCountLiveData().observe(getViewLifecycleOwner(), totalCount -> {
+            binding.countTextView.setText(totalCount.toString());
+            binding.totalCountTextView.setText(totalCount.toString());
+        });
+
+        orderViewModel.getFlagLiveData().observe(getViewLifecycleOwner(), flag -> {
+            Log.d(TAG, flag + "");
+            if (Objects.equals(flag, ResponseCode.OK.getCode())) {
+                new MessageDialog(getContext(), SweetAlertDialog.SUCCESS_TYPE).setTitleText("创建订单成功！").show();
+            } else if (Objects.equals(flag, ResponseCode.GOODS_NOT_ENOUGH_ERROR.getCode())) {
+                new MessageDialog(getContext(), SweetAlertDialog.WARNING_TYPE).setTitleText("商品缺货！").show();
+            } else if (Objects.equals(flag, ResponseCode.CART_GOODS_ERROR.getCode())) {
+                new MessageDialog(getContext(), SweetAlertDialog.WARNING_TYPE).setTitleText("购物车商品状态异常！").show();
+            } else if (Objects.equals(flag, ResponseCode.CART_EMPTY_ERROR.getCode())) {
+                new MessageDialog(getContext(), SweetAlertDialog.WARNING_TYPE).setTitleText("购物车为空！").show();
+            } else if (Objects.equals(flag, ResponseCode.ERROR.getCode())) {
+                new MessageDialog(getContext(), SweetAlertDialog.ERROR_TYPE).setTitleText("错误！").show();
+            }
         });
     }
 
