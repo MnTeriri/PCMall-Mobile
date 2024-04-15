@@ -47,65 +47,65 @@ public class MySelfViewModel extends ViewModel {
 
     //未付款订单个数
     public void getNotPayCount(String uid) {
-        Disposable disposable = orderService.getRecordsFiltered(uid, 0)
+        Disposable disposable = orderService.getRecordsFiltered("", uid, 0)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         responseResult -> notPayCountLiveData.setValue(responseResult.getData())
                         , new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Throwable {
+                            @Override
+                            public void accept(Throwable throwable) throws Throwable {
 
-                    }
-                });
+                            }
+                        });
         compositeDisposable.add(disposable);
     }
 
     //待发货订单个数
     public void getNotSendCount(String uid) {
-        Disposable disposable = orderService.getRecordsFiltered(uid, 1)
+        Disposable disposable = orderService.getRecordsFiltered("", uid, 1)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         responseResult -> notSendCountLiveData.setValue(responseResult.getData())
                         , new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Throwable {
+                            @Override
+                            public void accept(Throwable throwable) throws Throwable {
 
-                    }
-                });
+                            }
+                        });
         compositeDisposable.add(disposable);
     }
 
     //待收货订单个数
     public void getNotDeliverCount(String uid) {
-        Disposable disposable = orderService.getRecordsFiltered(uid, 2)
+        Disposable disposable = orderService.getRecordsFiltered("", uid, 2)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         responseResult -> notDeliverCountLiveData.setValue(responseResult.getData())
                         , new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Throwable {
+                            @Override
+                            public void accept(Throwable throwable) throws Throwable {
 
-                    }
-                });
+                            }
+                        });
         compositeDisposable.add(disposable);
     }
 
     //退款售后订单个数
     public void getRefundCount(String uid) {
-        Disposable disposable = orderService.getRecordsFiltered(uid, 5)
+        Disposable disposable = orderService.getRecordsFiltered("", uid, 5)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         responseResult -> refundCountLiveData.setValue(responseResult.getData())
                         , new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Throwable {
+                            @Override
+                            public void accept(Throwable throwable) throws Throwable {
 
-                    }
-                });
+                            }
+                        });
         compositeDisposable.add(disposable);
     }
 
