@@ -16,6 +16,7 @@ public enum ResponseCode {
     GOODS_OFF_SHELF_ERROR(500007, "商品下架"),
     CART_MIN_COUNT_ERROR(500008, "购物车数量最小"),
     CART_GOODS_ERROR(500009, "购物车商品状态异常"),
+    CART_EMPTY_ERROR(500010, "购物车为空"),
     AUTHORIZED_ERROR(401, "没有权限，需要登录"),
     FORBIDDEN_ERROR(403, "权限不够，被拒绝"),
     INTERNAL_SERVER_ERROR(500, "服务器内部错误");
