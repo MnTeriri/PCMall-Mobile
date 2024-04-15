@@ -13,4 +13,8 @@ public interface OrderService {
     Observable<ResponseResult<Long>> getRecordsFiltered(
             @Field("uid") String uid,
             @Field("type") Integer type);
+
+    @FormUrlEncoded
+    @POST("createOrder")
+    Observable<ResponseResult<String>> createOrder(@Field("uid") String uid, @Field("aid") Integer aid);
 }
