@@ -11,6 +11,7 @@ public interface OrderService {
     @FormUrlEncoded
     @POST("getRecordsFiltered")
     Observable<ResponseResult<Long>> getRecordsFiltered(
+            @Field("searchValue") String searchValue,
             @Field("uid") String uid,
             @Field("type") Integer type);
 
