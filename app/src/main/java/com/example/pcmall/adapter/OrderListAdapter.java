@@ -22,6 +22,8 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
     private final List<Order> orderList;
     private Context context;
 
+    private final static String[] STATUS = {"待付款", "待发货", "待收货", "交易成功", "交易取消", "退货中", "退货成功"};
+
     public OrderListAdapter(List<Order> orderList) {
         this.orderList = orderList;
     }
@@ -40,6 +42,7 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         Order order = orderList.get(position);
         List<Goods> goodsList = order.getGoodsList();
         holder.binding.oidTextView.setText(String.format(context.getString(R.string.recyclerview_order_item_oid), order.getOid()));
+        holder.binding.statusTextView.setText(STATUS[order.getStatus()]);
         holder.binding.createdTimeTextView.setText(order.getCreatedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         RecyclerView recycleView = holder.binding.recycleView;
         recycleView.setAdapter(new OrderGoodsListAdapter(goodsList));
