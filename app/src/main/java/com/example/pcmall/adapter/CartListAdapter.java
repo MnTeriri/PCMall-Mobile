@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.pcmall.R;
 import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.databinding.RecyclerviewCartItemBinding;
 import com.example.pcmall.model.Cart;
@@ -45,7 +46,7 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.CartIt
         GlideApp.with(context)
                 .load(NetworkModule.baseUrl + "image/" + goods.getImage())
                 .into(holder.binding.imageView);
-        holder.binding.gnameTextView.setText(goods.getBrand().getBname() + goods.getGname());
+        holder.binding.gnameTextView.setText(String.format(context.getString(R.string.goods_item_name), goods.getBrand().getBname(), goods.getGname()));
         //点击事件，进入商品界面
         if (clickListener != null) {
             holder.binding.getRoot().setOnClickListener(v -> clickListener.onClick(v, cart));
@@ -59,7 +60,7 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.CartIt
             holder.binding.priceLinearLayout.setVisibility(View.VISIBLE);
             holder.binding.selectCheckBox.setEnabled(true);
             holder.binding.selectCheckBox.setChecked(cart.getIsSelect() == 1);
-            holder.binding.priceTextView.setText("￥" + goods.getPrice().toString());
+            holder.binding.priceTextView.setText(String.format(context.getString(R.string.price), goods.getPrice()));
             holder.binding.count.setText(cart.getCount().toString());
             //添加数目button
             if (addListener != null) {

@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.pcmall.R;
 import com.example.pcmall.databinding.RecyclerviewOrderCartItemBinding;
 import com.example.pcmall.model.Cart;
 import com.example.pcmall.model.Goods;
@@ -39,12 +40,12 @@ public class OrderCartListAdapter extends RecyclerView.Adapter<OrderCartListAdap
         GlideApp.with(context)
                 .load(NetworkModule.baseUrl + "image/" + goods.getImage())
                 .into(holder.binding.imageView);
-        holder.binding.gnameTextView.setText(goods.getBrand().getBname() + goods.getGname());
+        holder.binding.gnameTextView.setText(String.format(context.getString(R.string.goods_item_name), goods.getBrand().getBname(), goods.getGname()));
         if (goods.getStatus() == 0 && goods.getIsDelete() == 0) {
             holder.binding.descriptionTextView.setText(goods.getDescription());
             holder.binding.priceLinearLayout.setVisibility(View.VISIBLE);
-            holder.binding.priceTextView.setText("￥" + goods.getPrice().toString());
-            holder.binding.countTextView.setText("x " + cart.getCount().toString());
+            holder.binding.priceTextView.setText(String.format(context.getString(R.string.price), goods.getPrice()));
+            holder.binding.countTextView.setText(String.format(context.getString(R.string.count), cart.getCount().toString()));
         } else {
             holder.binding.priceLinearLayout.setVisibility(View.GONE);
             if (goods.getStatus() == 1) {
