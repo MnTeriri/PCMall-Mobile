@@ -21,4 +21,9 @@
     <string name="title_refund">退款/售后</string>
     <string name="remember_me">记住我</string>
 
+    <string name="goods_item_name">%s%s</string>
+    <string name="price">￥%s</string>
+    <string name="count">x %s</string>
+    <string name="recyclerview_order_item_oid">订单号：%s</string>
+
 </resources>
