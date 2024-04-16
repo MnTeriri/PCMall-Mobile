@@ -3,17 +3,12 @@ package com.example.pcmall.ui.fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,10 +21,7 @@ import com.example.pcmall.model.Goods;
 import com.example.pcmall.model.Pagination;
 import com.example.pcmall.service.GoodsService;
 import com.example.pcmall.ui.viewmodel.HomeViewModel;
-import com.google.android.material.search.SearchBar;
 import com.google.android.material.search.SearchView;
-import com.scwang.smart.refresh.footer.ClassicsFooter;
-import com.scwang.smart.refresh.header.ClassicsHeader;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
 
 import java.util.ArrayList;
@@ -127,7 +119,7 @@ public class HomeFragment extends Fragment {
             searchValue = v.getText().toString();
             searchPagination.setCurrentPage(1);
             homeViewModel.getSearchList(searchValue, searchPagination.getCurrentPage(), searchPagination.getPageSize(), true);
-            homeViewModel.getSearchTotalCount(searchValue);
+            homeViewModel.getRecordsFiltered(searchValue);
             return true;
         });
 
@@ -145,7 +137,7 @@ public class HomeFragment extends Fragment {
             Log.d(TAG, "上拉刷新SearchRefreshLayout");
             searchPagination.setCurrentPage(1);
             homeViewModel.getSearchList(searchValue, searchPagination.getCurrentPage(), searchPagination.getPageSize(), true);
-            homeViewModel.getSearchTotalCount(searchValue);
+            homeViewModel.getRecordsFiltered(searchValue);
         });
 
         //SearchView下拉加载更多

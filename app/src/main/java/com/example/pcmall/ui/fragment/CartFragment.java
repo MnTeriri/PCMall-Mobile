@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.alibaba.fastjson2.JSON;
+import com.example.pcmall.R;
 import com.example.pcmall.activity.GoodsActivity;
 import com.example.pcmall.adapter.CartListAdapter;
 import com.example.pcmall.application.PCMallApplication;
@@ -181,7 +182,9 @@ public class CartFragment extends Fragment {
             cartListAdapter.notifyDataSetChanged();
         });
 
-        cartViewModel.getTotalPriceLiveData().observe(getViewLifecycleOwner(), bigDecimal -> binding.totalPriceTextView.setText("￥" + bigDecimal.toString()));
+        cartViewModel.getTotalPriceLiveData().observe(getViewLifecycleOwner(), bigDecimal -> {
+            binding.totalPriceTextView.setText(String.format(getString(R.string.price), bigDecimal.toString()));
+        });
 
         cartViewModel.getTotalCountLiveData().observe(getViewLifecycleOwner(), totalCount -> {
             pagination.setTotalCount(Math.toIntExact(totalCount));
