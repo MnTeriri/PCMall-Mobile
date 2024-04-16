@@ -9,27 +9,20 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.pcmall.adapter.CartListAdapter;
 import com.example.pcmall.adapter.OrderCartListAdapter;
 import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.DialogFragmentOrderCreateBinding;
-import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.model.Address;
 import com.example.pcmall.model.Cart;
 import com.example.pcmall.model.User;
 import com.example.pcmall.model.response.ResponseCode;
-import com.example.pcmall.ui.viewmodel.AddressViewModel;
-import com.example.pcmall.ui.viewmodel.CartViewModel;
 import com.example.pcmall.ui.viewmodel.OrderViewModel;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -154,13 +147,13 @@ public class CreateOrderDialog extends FullScreenDialog {
         });
 
         //加载总价格
-        orderViewModel.getTotalPriceLiveData().observe(getViewLifecycleOwner(), totalPrice -> {
+        orderViewModel.getSelectItemTotalPriceLiveData().observe(getViewLifecycleOwner(), totalPrice -> {
             binding.priceTextView.setText("￥" + totalPrice);
             binding.totalPriceTextView.setText("￥" + totalPrice);
         });
 
         //加载商品总件数
-        orderViewModel.getTotalCountLiveData().observe(getViewLifecycleOwner(), totalCount -> {
+        orderViewModel.getSelectItemCountLiveData().observe(getViewLifecycleOwner(), totalCount -> {
             binding.countTextView.setText(totalCount.toString());
             binding.totalCountTextView.setText(totalCount.toString());
         });
