@@ -112,7 +112,7 @@ public class HomeViewModel extends ViewModel {
         compositeDisposable.add(disposable);
     }
 
-    public void getSearchTotalCount(String searchValue) {
+    public void getRecordsFiltered(String searchValue) {
         Disposable disposable = goodsService.getRecordsFiltered(searchValue)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

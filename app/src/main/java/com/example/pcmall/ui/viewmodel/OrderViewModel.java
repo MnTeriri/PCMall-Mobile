@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel;
 import com.example.pcmall.model.Address;
 import com.example.pcmall.model.Cart;
 import com.example.pcmall.model.Goods;
+import com.example.pcmall.model.Order;
 import com.example.pcmall.model.response.ResponseCode;
 import com.example.pcmall.model.response.ResponseResult;
 import com.example.pcmall.service.AddressService;
@@ -25,27 +26,35 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.Getter;
 
 @HiltViewModel
 public class OrderViewModel extends ViewModel {
     private final String TAG = "OrderViewModel";
+    public final static Integer ERROR = -2;//错误
+    public final static Integer LOAD_ERROR = -1;//加载错误
+    public final static Integer LOAD_MORE_SUCCESS = 1;//加载更多成功
+    public final static Integer REFRESH_SUCCESS = 2;//刷新成功
     private final AddressService addressService;
     private final CartService cartService;
     private final OrderService orderService;
     private final CompositeDisposable compositeDisposable;
     private List<Cart> cartList;
+    private List<Order> orderList;
 
     @Getter
-    private final MutableLiveData<List<Cart>> cartListLiveData;
+    private final MutableLiveData<List<Cart>> cartListLiveData;//创建订单界面购物车数据
     @Getter
-    private final MutableLiveData<Integer> totalCountLiveData;
+    private final MutableLiveData<Integer> totalCountLiveData;//创建订单界面购物车总件数
     @Getter
-    private final MutableLiveData<BigDecimal> totalPriceLiveData;
+    private final MutableLiveData<BigDecimal> totalPriceLiveData;//创建订单界面购物车总价格
     @Getter
-    private final MutableLiveData<Address> addressLiveData;
+    private final MutableLiveData<Address> addressLiveData;//创建订单界面默认地址信息
+    @Getter
+    private final MutableLiveData<List<Order>> orderListLiveData;//订单界面订单数据
+    @Getter
+    private final MutableLiveData<Long> searchCountLiveData;//订单界面订单数据查询总数量
     @Getter
     private final MutableLiveData<Integer> flagLiveData;
 
@@ -56,10 +65,13 @@ public class OrderViewModel extends ViewModel {
         this.orderService = orderService;
         this.compositeDisposable = new CompositeDisposable();
         this.cartList = new ArrayList<>();
+        this.orderList = new ArrayList<>();
         this.cartListLiveData = new MutableLiveData<>();
         this.totalCountLiveData = new MutableLiveData<>();
         this.totalPriceLiveData = new MutableLiveData<>();
         this.addressLiveData = new MutableLiveData<>();
+        this.orderListLiveData = new MutableLiveData<>();
+        this.searchCountLiveData = new MutableLiveData<>();
         this.flagLiveData = new MutableLiveData<>();
         Log.d(TAG, "自动注入OrderService完成");
         Log.d(TAG, "MutableLiveData初始化完成");
@@ -124,6 +136,37 @@ public class OrderViewModel extends ViewModel {
                                 flagLiveData.setValue(message.getCode());
                             }
                         });
+        compositeDisposable.add(disposable);
+    }
+
+    public void searchOrderList(String searchValue, String uid, Integer type, Integer currentPage, Integer pageSize, boolean reFresh) {
+        Disposable disposable = orderService.searchOrderList(searchValue, uid, type, currentPage, pageSize)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(responseResult -> {
+                    Log.d(TAG, responseResult.toString());
+                    if (reFresh) {
+                        orderList = responseResult.getData();
+                        flagLiveData.setValue(REFRESH_SUCCESS);
+                    } else {
+                        orderList.addAll(responseResult.getData());
+                        flagLiveData.setValue(LOAD_MORE_SUCCESS);
+                    }
+                    orderListLiveData.setValue(orderList);
+                }, throwable -> {
+                    flagLiveData.setValue(LOAD_ERROR);
+                });
+        compositeDisposable.add(disposable);
+    }
+
+    public void getRecordsFiltered(String searchValue, String uid, Integer type) {
+        Disposable disposable = orderService.getRecordsFiltered(searchValue, uid, type)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        responseResult -> searchCountLiveData.setValue(responseResult.getData()),
+                        throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
+                );
         compositeDisposable.add(disposable);
     }
 
