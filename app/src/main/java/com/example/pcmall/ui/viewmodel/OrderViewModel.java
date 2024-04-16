@@ -46,9 +46,9 @@ public class OrderViewModel extends ViewModel {
     @Getter
     private final MutableLiveData<List<Cart>> cartListLiveData;//创建订单界面购物车数据
     @Getter
-    private final MutableLiveData<Integer> totalCountLiveData;//创建订单界面购物车总件数
+    private final MutableLiveData<Integer> selectItemCountLiveData;//创建订单界面选择商品总件数
     @Getter
-    private final MutableLiveData<BigDecimal> totalPriceLiveData;//创建订单界面购物车总价格
+    private final MutableLiveData<BigDecimal> selectItemTotalPriceLiveData;//创建订单界面选择商品总价格
     @Getter
     private final MutableLiveData<Address> addressLiveData;//创建订单界面默认地址信息
     @Getter
@@ -67,8 +67,8 @@ public class OrderViewModel extends ViewModel {
         this.cartList = new ArrayList<>();
         this.orderList = new ArrayList<>();
         this.cartListLiveData = new MutableLiveData<>();
-        this.totalCountLiveData = new MutableLiveData<>();
-        this.totalPriceLiveData = new MutableLiveData<>();
+        this.selectItemCountLiveData = new MutableLiveData<>();
+        this.selectItemTotalPriceLiveData = new MutableLiveData<>();
         this.addressLiveData = new MutableLiveData<>();
         this.orderListLiveData = new MutableLiveData<>();
         this.searchCountLiveData = new MutableLiveData<>();
@@ -85,13 +85,13 @@ public class OrderViewModel extends ViewModel {
                     Log.d(TAG, responseResult.toString());
                     cartList = responseResult.getData();
                     cartListLiveData.setValue(cartList);
-                    selectPriceHandel();
-                    selectCountHandel();
+                    selectItemTotalPriceHandel();
+                    selectItemCountHandel();
                 }, throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode()));
         compositeDisposable.add(disposable);
     }
 
-    private void selectPriceHandel() {
+    private void selectItemTotalPriceHandel() {
         BigDecimal total = new BigDecimal("0");
         for (Cart cart : cartList) {
             Goods goods = cart.getGoods();
@@ -99,10 +99,10 @@ public class OrderViewModel extends ViewModel {
                 total = total.add(goods.getPrice().multiply(BigDecimal.valueOf(cart.getCount())));
             }
         }
-        totalPriceLiveData.setValue(total);
+        selectItemTotalPriceLiveData.setValue(total);
     }
 
-    private void selectCountHandel() {
+    private void selectItemCountHandel() {
         int total = 0;
         for (Cart cart : cartList) {
             Goods goods = cart.getGoods();
@@ -110,7 +110,7 @@ public class OrderViewModel extends ViewModel {
                 total = total + cart.getCount();
             }
         }
-        totalCountLiveData.setValue(total);
+        selectItemCountLiveData.setValue(total);
     }
 
     public void getDefaultAddress(String uid) {

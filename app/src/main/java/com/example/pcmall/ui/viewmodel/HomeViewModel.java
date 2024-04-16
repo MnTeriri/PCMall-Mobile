@@ -33,13 +33,13 @@ public class HomeViewModel extends ViewModel {
     private List<Goods> searchList;
 
     @Getter
-    private final MutableLiveData<List<Goods>> goodsLiveData;
+    private final MutableLiveData<List<Goods>> goodsLiveData;//主页商品信息
     @Getter
-    private final MutableLiveData<List<Goods>> searchLiveData;
+    private final MutableLiveData<List<Goods>> searchLiveData;//搜索页商品信息
     @Getter
-    private final MutableLiveData<Long> totalCountLiveData;
+    private final MutableLiveData<Long> totalCountLiveData;//主页商品信息总数量
     @Getter
-    private final MutableLiveData<Long> searchCountLiveData;
+    private final MutableLiveData<Long> searchCountLiveData;//搜索页商品信息总数量
     @Getter
     private final MutableLiveData<Integer> flagLiveData;
 

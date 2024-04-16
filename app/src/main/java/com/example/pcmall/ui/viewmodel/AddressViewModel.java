@@ -32,7 +32,7 @@ public class AddressViewModel extends ViewModel {
     private final List<Address> addressList;
 
     @Getter
-    private final MutableLiveData<List<Address>> addressListLiveData;
+    private final MutableLiveData<List<Address>> addressListLiveData;//用户地址信息
     @Getter
     private final MutableLiveData<Integer> flagLiveData;
 

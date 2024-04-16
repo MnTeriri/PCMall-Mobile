@@ -35,13 +35,13 @@ public class CartViewModel extends ViewModel {
     private List<Cart> cartList;
 
     @Getter
-    private final MutableLiveData<List<Cart>> cartListLiveData;
+    private final MutableLiveData<List<Cart>> cartListLiveData;//用户购物车信息
     @Getter
-    private final MutableLiveData<BigDecimal> totalPriceLiveData;
+    private final MutableLiveData<BigDecimal> selectItemTotalPriceLiveData;//购物车选择商品总价
     @Getter
-    private final MutableLiveData<Integer> selectCountLiveData;
+    private final MutableLiveData<Integer> selectItemCountLiveData;//购物车选择商品总件数
     @Getter
-    private final MutableLiveData<Long> totalCountLiveData;
+    private final MutableLiveData<Long> totalCountLiveData;//用户购物车信息总数
     @Getter
     private final MutableLiveData<Integer> flagLiveData;
 
@@ -50,8 +50,8 @@ public class CartViewModel extends ViewModel {
         this.cartService = cartService;
         this.compositeDisposable = new CompositeDisposable();
         this.cartListLiveData = new MutableLiveData<>();
-        this.totalPriceLiveData = new MutableLiveData<>();
-        this.selectCountLiveData = new MutableLiveData<>();
+        this.selectItemTotalPriceLiveData = new MutableLiveData<>();
+        this.selectItemCountLiveData = new MutableLiveData<>();
         this.totalCountLiveData = new MutableLiveData<>();
         this.flagLiveData = new MutableLiveData<>();
         this.cartList = new ArrayList<>();
@@ -73,15 +73,15 @@ public class CartViewModel extends ViewModel {
                         flagLiveData.setValue(CartViewModel.LOAD_MORE_SUCCESS);
                     }
                     cartListLiveData.setValue(cartList);
-                    selectPriceHandel();
-                    selectCountHandel();
+                    selectItemTotalPriceHandel();
+                    selectItemCountHandel();
                 }, throwable -> {
                     flagLiveData.setValue(CartViewModel.LOAD_ERROR);
                 });
         compositeDisposable.add(disposable);
     }
 
-    private void selectPriceHandel() {
+    private void selectItemTotalPriceHandel() {
         BigDecimal total = new BigDecimal("0");
         for (Cart cart : cartList) {
             Goods goods = cart.getGoods();
@@ -89,10 +89,10 @@ public class CartViewModel extends ViewModel {
                 total = total.add(goods.getPrice().multiply(BigDecimal.valueOf(cart.getCount())));
             }
         }
-        totalPriceLiveData.setValue(total);
+        selectItemTotalPriceLiveData.setValue(total);
     }
 
-    private void selectCountHandel() {
+    private void selectItemCountHandel() {
         int total = 0;
         for (Cart cart : cartList) {
             Goods goods = cart.getGoods();
@@ -100,7 +100,7 @@ public class CartViewModel extends ViewModel {
                 total = total + cart.getCount();
             }
         }
-        selectCountLiveData.setValue(total);
+        selectItemCountLiveData.setValue(total);
     }
 
     public void getTotalCount(String uid) {

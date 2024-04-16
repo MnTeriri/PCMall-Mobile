@@ -23,13 +23,14 @@ import lombok.Getter;
 public class LoginRegisterViewModel extends ViewModel {
     private final String TAG = "LoginRegisterViewModel";
     public LoginRegisterService loginRegisterService;
-    @Getter
-    private final MutableLiveData<ResponseResult<User>> loginResponse;
-    @Getter
-    private final MutableLiveData<ResponseResult<String>> registerResponse;
-    @Getter
-    private final MutableLiveData<ResponseResult<String>> captchaResponse;
     private final CompositeDisposable compositeDisposable;
+
+    @Getter
+    private final MutableLiveData<ResponseResult<User>> loginResponse;//登录信息
+    @Getter
+    private final MutableLiveData<ResponseResult<String>> registerResponse;//注册信息
+    @Getter
+    private final MutableLiveData<ResponseResult<String>> captchaResponse;//验证码
 
     @Inject
     public LoginRegisterViewModel(LoginRegisterService loginRegisterService) {

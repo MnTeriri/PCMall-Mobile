@@ -25,13 +25,13 @@ public class MySelfViewModel extends ViewModel {
     private final CompositeDisposable compositeDisposable;
 
     @Getter
-    private final MutableLiveData<Long> notPayCountLiveData;
+    private final MutableLiveData<Long> notPayCountLiveData;//未付款订单个数
     @Getter
-    private final MutableLiveData<Long> notSendCountLiveData;
+    private final MutableLiveData<Long> notSendCountLiveData; //待发货订单个数
     @Getter
-    private final MutableLiveData<Long> notDeliverCountLiveData;
+    private final MutableLiveData<Long> notDeliverCountLiveData;//待收货订单个数
     @Getter
-    private final MutableLiveData<Long> refundCountLiveData;
+    private final MutableLiveData<Long> refundCountLiveData;//退款售后订单个数
 
     @Inject
     public MySelfViewModel(OrderService orderService) {
