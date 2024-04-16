@@ -33,7 +33,7 @@
                     android:id="@+id/gname_textView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="bname"
+                    android:text="@string/goods_item_name"
                     android:textAppearance="?attr/textAppearanceTitleMedium" />
 
                 <TextView
@@ -41,10 +41,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="description"
-                    android:singleLine="true"
-                    android:maxEms="8"
                     android:ellipsize="end"
+                    android:maxEms="8"
+                    android:singleLine="true"
+                    android:text="description"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?android:attr/textColorSecondary" />
 
@@ -53,30 +53,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="price"
-                    android:textColor="@color/danger"
-                    android:textAppearance="?attr/textAppearanceTitleSmall" />
+                    android:text="@string/price"
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textColor="@color/danger" />
             </LinearLayout>
-            <!-- Buttons -->
-<!--            <LinearLayout-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_margin="8dp"-->
-<!--                android:orientation="horizontal">-->
 
-<!--                <com.google.android.material.button.MaterialButton-->
-<!--                    style="?attr/borderlessButtonStyle"-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:layout_marginEnd="8dp"-->
-<!--                    android:text="123123" />-->
-
-<!--                <com.google.android.material.button.MaterialButton-->
-<!--                    style="?attr/borderlessButtonStyle"-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:text="123123" />-->
-<!--            </LinearLayout>-->
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

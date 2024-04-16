@@ -55,7 +55,7 @@
                         android:ellipsize="end"
                         android:maxEms="8"
                         android:singleLine="true"
-                        android:text="bname"
+                        android:text="@string/goods_item_name"
                         android:textAppearance="?attr/textAppearanceTitleMedium" />
 
                     <TextView
@@ -80,7 +80,7 @@
                             android:layout_width="110dp"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="30dp"
-                            android:text="price"
+                            android:text="@string/price"
                             android:textAppearance="?attr/textAppearanceTitleSmall"
                             android:textColor="@color/danger" />
 
