@@ -44,8 +44,6 @@ public class HomeFragment extends Fragment {
     private String searchValue = "";
     private Pagination searchPagination;
     private Pagination pagination;
-    @Inject
-    public GoodsService goodsService;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);

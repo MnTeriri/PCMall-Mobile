@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -24,7 +23,6 @@ import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.FragmentCartBinding;
 import com.example.pcmall.dialog.CreateOrderDialog;
 import com.example.pcmall.dialog.MessageDialog;
-import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.model.Cart;
 import com.example.pcmall.model.Pagination;
 import com.example.pcmall.model.User;
@@ -159,7 +157,7 @@ public class CartFragment extends Fragment {
 
         //结算按钮
         binding.createOrderButton.setOnClickListener(v -> {
-            if (cartViewModel.getSelectCountLiveData().getValue() > 0) {
+            if (cartViewModel.getSelectItemCountLiveData().getValue() > 0) {
                 CreateOrderDialog dialog = new CreateOrderDialog(getActivity());
                 dialog.setOnDialogClosedListener(dialogFragment -> {
                     pagination.setCurrentPage(1);
@@ -182,7 +180,7 @@ public class CartFragment extends Fragment {
             cartListAdapter.notifyDataSetChanged();
         });
 
-        cartViewModel.getTotalPriceLiveData().observe(getViewLifecycleOwner(), bigDecimal -> {
+        cartViewModel.getSelectItemTotalPriceLiveData().observe(getViewLifecycleOwner(), bigDecimal -> {
             binding.totalPriceTextView.setText(String.format(getString(R.string.price), bigDecimal.toString()));
         });
 
