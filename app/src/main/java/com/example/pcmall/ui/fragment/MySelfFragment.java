@@ -1,19 +1,15 @@
 package com.example.pcmall.ui.fragment;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.pcmall.R;
@@ -27,7 +23,6 @@ import com.example.pcmall.model.User;
 import com.example.pcmall.ui.viewmodel.MySelfViewModel;
 import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.badge.ExperimentalBadgeUtils;
-import com.google.android.material.navigation.NavigationBarView;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -39,7 +34,6 @@ public class MySelfFragment extends Fragment {
     private User user;
     private FragmentMyselfBinding binding;
 
-    @OptIn(markerClass = ExperimentalBadgeUtils.class)
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentMyselfBinding.inflate(inflater, container, false);
         mySelfViewModel = new ViewModelProvider(this).get(MySelfViewModel.class);

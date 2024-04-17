@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.pcmall.adapter.recyclerview.OrderListAdapter;
 import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.FragmentOrderBinding;
+import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.model.Order;
 import com.example.pcmall.model.Pagination;
 import com.example.pcmall.model.User;
@@ -96,10 +97,9 @@ public class OrderFragment extends Fragment {
 
     private void initView() {
         Log.d(TAG, "初始化View");
-        RecyclerView recycleView = binding.recycleView;
         orderListAdapter = new OrderListAdapter(orderList);
-        recycleView.setAdapter(orderListAdapter);
-        recycleView.setLayoutManager(new LinearLayoutManager(this.getContext()));
+        binding.recycleView.setAdapter(orderListAdapter);
+        binding.recycleView.setLayoutManager(new LinearLayoutManager(this.getContext()));
     }
 
     private void initListener() {
@@ -119,6 +119,38 @@ public class OrderFragment extends Fragment {
                 orderViewModel.searchOrderList("", user.getUid(), type, pagination.getCurrentPage(), pagination.getPageSize(), false);
             } else {
                 binding.refreshLayout.setNoMoreData(true);
+            }
+        });
+
+        //点击订单Card进入订单详情界面
+        orderListAdapter.setOnClickListener(new ListenerInterface.OnClickListener<Order>() {
+            @Override
+            public void onClick(View v, Order data) {
+                Log.d(TAG, data.toString());
+            }
+        });
+
+        //点击付款按钮
+        orderListAdapter.setOnPayButtonClickListener(new ListenerInterface.OnClickListener<Order>() {
+            @Override
+            public void onClick(View v, Order data) {
+                Log.d(TAG, data.toString());
+            }
+        });
+
+        //点击取消订单按钮
+        orderListAdapter.setOnCancelButtonClickListener(new ListenerInterface.OnClickListener<Order>() {
+            @Override
+            public void onClick(View v, Order data) {
+                Log.d(TAG, data.toString());
+            }
+        });
+
+        //点击退货按钮
+        orderListAdapter.setOnRefundButtonClickListener(new ListenerInterface.OnClickListener<Order>() {
+            @Override
+            public void onClick(View v, Order data) {
+                Log.d(TAG, data.toString());
             }
         });
     }

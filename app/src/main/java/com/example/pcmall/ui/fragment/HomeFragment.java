@@ -83,9 +83,8 @@ public class HomeFragment extends Fragment {
     //添加事件
     private void initListener() {
         Log.d(TAG, "添加事件");
-        RefreshLayout refreshLayout = binding.refreshLayout;
         //主页上拉刷新
-        refreshLayout.setOnRefreshListener(refreshlayout -> {
+        binding.refreshLayout.setOnRefreshListener(refreshlayout -> {
             Log.d(TAG, "上拉刷新RefreshLayout");
             pagination.setCurrentPage(1);
             homeViewModel.getGoodsList(pagination.getCurrentPage(), pagination.getPageSize(), true);
@@ -93,7 +92,7 @@ public class HomeFragment extends Fragment {
         });
 
         //主页下拉加载更多
-        refreshLayout.setOnLoadMoreListener(refreshlayout -> {
+        binding.refreshLayout.setOnLoadMoreListener(refreshlayout -> {
             Log.d(TAG, "下拉加载RefreshLayout");
             if (pagination.nextPage()) {
                 homeViewModel.getGoodsList(pagination.getCurrentPage(), pagination.getPageSize(), false);
