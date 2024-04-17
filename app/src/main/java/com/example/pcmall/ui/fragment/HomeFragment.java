@@ -15,11 +15,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.alibaba.fastjson2.JSON;
 import com.example.pcmall.activity.GoodsActivity;
-import com.example.pcmall.adapter.GoodsListAdapter;
+import com.example.pcmall.adapter.recyclerview.GoodsListAdapter;
 import com.example.pcmall.databinding.FragmentHomeBinding;
 import com.example.pcmall.model.Goods;
 import com.example.pcmall.model.Pagination;
-import com.example.pcmall.service.GoodsService;
 import com.example.pcmall.ui.viewmodel.HomeViewModel;
 import com.google.android.material.search.SearchView;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
@@ -27,8 +26,6 @@ import com.scwang.smart.refresh.layout.api.RefreshLayout;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 

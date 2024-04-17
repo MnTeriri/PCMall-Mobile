@@ -14,14 +14,13 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.pcmall.adapter.OrderListAdapter;
+import com.example.pcmall.adapter.recyclerview.OrderListAdapter;
 import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.FragmentOrderBinding;
 import com.example.pcmall.model.Order;
 import com.example.pcmall.model.Pagination;
 import com.example.pcmall.model.User;
 import com.example.pcmall.model.response.ResponseCode;
-import com.example.pcmall.ui.viewmodel.CartViewModel;
 import com.example.pcmall.ui.viewmodel.OrderViewModel;
 
 import java.util.ArrayList;

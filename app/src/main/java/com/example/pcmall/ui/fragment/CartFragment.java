@@ -18,7 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.alibaba.fastjson2.JSON;
 import com.example.pcmall.R;
 import com.example.pcmall.activity.GoodsActivity;
-import com.example.pcmall.adapter.CartListAdapter;
+import com.example.pcmall.adapter.recyclerview.CartListAdapter;
 import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.FragmentCartBinding;
 import com.example.pcmall.dialog.CreateOrderDialog;
