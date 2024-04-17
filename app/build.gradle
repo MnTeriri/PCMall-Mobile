@@ -92,4 +92,6 @@ dependencies {
 
     //sweetalert
     implementation 'com.github.f0ris.sweetalert:library:1.6.2'
+
+    implementation 'q.rorbin:VerticalTabLayout:1.2.5'
 }
