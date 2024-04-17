@@ -17,7 +17,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.pcmall.adapter.AddressSelectListAdapter;
+import com.example.pcmall.adapter.recyclerview.AddressSelectListAdapter;
 import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.DialogFragmentAddressSelectBinding;

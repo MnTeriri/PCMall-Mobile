@@ -13,7 +13,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.pcmall.adapter.AddressListAdapter;
+import com.example.pcmall.adapter.recyclerview.AddressListAdapter;
 import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.DialogFragmentAddressBinding;
 import com.example.pcmall.model.Address;
