@@ -19,7 +19,7 @@ public class CategoryTabAdapter extends SimpleTabAdapter {
         //自定义Tab选择器的字体大小颜色
         Category category = categoryList.get(position);
         return new QTabView.TabTitle.Builder()
-                .setTextColor(0xFF2A2323, 0xFF2A2323)
+                .setTextColor(0xFF000000, 0x98000000)
                 .setTextSize(15)
                 .setContent(category.getCname())
                 .build();
