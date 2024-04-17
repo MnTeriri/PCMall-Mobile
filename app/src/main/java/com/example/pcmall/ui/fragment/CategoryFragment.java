@@ -46,20 +46,25 @@ public class CategoryFragment extends Fragment {
     }
 
     private void initData() {
+        Log.d(TAG, "加载数据");
         categoryViewModel.getCategoryList();
     }
 
     private void initView() {
-
+        Log.d(TAG, "初始化View");
     }
 
     private void initListener() {
-
+        Log.d(TAG, "添加事件");
     }
 
     private void handelObserve() {
+        Log.d(TAG, "添加ViewModel返回结果方法");
         categoryViewModel.getCategoryListLiveData().observe(getViewLifecycleOwner(), list -> {
+            //初始化tabLayout
             binding.tabLayout.setTabAdapter(new CategoryTabAdapter(list));
+
+            //创建viewPager所需的Fragment
             List<BrandFragment> fragmentList = new ArrayList<>();
             for (Category category : list) {
                 fragmentList.add(new BrandFragment(category));
