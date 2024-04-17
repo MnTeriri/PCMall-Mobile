@@ -1,4 +1,4 @@
-package com.example.pcmall.adapter;
+package com.example.pcmall.adapter.recyclerview;
 
 import android.content.Context;
 import android.view.LayoutInflater;

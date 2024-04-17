@@ -1,4 +1,4 @@
-package com.example.pcmall.adapter;
+package com.example.pcmall.adapter.recyclerview;
 
 import android.annotation.SuppressLint;
 import android.view.LayoutInflater;

@@ -1,4 +1,4 @@
-package com.example.pcmall.adapter;
+package com.example.pcmall.adapter.recyclerview;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -10,8 +10,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.pcmall.R;
 import com.example.pcmall.databinding.RecyclerviewOrderGoodsItemBinding;
-import com.example.pcmall.databinding.RecyclerviewOrderItemBinding;
-import com.example.pcmall.model.Cart;
 import com.example.pcmall.model.Goods;
 import com.example.pcmall.module.GlideApp;
 import com.example.pcmall.module.NetworkModule;
