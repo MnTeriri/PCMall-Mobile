@@ -40,7 +40,6 @@ public class OrderGoodsListAdapter extends RecyclerView.Adapter<OrderGoodsListAd
                 .into(holder.binding.imageView);
         holder.binding.gnameTextView.setText(String.format(context.getString(R.string.goods_item_name), goods.getBrand().getBname(), goods.getGname()));
         holder.binding.descriptionTextView.setText(goods.getDescription());
-        holder.binding.priceLinearLayout.setVisibility(View.VISIBLE);
         holder.binding.priceTextView.setText(String.format(context.getString(R.string.price), goods.getPrice()));
         holder.binding.countTextView.setText(String.format(context.getString(R.string.count), goods.getCount().toString()));
     }

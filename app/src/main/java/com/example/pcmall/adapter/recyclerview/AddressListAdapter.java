@@ -16,7 +16,7 @@ import java.util.List;
 
 public class AddressListAdapter extends RecyclerView.Adapter<AddressListAdapter.AddressItmeViewHolder> {
     private final List<Address> list;
-    private ListenerInterface.OnClickListener<Address> cardClickListener;
+    private ListenerInterface.OnClickListener<Address> clickListener;
 
     public AddressListAdapter(List<Address> list) {
         this.list = list;
@@ -42,8 +42,8 @@ public class AddressListAdapter extends RecyclerView.Adapter<AddressListAdapter.
         }
 
         //点击卡片编辑地址
-        if (cardClickListener != null) {
-            holder.binding.addressCardView.setOnClickListener(v -> cardClickListener.onClick(v, address));
+        if (clickListener != null) {
+            holder.binding.addressCardView.setOnClickListener(v -> clickListener.onClick(v, address));
         }
     }
 
@@ -52,8 +52,8 @@ public class AddressListAdapter extends RecyclerView.Adapter<AddressListAdapter.
         return list.size();
     }
 
-    public void setOnCartClickListener(ListenerInterface.OnClickListener<Address> listener) {
-        this.cardClickListener = listener;
+    public void setOnClickListener(ListenerInterface.OnClickListener<Address> listener) {
+        this.clickListener = listener;
     }
 
     public static class AddressItmeViewHolder extends RecyclerView.ViewHolder {
