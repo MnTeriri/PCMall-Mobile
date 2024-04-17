@@ -79,7 +79,7 @@ public class AddressDialog extends FullScreenDialog {
         binding.topAppBar.setNavigationOnClickListener(v -> dismiss());
 
         //点击地址跳转到编辑
-        addressListAdapter.setOnCartClickListener((v, address) -> {
+        addressListAdapter.setOnClickListener((v, address) -> {
             AddressUpdateDialog dialog = new AddressUpdateDialog(getActivity(), address);
             dialog.show();
             dialog.setOnDialogClosedListener(dialogFragment -> {
