@@ -88,6 +88,11 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.CartIt
         }
     }
 
+    @Override
+    public int getItemCount() {
+        return list.size();
+    }
+
     public void setOnClickListener(ListenerInterface.OnClickListener<Cart> listener) {
         this.clickListener = listener;
     }
@@ -106,11 +111,6 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.CartIt
 
     public void setSelectListener(ListenerInterface.OnItemCheckBoxClickListener<Cart> listener) {
         this.selectListener = listener;
-    }
-
-    @Override
-    public int getItemCount() {
-        return list.size();
     }
 
     public static class CartItmeViewHolder extends RecyclerView.ViewHolder {

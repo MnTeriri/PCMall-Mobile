@@ -48,13 +48,13 @@ public class GoodsListAdapter extends RecyclerView.Adapter<GoodsListAdapter.Good
         }
     }
 
-    public void setOnClickListener(ListenerInterface.OnClickListener<Goods> listener) {
-        this.clickListener = listener;
-    }
-
     @Override
     public int getItemCount() {
         return list.size();
+    }
+
+    public void setOnClickListener(ListenerInterface.OnClickListener<Goods> listener) {
+        this.clickListener = listener;
     }
 
     public static class GoodsItmeViewHolder extends RecyclerView.ViewHolder {

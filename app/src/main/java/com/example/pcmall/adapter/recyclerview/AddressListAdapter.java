@@ -47,13 +47,13 @@ public class AddressListAdapter extends RecyclerView.Adapter<AddressListAdapter.
         }
     }
 
-    public void setOnCartClickListener(ListenerInterface.OnClickListener<Address> listener) {
-        this.cardClickListener = listener;
-    }
-
     @Override
     public int getItemCount() {
         return list.size();
+    }
+
+    public void setOnCartClickListener(ListenerInterface.OnClickListener<Address> listener) {
+        this.cardClickListener = listener;
     }
 
     public static class AddressItmeViewHolder extends RecyclerView.ViewHolder {
