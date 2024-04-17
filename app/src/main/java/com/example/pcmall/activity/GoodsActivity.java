@@ -2,6 +2,7 @@ package com.example.pcmall.activity;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.Nullable;
@@ -45,14 +46,18 @@ public class GoodsActivity extends AppCompatActivity {
         initView();
         initListener();
         handelObserve();
+
+        Log.d(TAG, "GoodsActivity启动");
     }
 
     private void initData() {
+        Log.d(TAG, "加载数据");
         goods = JSON.parseObject(getIntent().getStringExtra("goods"), Goods.class);
         user = ((PCMallApplication) getApplication()).getUserData();
     }
 
     private void initView() {
+        Log.d(TAG, "初始化View");
         GlideApp.with(this)
                 .load(NetworkModule.baseUrl + "image/" + goods.getImage())
                 .into(binding.imageView);
@@ -62,6 +67,7 @@ public class GoodsActivity extends AppCompatActivity {
     }
 
     private void initListener() {
+        Log.d(TAG, "添加事件");
         //点击topAppBar的按钮返回到MainActivity
         binding.topAppBar.setNavigationOnClickListener(v -> finish());
 
@@ -87,6 +93,7 @@ public class GoodsActivity extends AppCompatActivity {
     }
 
     private void handelObserve() {
+        Log.d(TAG, "添加ViewModel返回结果方法");
         goodsViewModel.getFlagLiveData().observe(this, integer -> {
             if (Objects.equals(integer, ResponseCode.OK.getCode())) {
                 MessageDialog alertDialog = new MessageDialog(GoodsActivity.this, SweetAlertDialog.SUCCESS_TYPE);
@@ -106,6 +113,13 @@ public class GoodsActivity extends AppCompatActivity {
                 alertDialog.show();
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        binding = null;
+        Log.d(TAG, "GoodsActivity销毁");
     }
 
 }
