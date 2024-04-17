@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.example.pcmall.adapter.OrderPagerAdapter;
+import com.example.pcmall.adapter.viewpager2.OrderPagerAdapter;
 import com.example.pcmall.databinding.ActivityOrderBinding;
 import com.example.pcmall.ui.fragment.OrderFragment;
 import com.google.android.material.tabs.TabLayout;
@@ -40,7 +40,7 @@ public class OrderActivity extends AppCompatActivity {
     }
 
     private void initView() {
-        List<Fragment> fragmentList = new ArrayList<>();
+        List<OrderFragment> fragmentList = new ArrayList<>();
         fragmentList.add(new OrderFragment(OrderFragment.TITLE_ALL));
         fragmentList.add(new OrderFragment(OrderFragment.TITLE_PAY));
         fragmentList.add(new OrderFragment(OrderFragment.TITLE_SEND));
