@@ -52,8 +52,7 @@ public class CartFragment extends Fragment {
     @Inject
     public SharedPreferences sharedPreferences;
 
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentCartBinding.inflate(inflater, container, false);
         cartViewModel = new ViewModelProvider(this).get(CartViewModel.class);
         View root = binding.getRoot();
@@ -134,17 +133,17 @@ public class CartFragment extends Fragment {
         });
 
         //增加购物车商品数量
-        cartListAdapter.setAddListener((v, data) -> {
+        cartListAdapter.setOnAddButtonClickListener((v, data) -> {
             cartViewModel.addCartCount(data.getId());
         });
 
         //减少购物车商品数量
-        cartListAdapter.setDivListener((v, data) -> {
+        cartListAdapter.setOnDivButtonClickListener((v, data) -> {
             cartViewModel.subCartCount(data.getId());
         });
 
         //购物车商品选中
-        cartListAdapter.setSelectListener((v, data) -> {
+        cartListAdapter.setOnSelectCheckBoxClickListener((v, data) -> {
             MaterialCheckBox checkBox = (MaterialCheckBox) v;
             cartViewModel.selectCart(data.getId(), checkBox.getCheckedState());
         });

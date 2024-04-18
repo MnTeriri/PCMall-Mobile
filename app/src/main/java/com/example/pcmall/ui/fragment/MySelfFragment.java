@@ -113,26 +113,34 @@ public class MySelfFragment extends Fragment {
     private void handelObserve() {
         //未付款订单个数
         mySelfViewModel.getNotPayCountLiveData().observe(getViewLifecycleOwner(), count -> {
-            BadgeDrawable badgeDrawable = binding.orderNavigation.getOrCreateBadge(R.id.navigation_pay);
-            badgeDrawable.setNumber(count.intValue());
+            if (count != 0) {
+                BadgeDrawable badgeDrawable = binding.orderNavigation.getOrCreateBadge(R.id.navigation_pay);
+                badgeDrawable.setNumber(count.intValue());
+            }
         });
 
         //未发货订单个数
         mySelfViewModel.getNotSendCountLiveData().observe(getViewLifecycleOwner(), count -> {
-            BadgeDrawable badgeDrawable = binding.orderNavigation.getOrCreateBadge(R.id.navigation_send);
-            badgeDrawable.setNumber(count.intValue());
+            if (count != 0) {
+                BadgeDrawable badgeDrawable = binding.orderNavigation.getOrCreateBadge(R.id.navigation_send);
+                badgeDrawable.setNumber(count.intValue());
+            }
         });
 
         //未收货订单个数
         mySelfViewModel.getNotDeliverCountLiveData().observe(getViewLifecycleOwner(), count -> {
-            BadgeDrawable badgeDrawable = binding.orderNavigation.getOrCreateBadge(R.id.navigation_deliver);
-            badgeDrawable.setNumber(count.intValue());
+            if (count != 0) {
+                BadgeDrawable badgeDrawable = binding.orderNavigation.getOrCreateBadge(R.id.navigation_deliver);
+                badgeDrawable.setNumber(count.intValue());
+            }
         });
 
         //退款订单个数
         mySelfViewModel.getRefundCountLiveData().observe(getViewLifecycleOwner(), count -> {
-            BadgeDrawable badgeDrawable = binding.orderNavigation.getOrCreateBadge(R.id.navigation_refund);
-            badgeDrawable.setNumber(count.intValue());
+            if (count != 0) {
+                BadgeDrawable badgeDrawable = binding.orderNavigation.getOrCreateBadge(R.id.navigation_refund);
+                badgeDrawable.setNumber(count.intValue());
+            }
         });
     }
 
