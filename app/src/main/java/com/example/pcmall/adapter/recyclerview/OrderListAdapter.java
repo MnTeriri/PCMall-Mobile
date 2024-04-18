@@ -63,14 +63,16 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
             holder.binding.buttonLayout.setVisibility(View.VISIBLE);
             holder.binding.payButton.setVisibility(View.VISIBLE);
             holder.binding.cancelButton.setVisibility(View.VISIBLE);
+            holder.binding.refundButton.setVisibility(View.GONE);
         } else if (order.getStatus() == 1) {
             holder.binding.buttonLayout.setVisibility(View.VISIBLE);
+            holder.binding.payButton.setVisibility(View.GONE);
             holder.binding.cancelButton.setVisibility(View.VISIBLE);
-        } else if (order.getStatus() == 2) {
+            holder.binding.refundButton.setVisibility(View.GONE);
+        } else if (order.getStatus() == 2 || order.getStatus() == 3) {
             holder.binding.buttonLayout.setVisibility(View.VISIBLE);
-            holder.binding.refundButton.setVisibility(View.VISIBLE);
-        } else if (order.getStatus() == 3) {
-            holder.binding.buttonLayout.setVisibility(View.VISIBLE);
+            holder.binding.payButton.setVisibility(View.GONE);
+            holder.binding.cancelButton.setVisibility(View.GONE);
             holder.binding.refundButton.setVisibility(View.VISIBLE);
         } else if (order.getStatus() == 4 || order.getStatus() == 5 || order.getStatus() == 6) {
             holder.binding.buttonLayout.setVisibility(View.GONE);

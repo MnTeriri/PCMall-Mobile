@@ -20,7 +20,7 @@ public class AddressSelectListAdapter extends RecyclerView.Adapter<AddressSelect
     private int selectedItem = -1; //用来跟踪当前选中的项
 
     private ListenerInterface.OnClickListener<Address> editListener;
-    private ListenerInterface.OnItemRadioButtonClickListener<Address> selectListener;
+    private ListenerInterface.OnClickListener<Address> selectListener;
 
     public AddressSelectListAdapter(List<Address> list, Address selectAddress) {
         this.list = list;
@@ -71,7 +71,7 @@ public class AddressSelectListAdapter extends RecyclerView.Adapter<AddressSelect
         this.editListener = listener;
     }
 
-    public void setSelectListener(ListenerInterface.OnItemRadioButtonClickListener<Address> listener) {
+    public void setSelectListener(ListenerInterface.OnClickListener<Address> listener) {
         this.selectListener = listener;
     }
 

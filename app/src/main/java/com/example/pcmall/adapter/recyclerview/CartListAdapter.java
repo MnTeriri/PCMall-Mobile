@@ -23,9 +23,9 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.CartIt
     private Context context;
     private ListenerInterface.OnClickListener<Cart> clickListener;
     private ListenerInterface.OnLongClickListener<Cart> longClickListener;
-    private ListenerInterface.OnItemButtonClickListener<Cart> addListener;
-    private ListenerInterface.OnItemButtonClickListener<Cart> divListener;
-    private ListenerInterface.OnItemCheckBoxClickListener<Cart> selectListener;
+    private ListenerInterface.OnClickListener<Cart> addListener;
+    private ListenerInterface.OnClickListener<Cart> divListener;
+    private ListenerInterface.OnClickListener<Cart> selectListener;
 
     public CartListAdapter(List<Cart> list) {
         this.list = list;
@@ -49,11 +49,11 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.CartIt
         holder.binding.gnameTextView.setText(String.format(context.getString(R.string.goods_item_name), goods.getBrand().getBname(), goods.getGname()));
         //点击事件，进入商品界面
         if (clickListener != null) {
-            holder.binding.getRoot().setOnClickListener(v -> clickListener.onClick(v, cart));
+            holder.binding.cartCard.setOnClickListener(v -> clickListener.onClick(v, cart));
         }
         //长按点击事件，进行购物车删除
         if (longClickListener != null) {
-            holder.binding.getRoot().setOnLongClickListener(v -> longClickListener.onLongClick(v, cart));
+            holder.binding.cartCard.setOnLongClickListener(v -> longClickListener.onLongClick(v, cart));
         }
         if (goods.getStatus() == 0 && goods.getIsDelete() == 0) {
             holder.binding.descriptionTextView.setText(goods.getDescription());
@@ -72,7 +72,7 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.CartIt
             }
             //选中购物车
             if (selectListener != null) {
-                holder.binding.selectCheckBox.setOnClickListener(v -> selectListener.onCheckedChanged(v, cart));
+                holder.binding.selectCheckBox.setOnClickListener(v -> selectListener.onClick(v, cart));
             }
         } else {
             holder.binding.priceLinearLayout.setVisibility(View.GONE);
@@ -101,15 +101,15 @@ public class CartListAdapter extends RecyclerView.Adapter<CartListAdapter.CartIt
         this.longClickListener = listener;
     }
 
-    public void setAddListener(ListenerInterface.OnItemButtonClickListener<Cart> listener) {
+    public void setOnAddButtonClickListener(ListenerInterface.OnClickListener<Cart> listener) {
         this.addListener = listener;
     }
 
-    public void setDivListener(ListenerInterface.OnItemButtonClickListener<Cart> listener) {
+    public void setOnDivButtonClickListener(ListenerInterface.OnClickListener<Cart> listener) {
         this.divListener = listener;
     }
 
-    public void setSelectListener(ListenerInterface.OnItemCheckBoxClickListener<Cart> listener) {
+    public void setOnSelectCheckBoxClickListener(ListenerInterface.OnClickListener<Cart> listener) {
         this.selectListener = listener;
     }
 
