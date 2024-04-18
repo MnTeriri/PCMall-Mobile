@@ -19,8 +19,18 @@ public interface GoodsService {
             @Field("pageSize") Integer pageSize);
 
     @FormUrlEncoded
+    @POST("searchGoodsByCidAndBid")
+    Observable<ResponseResult<List<Goods>>> searchGoodsByCidAndBid(
+            @Field("cid") Integer cid,
+            @Field("bid") Integer bid,
+            @Field("currentPage") Integer currentPage,
+            @Field("pageSize") Integer pageSize);
+
+    @FormUrlEncoded
     @POST("getRecordsFiltered")
     Observable<ResponseResult<Long>> getRecordsFiltered(@Field("searchValue") String searchValue);
 
-
+    @FormUrlEncoded
+    @POST("getRecordsFilteredByCidAndBid")
+    Observable<ResponseResult<Long>> getRecordsFilteredByCidAndBid(@Field("cid") Integer cid, @Field("bid") Integer bid);
 }
