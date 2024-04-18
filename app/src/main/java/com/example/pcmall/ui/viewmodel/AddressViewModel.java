@@ -83,8 +83,15 @@ public class AddressViewModel extends ViewModel {
         compositeDisposable.add(disposable);
     }
 
-    public void deleteAddress(Address address) {
-
+    public void deleteAddress(Integer id) {
+        Disposable disposable = addressService.deleteAddress(id)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        responseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
+                        throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
+                );
+        compositeDisposable.add(disposable);
     }
 
     @Override

@@ -36,6 +36,8 @@ public class OrderViewModel extends ViewModel {
     public final static Integer LOAD_ERROR = -1;//加载错误
     public final static Integer LOAD_MORE_SUCCESS = 1;//加载更多成功
     public final static Integer REFRESH_SUCCESS = 2;//刷新成功
+    public final static Integer CREATE_SUCCESS = 3;//订单创建成功
+    public final static Integer PAY_SUCCESS = 4;//订单付款成功
     private final AddressService addressService;
     private final CartService cartService;
     private final OrderService orderService;
@@ -55,6 +57,8 @@ public class OrderViewModel extends ViewModel {
     private final MutableLiveData<List<Order>> orderListLiveData;//订单界面订单数据
     @Getter
     private final MutableLiveData<Long> searchCountLiveData;//订单界面订单数据查询总数量
+    @Getter
+    private String oid = "";//创建订单的订单号
     @Getter
     private final MutableLiveData<Integer> flagLiveData;
 
@@ -124,21 +128,6 @@ public class OrderViewModel extends ViewModel {
         compositeDisposable.add(disposable);
     }
 
-    public void createOrder(String uid, Integer aid) {
-        Disposable disposable = orderService.createOrder(uid, aid)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        responseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
-                        throwable -> {
-                            ResponseResult<String> message = RetrofitUtils.getErrorMessage(throwable);
-                            if (message != null) {
-                                flagLiveData.setValue(message.getCode());
-                            }
-                        });
-        compositeDisposable.add(disposable);
-    }
-
     public void searchOrderList(String searchValue, String uid, Integer type, Integer currentPage, Integer pageSize, boolean reFresh) {
         Disposable disposable = orderService.searchOrderList(searchValue, uid, type, currentPage, pageSize)
                 .subscribeOn(Schedulers.io())
@@ -165,6 +154,35 @@ public class OrderViewModel extends ViewModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         responseResult -> searchCountLiveData.setValue(responseResult.getData()),
+                        throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
+                );
+        compositeDisposable.add(disposable);
+    }
+
+    public void createOrder(String uid, Integer aid) {
+        Disposable disposable = orderService.createOrder(uid, aid)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        responseResult -> {
+                            flagLiveData.setValue(CREATE_SUCCESS);
+                            oid = responseResult.getData();
+                        },
+                        throwable -> {
+                            ResponseResult<String> message = RetrofitUtils.getErrorMessage(throwable);
+                            if (message != null) {
+                                flagLiveData.setValue(message.getCode());
+                            }
+                        });
+        compositeDisposable.add(disposable);
+    }
+
+    public void payOrder(String oid) {
+        Disposable disposable = orderService.payOrder(oid)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        responseResult -> flagLiveData.setValue(PAY_SUCCESS),
                         throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
                 );
         compositeDisposable.add(disposable);
