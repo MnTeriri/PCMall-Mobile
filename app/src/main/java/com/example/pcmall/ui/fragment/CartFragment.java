@@ -160,6 +160,7 @@ public class CartFragment extends Fragment {
             if (cartViewModel.getSelectItemCountLiveData().getValue() > 0) {
                 CreateOrderDialog dialog = new CreateOrderDialog(getActivity());
                 dialog.setOnDialogClosedListener(dialogFragment -> {
+                    Log.d(TAG, dialogFragment.getTag() + "关闭！");
                     pagination.setCurrentPage(1);
                     cartViewModel.getCartList(user.getUid(), pagination.getCurrentPage(), pagination.getPageSize(), true);
                     cartViewModel.getTotalCount(user.getUid());

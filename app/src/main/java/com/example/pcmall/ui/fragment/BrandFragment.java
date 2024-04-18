@@ -9,19 +9,15 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.example.pcmall.adapter.recyclerview.BrandListAdapter;
-import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.FragmentBrandBinding;
-import com.example.pcmall.databinding.FragmentOrderBinding;
-import com.example.pcmall.listener.ListenerInterface;
+import com.example.pcmall.dialog.GoodsListDialog;
 import com.example.pcmall.model.Brand;
 import com.example.pcmall.model.Category;
 import com.example.pcmall.ui.viewmodel.BrandViewModel;
-import com.example.pcmall.ui.viewmodel.OrderViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,8 +73,13 @@ public class BrandFragment extends Fragment {
     private void initListener() {
         Log.d(TAG, "添加事件");
         //点击品牌打开相应品牌商品
-        brandListAdapter.setOnClickListener((v, data) -> {
-            Log.d(TAG, data.toString());
+        brandListAdapter.setOnClickListener((v, brand) -> {
+            GoodsListDialog dialog = new GoodsListDialog(getActivity(), category, brand);
+            dialog.setOnDialogClosedListener(dialogFragment -> {
+                Log.d(TAG, dialogFragment.getTag() + "关闭！");
+                brandViewModel.getBrandList(category.getId());
+            });
+            dialog.show();
         });
     }
 
