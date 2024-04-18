@@ -30,4 +30,8 @@ public interface OrderService {
     @FormUrlEncoded
     @POST("createOrder")
     Observable<ResponseResult<String>> createOrder(@Field("uid") String uid, @Field("aid") Integer aid);
+
+    @FormUrlEncoded
+    @POST("payOrder")
+    Observable<ResponseResult<String>> payOrder(@Field("oid") String oid);
 }

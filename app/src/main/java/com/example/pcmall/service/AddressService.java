@@ -25,4 +25,8 @@ public interface AddressService {
 
     @POST("updateAddress")
     Observable<ResponseResult<String>> updateAddress(@Body Address address);
+
+    @FormUrlEncoded
+    @POST("deleteAddress")
+    Observable<ResponseResult<String>> deleteAddress(@Field("id") Integer id);
 }
