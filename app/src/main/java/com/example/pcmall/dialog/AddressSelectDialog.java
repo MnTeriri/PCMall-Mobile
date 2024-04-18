@@ -36,14 +36,15 @@ import dagger.hilt.android.AndroidEntryPoint;
 public class AddressSelectDialog extends BottomSheetDialogFragment {
     private final String TAG = "AddressSelectDialog";
     private DialogFragmentAddressSelectBinding binding;
-    private final FragmentActivity activity;
-    private ListenerInterface.OnDialogClosedReturnDataListener<Address> closeListener;
     private AddressViewModel addressViewModel;
+    private final FragmentActivity activity;
     private User user;
 
     private AddressSelectListAdapter addressSelectListAdapter;
     private List<Address> addressList;
     private Address selectAddress;
+
+    private ListenerInterface.OnDialogClosedReturnDataListener<Address> closeListener;
 
     public AddressSelectDialog(FragmentActivity activity, Address selectAddress) {
         this.activity = activity;

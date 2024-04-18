@@ -62,15 +62,13 @@ public class AddressDialog extends FullScreenDialog {
     private void initData() {
         Log.d(TAG, "加载数据");
         addressList = new ArrayList<>();
-
     }
 
     private void initView() {
         Log.d(TAG, "初始化View");
-        RecyclerView recycleView = binding.recycleView;
         addressListAdapter = new AddressListAdapter(addressList);
-        recycleView.setAdapter(addressListAdapter);
-        recycleView.setLayoutManager(new LinearLayoutManager(this.getContext()));
+        binding.recycleView.setAdapter(addressListAdapter);
+        binding.recycleView.setLayoutManager(new LinearLayoutManager(this.getContext()));
     }
 
     private void initListener() {
