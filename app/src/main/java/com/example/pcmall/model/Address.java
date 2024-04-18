@@ -23,5 +23,4 @@ public class Address {
     private LocalDateTime createTime;//创建时间
     private LocalDateTime updateTime;//修改时间
     private Integer isDefault;//是否选中（0不选中 1选中）
-    private Integer isDelete;//是否删除（）
 }
