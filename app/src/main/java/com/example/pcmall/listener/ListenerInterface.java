@@ -5,18 +5,6 @@ import android.view.View;
 import androidx.fragment.app.DialogFragment;
 
 public interface ListenerInterface {
-    public interface OnItemButtonClickListener<T> {
-        void onClick(View v, T data);
-    }
-
-    public interface OnItemCheckBoxClickListener<T> {
-        void onCheckedChanged(View v, T data);
-    }
-
-    public interface OnItemRadioButtonClickListener<T> {
-        void onClick(View v, T data);
-    }
-
     public interface OnClickListener<T> {
         void onClick(View v, T data);
     }
