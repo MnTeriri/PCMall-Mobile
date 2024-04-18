@@ -1,5 +1,6 @@
 package com.example.pcmall.dialog;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -159,19 +160,49 @@ public class CreateOrderDialog extends FullScreenDialog {
         });
 
         orderViewModel.getFlagLiveData().observe(getViewLifecycleOwner(), flag -> {
-            Log.d(TAG, flag + "");
-            if (Objects.equals(flag, ResponseCode.OK.getCode())) {
-                new MessageDialog(getContext(), SweetAlertDialog.SUCCESS_TYPE).setTitleText("创建订单成功！").show();
+            if (Objects.equals(flag, OrderViewModel.CREATE_SUCCESS)) {
+                SweetAlertDialog sweetAlertDialog = new MessageDialog(getContext(), SweetAlertDialog.SUCCESS_TYPE).setTitleText("创建订单成功！");
+                sweetAlertDialog.setOnDismissListener(dialog -> showPayDialog());
+                sweetAlertDialog.show();
+            } else if (Objects.equals(flag, OrderViewModel.PAY_SUCCESS)) {
+                SweetAlertDialog sweetAlertDialog = new MessageDialog(getContext(), SweetAlertDialog.SUCCESS_TYPE).setTitleText("订单付款成功！");
+                sweetAlertDialog.setOnDismissListener(dialog -> dismiss());
+                sweetAlertDialog.show();
             } else if (Objects.equals(flag, ResponseCode.GOODS_NOT_ENOUGH_ERROR.getCode())) {
-                new MessageDialog(getContext(), SweetAlertDialog.WARNING_TYPE).setTitleText("商品缺货！").show();
+                SweetAlertDialog sweetAlertDialog = new MessageDialog(getContext(), SweetAlertDialog.WARNING_TYPE).setTitleText("商品缺货！");
+                sweetAlertDialog.setOnDismissListener(dialog -> dismiss());
+                sweetAlertDialog.show();
             } else if (Objects.equals(flag, ResponseCode.CART_GOODS_ERROR.getCode())) {
-                new MessageDialog(getContext(), SweetAlertDialog.WARNING_TYPE).setTitleText("购物车商品状态异常！").show();
+                SweetAlertDialog sweetAlertDialog = new MessageDialog(getContext(), SweetAlertDialog.WARNING_TYPE).setTitleText("购物车商品状态异常！");
+                sweetAlertDialog.setOnDismissListener(dialog -> dismiss());
+                sweetAlertDialog.show();
             } else if (Objects.equals(flag, ResponseCode.CART_EMPTY_ERROR.getCode())) {
-                new MessageDialog(getContext(), SweetAlertDialog.WARNING_TYPE).setTitleText("购物车为空！").show();
+                SweetAlertDialog sweetAlertDialog = new MessageDialog(getContext(), SweetAlertDialog.WARNING_TYPE).setTitleText("购物车为空！");
+                sweetAlertDialog.setOnDismissListener(dialog -> dismiss());
+                sweetAlertDialog.show();
             } else if (Objects.equals(flag, ResponseCode.ERROR.getCode())) {
-                new MessageDialog(getContext(), SweetAlertDialog.ERROR_TYPE).setTitleText("错误！").show();
+                SweetAlertDialog sweetAlertDialog = new MessageDialog(getContext(), SweetAlertDialog.ERROR_TYPE).setTitleText("错误！");
+                sweetAlertDialog.setOnDismissListener(dialog -> dismiss());
+                sweetAlertDialog.show();
             }
         });
+    }
+
+    private void showPayDialog() {
+        new SweetAlertDialog(getContext(), SweetAlertDialog.WARNING_TYPE)
+                .setTitleText("付款界面")
+                .setContentText("这是一个付款界面，如需付款点击付款按钮")
+                .setConfirmText("付款")
+                .setConfirmClickListener(dialog -> {
+                    orderViewModel.payOrder(orderViewModel.getOid());
+                    dialog.dismissWithAnimation();
+                })
+                .setCancelText("取消")
+                .setCancelClickListener(dialog -> {
+                    dialog.dismissWithAnimation();
+                    dismiss();
+                })
+                .show();
     }
 
     @Override

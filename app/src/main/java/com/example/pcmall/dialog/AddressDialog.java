@@ -16,9 +16,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.pcmall.adapter.recyclerview.AddressListAdapter;
 import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.DialogFragmentAddressBinding;
+import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.model.Address;
 import com.example.pcmall.model.User;
+import com.example.pcmall.model.response.ResponseCode;
 import com.example.pcmall.ui.viewmodel.AddressViewModel;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,6 +79,12 @@ public class AddressDialog extends FullScreenDialog {
         //点击topAppBar的按钮返回
         binding.topAppBar.setNavigationOnClickListener(v -> dismiss());
 
+        //上拉刷新
+        binding.refreshLayout.setOnRefreshListener(refreshLayout -> {
+            Log.d(TAG, "上拉刷新RefreshLayout");
+            addressViewModel.getAddressList(user.getUid());
+        });
+
         //点击地址跳转到编辑
         addressListAdapter.setOnClickListener((v, address) -> {
             AddressUpdateDialog dialog = new AddressUpdateDialog(getActivity(), address);
@@ -84,6 +93,18 @@ public class AddressDialog extends FullScreenDialog {
                 Log.d(TAG, dialogFragment.getTag() + "关闭！");
                 addressViewModel.getAddressList(user.getUid());
             });
+        });
+
+        addressListAdapter.setOnLongClickListener((v, address) -> {
+            new MaterialAlertDialogBuilder(getContext())
+                    .setMessage("确认要将这个地址删除？")
+                    .setNeutralButton("取消", null)
+                    .setPositiveButton(
+                            "确认",
+                            (dialog, which) -> addressViewModel.deleteAddress(address.getId())
+                    )
+                    .show();
+            return true;
         });
 
         //点击添加地址按钮
@@ -95,13 +116,6 @@ public class AddressDialog extends FullScreenDialog {
                 addressViewModel.getAddressList(user.getUid());
             });
         });
-
-        //上拉刷新
-        binding.refreshLayout.setOnRefreshListener(refreshLayout -> {
-            Log.d(TAG, "上拉刷新RefreshLayout");
-            addressViewModel.getAddressList(user.getUid());
-        });
-
     }
 
     private void handelObserve() {
@@ -117,6 +131,8 @@ public class AddressDialog extends FullScreenDialog {
                 binding.refreshLayout.finishRefresh(true);
             } else if (Objects.equals(flag, AddressViewModel.LOAD_ERROR)) {
                 binding.refreshLayout.finishRefresh(false);
+            } else if (Objects.equals(flag, ResponseCode.OK.getCode())) {
+                addressViewModel.getAddressList(user.getUid());
             }
         });
     }
