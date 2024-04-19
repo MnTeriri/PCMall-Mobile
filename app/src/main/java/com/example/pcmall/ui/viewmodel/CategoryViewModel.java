@@ -5,10 +5,8 @@ import android.util.Log;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.pcmall.model.Cart;
 import com.example.pcmall.model.Category;
 import com.example.pcmall.model.response.ResponseCode;
-import com.example.pcmall.model.response.ResponseResult;
 import com.example.pcmall.service.CategoryService;
 
 import java.util.List;
@@ -19,7 +17,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.Getter;
 

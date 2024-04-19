@@ -38,6 +38,9 @@ public class OrderViewModel extends ViewModel {
     public final static Integer REFRESH_SUCCESS = 2;//刷新成功
     public final static Integer CREATE_SUCCESS = 3;//订单创建成功
     public final static Integer PAY_SUCCESS = 4;//订单付款成功
+    public final static Integer FINISH_SUCCESS = 5;//确认签收成功
+    public final static Integer CANCEL_SUCCESS = 6;//订单取消成功
+    public final static Integer REFUND_SUCCESS = 7;//退货申请成功
     private final AddressService addressService;
     private final CartService cartService;
     private final OrderService orderService;
@@ -183,6 +186,39 @@ public class OrderViewModel extends ViewModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         responseResult -> flagLiveData.setValue(PAY_SUCCESS),
+                        throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
+                );
+        compositeDisposable.add(disposable);
+    }
+
+    public void finishOrder(String oid) {
+        Disposable disposable = orderService.finishOrder(oid)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        responseResult -> flagLiveData.setValue(FINISH_SUCCESS),
+                        throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
+                );
+        compositeDisposable.add(disposable);
+    }
+
+    public void cancelOrder(String oid) {
+        Disposable disposable = orderService.cancelOrder(oid)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        responseResult -> flagLiveData.setValue(CANCEL_SUCCESS),
+                        throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
+                );
+        compositeDisposable.add(disposable);
+    }
+
+    public void refundOrder(String oid) {
+        Disposable disposable = orderService.refundOrder(oid)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        responseResult -> flagLiveData.setValue(REFUND_SUCCESS),
                         throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
                 );
         compositeDisposable.add(disposable);

@@ -5,7 +5,6 @@ import android.util.Log;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.pcmall.model.response.ResponseResult;
 import com.example.pcmall.service.OrderService;
 
 import javax.inject.Inject;

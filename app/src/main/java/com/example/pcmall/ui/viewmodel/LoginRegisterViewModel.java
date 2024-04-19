@@ -6,8 +6,10 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.pcmall.model.User;
+import com.example.pcmall.model.response.ResponseCode;
 import com.example.pcmall.model.response.ResponseResult;
 import com.example.pcmall.service.LoginRegisterService;
+import com.example.pcmall.utils.RetrofitUtils;
 
 import javax.inject.Inject;
 
@@ -15,7 +17,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.Getter;
 
@@ -28,17 +29,20 @@ public class LoginRegisterViewModel extends ViewModel {
     @Getter
     private final MutableLiveData<ResponseResult<User>> loginResponse;//登录信息
     @Getter
-    private final MutableLiveData<ResponseResult<String>> registerResponse;//注册信息
+    private final MutableLiveData<String> registerResponse;//注册信息
     @Getter
-    private final MutableLiveData<ResponseResult<String>> captchaResponse;//验证码
+    private final MutableLiveData<String> captchaResponse;//验证码
+    @Getter
+    private final MutableLiveData<Integer> flagLiveData;
 
     @Inject
     public LoginRegisterViewModel(LoginRegisterService loginRegisterService) {
         this.loginRegisterService = loginRegisterService;
+        this.compositeDisposable = new CompositeDisposable();
         this.loginResponse = new MutableLiveData<>();
         this.registerResponse = new MutableLiveData<>();
         this.captchaResponse = new MutableLiveData<>();
-        this.compositeDisposable = new CompositeDisposable();
+        this.flagLiveData = new MutableLiveData<>();
         Log.d(TAG, "自动注入loginService完成");
         Log.d(TAG, "MutableLiveData初始化完成");
     }
@@ -51,7 +55,10 @@ public class LoginRegisterViewModel extends ViewModel {
                     Log.d(TAG, "登录信息：" + responseResult);
                     loginResponse.setValue(responseResult);
                 }, throwable -> {
-                    Log.d(TAG, throwable.toString());
+                    ResponseResult<String> message = RetrofitUtils.getErrorMessage(throwable);
+                    if (message != null) {
+                        flagLiveData.setValue(message.getCode());
+                    }
                 });
         compositeDisposable.add(disposable);
     }
@@ -60,13 +67,14 @@ public class LoginRegisterViewModel extends ViewModel {
         Disposable disposable = loginRegisterService.register(uid, password, code)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<ResponseResult<String>>() {
-                    @Override
-                    public void accept(ResponseResult<String> responseResult) throws Throwable {
-
-                    }
+                .subscribe(responseResult -> {
+                    Log.d(TAG, "注册信息：" + responseResult);
+                    registerResponse.setValue("注册成功");
                 }, throwable -> {
-                    Log.d(TAG, throwable.toString());
+                    ResponseResult<String> message = RetrofitUtils.getErrorMessage(throwable);
+                    if (message != null) {
+                        flagLiveData.setValue(message.getCode());
+                    }
                 });
         compositeDisposable.add(disposable);
     }
@@ -76,17 +84,10 @@ public class LoginRegisterViewModel extends ViewModel {
         Disposable disposable = loginRegisterService.getCaptcha()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<ResponseResult<String>>() {
-                    @Override
-                    public void accept(ResponseResult<String> responseResult) throws Throwable {
-                        captchaResponse.setValue(responseResult);
-                        Log.d(TAG, "验证码图片：" + responseResult);
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Throwable {
-
-                    }
+                .subscribe(responseResult -> {
+                    captchaResponse.setValue(responseResult.getData());
+                }, throwable -> {
+                    flagLiveData.setValue(ResponseCode.ERROR.getCode());
                 });
         compositeDisposable.add(disposable);
     }
