@@ -10,8 +10,7 @@
         android:id="@+id/search_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/searchbar_goods"
-        app:menu="@menu/top_searchbar_menu" />
+        android:hint="@string/searchbar_goods" />
 
     <com.google.android.material.search.SearchView
         android:id="@+id/search_view"

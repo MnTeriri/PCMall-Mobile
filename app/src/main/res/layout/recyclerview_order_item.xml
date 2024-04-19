@@ -145,9 +145,9 @@
                 android:id="@+id/button_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
                 android:layout_marginHorizontal="5dp"
                 android:layout_marginTop="5dp"
+                android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/foot_layout">
@@ -157,12 +157,25 @@
                     style="?attr/materialButtonOutlinedStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"
                     android:layout_marginRight="5dp"
                     android:text="去付款"
                     android:textColor="@color/info"
+                    android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <Button
+                    android:id="@+id/finish_button"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="5dp"
+                    android:text="确认签收"
+                    android:textColor="@color/info"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/pay_button"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <Button
@@ -170,12 +183,12 @@
                     style="?attr/materialButtonOutlinedStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"
                     android:layout_marginRight="5dp"
                     android:text="申请售后"
                     android:textColor="@color/info"
+                    android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/pay_button"
+                    app:layout_constraintEnd_toStartOf="@+id/finish_button"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <Button
@@ -183,10 +196,10 @@
                     style="?attr/materialButtonOutlinedStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"
                     android:layout_marginRight="5dp"
                     android:text="取消订单"
                     android:textColor="@color/info"
+                    android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/refund_button"
                     app:layout_constraintTop_toTopOf="parent" />
