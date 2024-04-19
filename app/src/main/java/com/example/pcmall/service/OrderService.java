@@ -34,4 +34,16 @@ public interface OrderService {
     @FormUrlEncoded
     @POST("payOrder")
     Observable<ResponseResult<String>> payOrder(@Field("oid") String oid);
+
+    @FormUrlEncoded
+    @POST("finishOrder")
+    Observable<ResponseResult<String>> finishOrder(@Field("oid") String oid);
+
+    @FormUrlEncoded
+    @POST("cancelOrder")
+    Observable<ResponseResult<String>> cancelOrder(@Field("oid") String oid);
+
+    @FormUrlEncoded
+    @POST("refundOrder")
+    Observable<ResponseResult<String>> refundOrder(@Field("oid") String oid);
 }
