@@ -1,6 +1,5 @@
 package com.example.pcmall.dialog;
 
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,7 +14,6 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.DialogFragmentAddressAddBinding;
-import com.example.pcmall.databinding.DialogFragmentAddressUpdateBinding;
 import com.example.pcmall.model.Address;
 import com.example.pcmall.model.User;
 import com.example.pcmall.model.response.ResponseCode;

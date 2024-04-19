@@ -18,9 +18,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.pcmall.adapter.recyclerview.AddressSelectListAdapter;
-import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.DialogFragmentAddressSelectBinding;
+import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.model.Address;
 import com.example.pcmall.model.User;
 import com.example.pcmall.ui.viewmodel.AddressViewModel;
@@ -63,10 +63,15 @@ public class AddressSelectDialog extends BottomSheetDialogFragment {
         initListener();
         handelObserve();
 
-        //请求数据
-        addressViewModel.getAddressList(user.getUid());
-
         return binding.getRoot();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d(TAG, TAG + ".onStart()");
+        Log.d(TAG, "网络请求数据。。。");
+        addressViewModel.getAddressList(user.getUid());
     }
 
     @Override

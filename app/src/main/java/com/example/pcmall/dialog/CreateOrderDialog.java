@@ -1,6 +1,5 @@
 package com.example.pcmall.dialog;
 
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -59,11 +58,16 @@ public class CreateOrderDialog extends FullScreenDialog {
         initListener();
         handelObserve();
 
-        //请求数据
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d(TAG, TAG + ".onStart()");
+        Log.d(TAG, "网络请求数据。。。");
         orderViewModel.getSelectCartList(user.getUid());
         orderViewModel.getDefaultAddress(user.getUid());
-
-        return binding.getRoot();
     }
 
     private void initData() {

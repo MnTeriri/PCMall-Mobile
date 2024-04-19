@@ -11,12 +11,10 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.pcmall.adapter.recyclerview.AddressListAdapter;
 import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.DialogFragmentAddressBinding;
-import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.model.Address;
 import com.example.pcmall.model.User;
 import com.example.pcmall.model.response.ResponseCode;
@@ -56,10 +54,15 @@ public class AddressDialog extends FullScreenDialog {
         initListener();
         handelObserve();
 
-        //请求数据
-        addressViewModel.getAddressList(user.getUid());
-
         return binding.getRoot();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d(TAG, TAG + ".onStart()");
+        Log.d(TAG, "网络请求数据。。。");
+        addressViewModel.getAddressList(user.getUid());
     }
 
     private void initData() {

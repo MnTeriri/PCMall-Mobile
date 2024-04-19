@@ -62,10 +62,16 @@ public class GoodsListDialog extends FullScreenDialog {
         initListener();
         handelObserve();
 
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d(TAG, TAG + ".onStart()");
+        Log.d(TAG, "网络请求数据。。。");
         goodsViewModel.searchGoodsByCidAndBid(category.getId(), brand.getId(), pagination.getCurrentPage(), pagination.getPageSize(), true);
         goodsViewModel.getRecordsFilteredByCidAndBid(category.getId(), brand.getId());
-
-        return binding.getRoot();
     }
 
     private void initData() {
