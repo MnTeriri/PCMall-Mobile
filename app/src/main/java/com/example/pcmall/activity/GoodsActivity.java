@@ -1,13 +1,10 @@
 package com.example.pcmall.activity;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.alibaba.fastjson2.JSON;
@@ -25,7 +22,6 @@ import java.util.Objects;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
 import dagger.hilt.android.AndroidEntryPoint;
-import lombok.SneakyThrows;
 
 @AndroidEntryPoint
 public class GoodsActivity extends AppCompatActivity {
@@ -73,22 +69,11 @@ public class GoodsActivity extends AppCompatActivity {
 
         //添加购物车button
         binding.addCartButton.setOnClickListener(v -> {
-            if (user != null) {
-                goodsViewModel.addCart(user.getUid(), goods.getId());
-            } else {
-                SweetAlertDialog alertDialog = new SweetAlertDialog(GoodsActivity.this, SweetAlertDialog.WARNING_TYPE);
-                alertDialog.setTitleText("未登录!");
-                alertDialog.show();
-                alertDialog.getButton(SweetAlertDialog.BUTTON_CONFIRM).setVisibility(View.GONE);
-                new Thread(() -> {
-                    try {
-                        Thread.sleep(1500);
-                        alertDialog.dismissWithAnimation();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }).start();
+            if (user == null) {
+                new MessageDialog(this, SweetAlertDialog.WARNING_TYPE).setTitleText("请登录！").show();
+                return;
             }
+            goodsViewModel.addCart(user.getUid(), goods.getId());
         });
     }
 

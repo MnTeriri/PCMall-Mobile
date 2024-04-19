@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -16,11 +15,16 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.pcmall.databinding.ActivityRegisterBinding;
 import com.example.pcmall.databinding.DialogCaptchaBinding;
+import com.example.pcmall.dialog.MessageDialog;
+import com.example.pcmall.model.response.ResponseCode;
 import com.example.pcmall.ui.viewmodel.LoginRegisterViewModel;
 import com.example.pcmall.utils.ImageUtils;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputLayout;
 
+import java.util.Objects;
+
+import cn.pedant.SweetAlert.SweetAlertDialog;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -29,17 +33,49 @@ public class RegisterActivity extends AppCompatActivity {
     private ActivityRegisterBinding binding;
     private DialogCaptchaBinding dialogBinding;
     private LoginRegisterViewModel loginRegisterViewModel;
+    private AlertDialog captchaDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityRegisterBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-
         dialogBinding = DialogCaptchaBinding.inflate(getLayoutInflater());
         loginRegisterViewModel = new ViewModelProvider(this).get(LoginRegisterViewModel.class);
 
-        //初始化一些简单的操作
+        setContentView(binding.getRoot());
+
+        initData();
+        initView();
+        initListener();
+        handelObserve();
+
+        Log.d(TAG, "RegisterActivity启动");
+    }
+
+    private void initData() {
+        Log.d(TAG, "加载数据");
+    }
+
+    private void initView() {
+        Log.d(TAG, "初始化View");
+        captchaDialog = new MaterialAlertDialogBuilder(this)
+                .setView(dialogBinding.getRoot())
+                .setTitle("请输入验证码")
+                .setMessage("请在下方输入框输入图片验证码")
+                .setPositiveButton("确定", null)
+                .setNegativeButton("取消", (dialogInterface, i) -> {
+                    Toast.makeText(RegisterActivity.this, "登录取消！", Toast.LENGTH_SHORT).show();
+                })
+                .setOnDismissListener(dialogInterface -> {
+                    //dialog消失后复原
+                    dialogBinding.progressIndicator.setVisibility(View.VISIBLE);
+                    dialogBinding.captchaLinearLayout.setVisibility(View.GONE);
+                    dialogBinding.captcha.setImageBitmap(null);
+                }).create();//验证码弹窗
+    }
+
+    private void initListener() {
+        Log.d(TAG, "添加事件");
         //点击loginButton返回登录界面
         binding.loginButton.setOnClickListener(v -> finish());
 
@@ -75,34 +111,11 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
 
-        register();
-        Log.d(TAG, "RegisterActivity启动");
-    }
-
-    private void register() {
-        Button registerButton = binding.registerButton;
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
-                .setView(dialogBinding.getRoot())
-                .setTitle("请输入验证码")
-                .setMessage("请在下方输入框输入图片验证码")
-                .setPositiveButton("确定", null)
-                .setNegativeButton("取消", (dialogInterface, i) -> {
-                    Toast.makeText(RegisterActivity.this, "登录取消！", Toast.LENGTH_SHORT).show();
-                })
-                .setOnDismissListener(dialogInterface -> {
-                    //dialog消失后复原
-                    dialogBinding.progressIndicator.setVisibility(View.VISIBLE);
-                    dialogBinding.captchaLinearLayout.setVisibility(View.GONE);
-                    dialogBinding.captcha.setImageBitmap(null);
-                }).create();//验证码弹窗
-
-        registerButton.setOnClickListener(view -> {
+        binding.registerButton.setOnClickListener(view -> {
             loginRegisterViewModel.getCaptcha();//获取验证码图片
-            TextInputLayout uidTextInputLayout = binding.uidTextInputLayout;
-            TextInputLayout passwordTextInputLayout = binding.passwordTextInputLayout;
             //账号密码不违法后
-            dialog.show();//显示验证码弹窗
-            dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
+            captchaDialog.show();//显示验证码弹窗
+            captchaDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
                 TextInputLayout captchaTextInputLayout = dialogBinding.captchaTextInputLayout;
                 if (!captchaValidate(captchaTextInputLayout)) {
                     //验证码不违法后，登录
@@ -113,20 +126,39 @@ public class RegisterActivity extends AppCompatActivity {
                 }
             });
         });
+    }
 
+    private void handelObserve() {
+        Log.d(TAG, "添加ViewModel返回结果方法");
         //注册返回结果操作
-        loginRegisterViewModel.getRegisterResponse().observe(this, responseResult -> {
-            Toast.makeText(RegisterActivity.this, responseResult.toString(), Toast.LENGTH_SHORT).show();
-            Log.d(TAG, responseResult.toString());
+        loginRegisterViewModel.getRegisterResponse().observe(this, message -> {
+            captchaDialog.dismiss();
+            SweetAlertDialog sweetAlertDialog = new MessageDialog(this, SweetAlertDialog.SUCCESS_TYPE).setTitleText("注册成功！");
+            sweetAlertDialog.setOnDismissListener(dialog -> this.finish());//关闭Activity
+            sweetAlertDialog.show();
         });
 
         //验证码图片获取后处理
-        loginRegisterViewModel.getCaptchaResponse().observe(this, responseResult -> {
+        loginRegisterViewModel.getCaptchaResponse().observe(this, captchaString -> {
             dialogBinding.progressIndicator.setVisibility(View.GONE);
             ImageView captcha = dialogBinding.captcha;
-            Bitmap bitmap = ImageUtils.decodeImageString(responseResult.getData());
+            Bitmap bitmap = ImageUtils.decodeImageString(captchaString);
             captcha.setImageBitmap(bitmap);
             dialogBinding.captchaLinearLayout.setVisibility(View.VISIBLE);
+        });
+
+        loginRegisterViewModel.getFlagLiveData().observe(this, flag -> {
+            if (Objects.equals(flag, ResponseCode.CAPTCHA_ERROR.getCode())) {
+                //验证码错误
+                dialogBinding.captchaTextInputLayout.setError(ResponseCode.CAPTCHA_ERROR.getMessage());
+                loginRegisterViewModel.getCaptcha();
+            } else if (Objects.equals(flag, ResponseCode.USER_EXIST_ERROR.getCode())) {
+                //账号已存在
+                captchaDialog.dismiss();
+                new MessageDialog(this, SweetAlertDialog.WARNING_TYPE)
+                        .setTitleText("账号存在！")
+                        .show();
+            }
         });
     }
 

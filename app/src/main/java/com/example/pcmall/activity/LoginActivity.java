@@ -5,13 +5,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.alibaba.fastjson2.JSON;
 import com.example.pcmall.databinding.ActivityLoginBinding;
 import com.example.pcmall.databinding.DialogCaptchaBinding;
+import com.example.pcmall.dialog.MessageDialog;
 import com.example.pcmall.model.response.ResponseCode;
 import com.example.pcmall.ui.viewmodel.LoginRegisterViewModel;
 import com.example.pcmall.utils.ImageUtils;
@@ -30,6 +28,7 @@ import java.util.Objects;
 
 import javax.inject.Inject;
 
+import cn.pedant.SweetAlert.SweetAlertDialog;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -37,21 +36,50 @@ public class LoginActivity extends AppCompatActivity {
     private final String TAG = "LoginActivity";
     @Inject
     public SharedPreferences sharedPreferences;
-
     private ActivityLoginBinding binding;
     private DialogCaptchaBinding dialogBinding;
     private LoginRegisterViewModel loginRegisterViewModel;
+    private AlertDialog captchaDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-
         dialogBinding = DialogCaptchaBinding.inflate(getLayoutInflater());
         loginRegisterViewModel = new ViewModelProvider(this).get(LoginRegisterViewModel.class);
 
-        //初始化一些简单的操作
+        setContentView(binding.getRoot());
+
+        initData();
+        initView();
+        initListener();
+        handelObserve();
+
+        Log.d(TAG, "LoginActivity启动");
+    }
+
+    private void initData() {
+        Log.d(TAG, "加载数据");
+    }
+
+    private void initView() {
+        Log.d(TAG, "初始化View");
+        captchaDialog = new MaterialAlertDialogBuilder(this)
+                .setView(dialogBinding.getRoot())
+                .setTitle("请输入验证码")
+                .setMessage("请在下方输入框输入图片验证码")
+                .setPositiveButton("确定", null)
+                .setNegativeButton("取消", null)
+                .setOnDismissListener(dialogInterface -> {
+                    //dialog消失后复原
+                    dialogBinding.progressIndicator.setVisibility(View.VISIBLE);
+                    dialogBinding.captchaLinearLayout.setVisibility(View.GONE);
+                    dialogBinding.captcha.setImageBitmap(null);
+                }).create();//验证码弹窗
+    }
+
+    private void initListener() {
+        Log.d(TAG, "添加事件");
         //点击registerButton启动RegisterActivity
         binding.registerButton.setOnClickListener(view -> {
             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
@@ -84,38 +112,13 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        login();
-        Log.d(TAG, "LoginActivity启动");
-    }
-
-    //登录操作
-    private void login() {
-        Button loginButton = binding.loginButton;
-        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
-                .setView(dialogBinding.getRoot())
-                .setTitle("请输入验证码")
-                .setMessage("请在下方输入框输入图片验证码")
-                .setPositiveButton("确定", null)
-                .setNegativeButton("取消", (dialogInterface, i) -> {
-                    Toast.makeText(LoginActivity.this, "登录取消！", Toast.LENGTH_SHORT).show();
-                })
-                .setOnDismissListener(dialogInterface -> {
-                    //dialog消失后复原
-                    dialogBinding.progressIndicator.setVisibility(View.VISIBLE);
-                    dialogBinding.captchaLinearLayout.setVisibility(View.GONE);
-                    dialogBinding.captcha.setImageBitmap(null);
-                }).create();//验证码弹窗
-
-
         //点击loginButton进行登录操作
-        loginButton.setOnClickListener(view -> {
+        binding.loginButton.setOnClickListener(view -> {
             loginRegisterViewModel.getCaptcha();//获取验证码图片
-            TextInputLayout uidTextInputLayout = binding.uidTextInputLayout;
-            TextInputLayout passwordTextInputLayout = binding.passwordTextInputLayout;
             if (!uidValidate(uidTextInputLayout) && !passwordValidate(passwordTextInputLayout)) {
                 //账号密码不违法后
-                dialog.show();//显示验证码弹窗
-                dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
+                captchaDialog.show();//显示验证码弹窗
+                captchaDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
                     TextInputLayout captchaTextInputLayout = dialogBinding.captchaTextInputLayout;
                     if (!captchaValidate(captchaTextInputLayout)) {
                         //验证码不违法后，登录
@@ -127,41 +130,45 @@ public class LoginActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
+    private void handelObserve() {
+        Log.d(TAG, "添加ViewModel返回结果方法");
         //登录返回结果操作
         loginRegisterViewModel.getLoginResponse().observe(this, responseResult -> {
-            if (Objects.equals(responseResult.getCode(), ResponseCode.CAPTCHA_ERROR.getCode())) {
-                dialogBinding.captchaTextInputLayout.setError(ResponseCode.CAPTCHA_ERROR.getMessage());
-                loginRegisterViewModel.getCaptcha();
-                return;
-            }
-            if (Objects.equals(responseResult.getCode(), ResponseCode.ACCOUNT_ERROR.getCode())) {
-                //账号或密码错误
-                dialog.dismiss();
-                Toast.makeText(this, "账号或密码错误！", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            if (Objects.equals(responseResult.getCode(), ResponseCode.OK.getCode())) {
-                //登录成功
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString("data", JSON.toJSONString(responseResult.getData()));
-                editor.putString("token", responseResult.getMessage());
-                editor.putBoolean("remember", binding.rememberCheckBox.isChecked());
-                editor.apply();
-                dialog.dismiss();
-                Toast.makeText(this, "登录成功！", Toast.LENGTH_SHORT).show();
-                //关闭Activity
-                new Handler().postDelayed(this::finish, 2000);//延 5秒
-            }
+            //登录成功
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("data", JSON.toJSONString(responseResult.getData()));
+            editor.putString("token", responseResult.getMessage());
+            editor.putBoolean("remember", binding.rememberCheckBox.isChecked());
+            editor.apply();
+            captchaDialog.dismiss();
+            SweetAlertDialog sweetAlertDialog = new MessageDialog(this, SweetAlertDialog.SUCCESS_TYPE).setTitleText("登录成功！");
+            sweetAlertDialog.setOnDismissListener(dialog -> this.finish());
+            sweetAlertDialog.show();
         });
 
         //验证码图片获取后处理
-        loginRegisterViewModel.getCaptchaResponse().observe(this, responseResult -> {
+        loginRegisterViewModel.getCaptchaResponse().observe(this, captchaString -> {
             dialogBinding.progressIndicator.setVisibility(View.GONE);
             ImageView captcha = dialogBinding.captcha;
-            Bitmap bitmap = ImageUtils.decodeImageString(responseResult.getData());
+            Bitmap bitmap = ImageUtils.decodeImageString(captchaString);
             captcha.setImageBitmap(bitmap);
             dialogBinding.captchaLinearLayout.setVisibility(View.VISIBLE);
+        });
+
+        loginRegisterViewModel.getFlagLiveData().observe(this, flag -> {
+            if (Objects.equals(flag, ResponseCode.CAPTCHA_ERROR.getCode())) {
+                //验证码错误
+                dialogBinding.captchaTextInputLayout.setError(ResponseCode.CAPTCHA_ERROR.getMessage());
+                loginRegisterViewModel.getCaptcha();
+            } else if (Objects.equals(flag, ResponseCode.ACCOUNT_ERROR.getCode())) {
+                //账号或密码错误
+                captchaDialog.dismiss();
+                new MessageDialog(this, SweetAlertDialog.WARNING_TYPE)
+                        .setTitleText("账号或密码错误！")
+                        .show();
+            }
         });
     }
 

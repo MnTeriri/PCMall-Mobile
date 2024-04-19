@@ -5,11 +5,8 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.pcmall.adapter.recyclerview.OrderListAdapter;
 import com.example.pcmall.adapter.viewpager2.OrderPagerAdapter;
@@ -58,6 +55,16 @@ public class OrderActivity extends AppCompatActivity {
         Log.d(TAG, "OrderActivity启动");
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        int tabId = getIntent().getIntExtra("tabId", 0);
+        TabLayout orderTab = binding.orderTab;
+        TabLayout.Tab tabAt = orderTab.getTabAt(tabId);
+        tabAt.select();
+    }
+
     private void initData() {
         Log.d(TAG, "加载数据");
         orderList = new ArrayList<>();
@@ -76,17 +83,12 @@ public class OrderActivity extends AppCompatActivity {
         OrderPagerAdapter orderPagerAdapter = new OrderPagerAdapter(this, fragmentList);
 
         //禁用预加载
-        binding.viewPager.setOffscreenPageLimit(ViewPager2.OFFSCREEN_PAGE_LIMIT_DEFAULT);
+        binding.viewPager.setOffscreenPageLimit(6);
         binding.viewPager.setAdapter(orderPagerAdapter);
 
         new TabLayoutMediator(binding.orderTab, binding.viewPager, (tab, i) -> {
             tab.setText(fragmentList.get(i).getTitle());
         }).attach();
-
-        int tabId = getIntent().getIntExtra("tabId", 0);
-        TabLayout orderTab = binding.orderTab;
-        TabLayout.Tab tabAt = orderTab.getTabAt(tabId);
-        tabAt.select();
 
         orderListAdapter = new OrderListAdapter(orderList);
         binding.recycleView.setAdapter(orderListAdapter);
