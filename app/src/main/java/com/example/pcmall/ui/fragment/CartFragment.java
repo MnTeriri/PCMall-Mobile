@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -48,22 +49,33 @@ public class CartFragment extends Fragment {
     private User user;
     private CartListAdapter cartListAdapter;
     private List<Cart> cartList;
-    private Pagination pagination = new Pagination();
+    private final Pagination pagination = new Pagination();
     @Inject
     public SharedPreferences sharedPreferences;
 
+    @Nullable
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentCartBinding.inflate(inflater, container, false);
         cartViewModel = new ViewModelProvider(this).get(CartViewModel.class);
         View root = binding.getRoot();
         user = ((PCMallApplication) getActivity().getApplication()).getUserData();
 
-        if (user != null) {
-            initData();
-            initView();
-            initListener();
-            handelObserve();
+        initData();
+        initView();
+        initListener();
+        handelObserve();
 
+        Log.d(TAG, "CartFragment启动");
+        return root;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d(TAG, TAG + ".onStart()");
+        Log.d(TAG, "网络请求数据。。。");
+        if (user != null) {
             cartViewModel.getCartList(user.getUid(), pagination.getCurrentPage(), pagination.getPageSize(), true);
             cartViewModel.getTotalCount(user.getUid());
         } else {
@@ -71,9 +83,6 @@ public class CartFragment extends Fragment {
             binding.refreshLayout.setVisibility(View.GONE);
             binding.selectLayout.setVisibility(View.GONE);
         }
-
-        Log.d(TAG, "CartFragment启动");
-        return root;
     }
 
     //初始化数据
@@ -217,5 +226,6 @@ public class CartFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+        Log.d(TAG, "CartFragment销毁");
     }
 }

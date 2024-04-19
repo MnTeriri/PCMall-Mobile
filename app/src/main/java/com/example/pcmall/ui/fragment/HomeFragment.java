@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -39,9 +40,11 @@ public class HomeFragment extends Fragment {
     private List<Goods> goodsList;
     private List<Goods> searchList;
     private String searchValue = "";
-    private Pagination searchPagination;
-    private Pagination pagination;
+    private final Pagination searchPagination = new Pagination();
+    private final Pagination pagination = new Pagination();
 
+    @Nullable
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         binding = FragmentHomeBinding.inflate(inflater, container, false);
@@ -51,8 +54,18 @@ public class HomeFragment extends Fragment {
         initView();
         initListener();
         handelObserve();
+
         Log.d(TAG, "HomeFragment启动");
         return root;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d(TAG, TAG + ".onStart()");
+        Log.d(TAG, "网络请求数据。。。");
+        homeViewModel.getGoodsList(pagination.getCurrentPage(), pagination.getPageSize(), true);
+        homeViewModel.getTotalCount();
     }
 
     //初始化数据
@@ -60,10 +73,6 @@ public class HomeFragment extends Fragment {
         Log.d(TAG, "加载数据");
         goodsList = new ArrayList<>();
         searchList = new ArrayList<>();
-        pagination = new Pagination();
-        searchPagination = new Pagination();
-        homeViewModel.getGoodsList(pagination.getCurrentPage(), pagination.getPageSize(), true);
-        homeViewModel.getTotalCount();
     }
 
     //初始化View

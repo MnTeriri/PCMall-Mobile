@@ -1,6 +1,5 @@
 package com.example.pcmall.ui.fragment;
 
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,7 +12,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.pcmall.adapter.recyclerview.OrderListAdapter;
 import com.example.pcmall.application.PCMallApplication;
@@ -42,7 +40,7 @@ public class OrderFragment extends Fragment {
     public final static Integer TITLE_PAY = 0;
     public final static Integer TITLE_SEND = 1;
     public final static Integer TITLE_DELIVER = 2;
-    public final static Integer TITLE_REFUND = 3;
+    public final static Integer TITLE_REFUND = 5;
     public final static Integer TITLE_COMMENT = 4;
     private final static Map<Integer, String> TITLE;
 
@@ -62,7 +60,7 @@ public class OrderFragment extends Fragment {
     private User user;
     private OrderListAdapter orderListAdapter;
     private List<Order> orderList;
-    private Pagination pagination = new Pagination();
+    private final Pagination pagination = new Pagination();
 
     public OrderFragment(Integer type) {
         this.type = type;
@@ -85,17 +83,23 @@ public class OrderFragment extends Fragment {
         initListener();
         handelObserve();
 
+        Log.d(TAG, "OrderFragment启动");
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d(TAG, TAG + ".onStart()");
+        Log.d(TAG, "网络请求数据。。。");
         orderViewModel.searchOrderList("", user.getUid(), type, pagination.getCurrentPage(), pagination.getPageSize(), true);
         orderViewModel.getRecordsFiltered("", user.getUid(), type);
-
-        Log.d(TAG, "OrderFragment启动");
-
-        return binding.getRoot();
     }
 
     private void initData() {
         Log.d(TAG, "加载数据");
         orderList = new ArrayList<>();
+        pagination.setPageSize(5);
     }
 
     private void initView() {
@@ -136,32 +140,58 @@ public class OrderFragment extends Fragment {
         //点击付款按钮
         orderListAdapter.setOnPayButtonClickListener((v, order) ->
                 new SweetAlertDialog(getContext(), SweetAlertDialog.WARNING_TYPE)
-                .setTitleText("付款界面")
-                .setContentText("这是一个付款界面，如需付款点击付款按钮")
-                .setConfirmText("付款")
-                .setConfirmClickListener(dialog -> {
-                    orderViewModel.payOrder(order.getOid());
-                    dialog.dismissWithAnimation();
-                })
-                .setCancelText("取消")
-                .setCancelClickListener(SweetAlertDialog::dismissWithAnimation)
-                .show());
+                        .setTitleText("付款界面")
+                        .setContentText("这是一个付款界面，如需付款点击付款按钮")
+                        .setConfirmText("付款")
+                        .setConfirmClickListener(dialog -> {
+                            orderViewModel.payOrder(order.getOid());
+                            dialog.dismissWithAnimation();
+                        })
+                        .setCancelText("取消")
+                        .setCancelClickListener(SweetAlertDialog::dismissWithAnimation)
+                        .show());
+
+        //点击确认签收按钮
+        orderListAdapter.setOnFinishButtonClickListener((v, order) ->
+                new SweetAlertDialog(getContext(), SweetAlertDialog.WARNING_TYPE)
+                        .setTitleText("确认界面")
+                        .setContentText("确认签收？")
+                        .setConfirmText("确定")
+                        .setConfirmClickListener(dialog -> {
+                            orderViewModel.finishOrder(order.getOid());
+                            dialog.dismissWithAnimation();
+                        })
+                        .setCancelText("取消")
+                        .setCancelClickListener(SweetAlertDialog::dismissWithAnimation)
+                        .show());
 
         //点击取消订单按钮
-        orderListAdapter.setOnCancelButtonClickListener(new ListenerInterface.OnClickListener<Order>() {
-            @Override
-            public void onClick(View v, Order data) {
-                Log.d(TAG, data.toString());
-            }
-        });
+        orderListAdapter.setOnCancelButtonClickListener((v, order) ->
+                new SweetAlertDialog(getContext(), SweetAlertDialog.WARNING_TYPE)
+                        .setTitleText("取消订单界面")
+                        .setContentText("是否取消该订单")
+                        .setConfirmText("确认")
+                        .setConfirmClickListener(dialog -> {
+                            orderViewModel.cancelOrder(order.getOid());
+                            dialog.dismissWithAnimation();
+                        })
+                        .setCancelText("取消")
+                        .setCancelClickListener(SweetAlertDialog::dismissWithAnimation)
+                        .show());
 
         //点击退货按钮
-        orderListAdapter.setOnRefundButtonClickListener(new ListenerInterface.OnClickListener<Order>() {
-            @Override
-            public void onClick(View v, Order data) {
-                Log.d(TAG, data.toString());
-            }
-        });
+        orderListAdapter.setOnRefundButtonClickListener((v, order) ->
+                new SweetAlertDialog(getContext(), SweetAlertDialog.WARNING_TYPE)
+                        .setTitleText("申请退货界面")
+                        .setContentText("是否申请退货")
+                        .setConfirmText("确认")
+                        .setConfirmClickListener(dialog -> {
+                            orderViewModel.refundOrder(order.getOid());
+                            dialog.dismissWithAnimation();
+                        })
+                        .setCancelText("取消")
+                        .setCancelClickListener(SweetAlertDialog::dismissWithAnimation)
+                        .show());
     }
 
     private void handelObserve() {
@@ -184,8 +214,29 @@ public class OrderFragment extends Fragment {
             } else if (Objects.equals(flag, OrderViewModel.LOAD_ERROR)) {
                 binding.refreshLayout.finishRefresh(false);//传入false表示刷新失败
                 binding.refreshLayout.finishLoadMore(false);
-            }else if (Objects.equals(flag, OrderViewModel.PAY_SUCCESS)) {
+            } else if (Objects.equals(flag, OrderViewModel.PAY_SUCCESS)) {
                 SweetAlertDialog sweetAlertDialog = new MessageDialog(getContext(), SweetAlertDialog.SUCCESS_TYPE).setTitleText("订单付款成功！");
+                sweetAlertDialog.setOnDismissListener(dialog -> {
+                    orderViewModel.searchOrderList("", user.getUid(), type, 1, pagination.getCurrentPage() * pagination.getPageSize(), true);
+                    orderViewModel.getRecordsFiltered("", user.getUid(), type);
+                });
+                sweetAlertDialog.show();
+            } else if (Objects.equals(flag, OrderViewModel.FINISH_SUCCESS)) {
+                SweetAlertDialog sweetAlertDialog = new MessageDialog(getContext(), SweetAlertDialog.SUCCESS_TYPE).setTitleText("订单签收成功！");
+                sweetAlertDialog.setOnDismissListener(dialog -> {
+                    orderViewModel.searchOrderList("", user.getUid(), type, 1, pagination.getCurrentPage() * pagination.getPageSize(), true);
+                    orderViewModel.getRecordsFiltered("", user.getUid(), type);
+                });
+                sweetAlertDialog.show();
+            } else if (Objects.equals(flag, OrderViewModel.CANCEL_SUCCESS)) {
+                SweetAlertDialog sweetAlertDialog = new MessageDialog(getContext(), SweetAlertDialog.SUCCESS_TYPE).setTitleText("订单取消成功！");
+                sweetAlertDialog.setOnDismissListener(dialog -> {
+                    orderViewModel.searchOrderList("", user.getUid(), type, 1, pagination.getCurrentPage() * pagination.getPageSize(), true);
+                    orderViewModel.getRecordsFiltered("", user.getUid(), type);
+                });
+                sweetAlertDialog.show();
+            } else if (Objects.equals(flag, OrderViewModel.REFUND_SUCCESS)) {
+                SweetAlertDialog sweetAlertDialog = new MessageDialog(getContext(), SweetAlertDialog.SUCCESS_TYPE).setTitleText("申请退货成功！");
                 sweetAlertDialog.setOnDismissListener(dialog -> {
                     orderViewModel.searchOrderList("", user.getUid(), type, 1, pagination.getCurrentPage() * pagination.getPageSize(), true);
                     orderViewModel.getRecordsFiltered("", user.getUid(), type);
@@ -197,4 +248,12 @@ public class OrderFragment extends Fragment {
         });
 
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+        Log.d(TAG, TAG + "销毁");
+    }
+
 }

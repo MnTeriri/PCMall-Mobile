@@ -50,10 +50,16 @@ public class BrandFragment extends Fragment {
         initListener();
         handelObserve();
 
-        brandViewModel.getBrandList(category.getId());
-
         Log.d(TAG, "BrandFragment启动");
         return binding.getRoot();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d(TAG, TAG + ".onStart()");
+        Log.d(TAG, "网络请求数据。。。");
+        brandViewModel.getBrandList(category.getId());
     }
 
     private void initData() {

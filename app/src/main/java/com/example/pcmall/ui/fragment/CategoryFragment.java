@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager2.widget.ViewPager2;
@@ -16,7 +17,6 @@ import com.example.pcmall.adapter.viewpager2.BrandPagerAdapter;
 import com.example.pcmall.databinding.FragmentCategoryBinding;
 import com.example.pcmall.model.Category;
 import com.example.pcmall.ui.viewmodel.CategoryViewModel;
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +31,8 @@ public class CategoryFragment extends Fragment {
     private FragmentCategoryBinding binding;
     private CategoryViewModel categoryViewModel;
 
+    @Nullable
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         categoryViewModel = new ViewModelProvider(this).get(CategoryViewModel.class);
         binding = FragmentCategoryBinding.inflate(inflater, container, false);
@@ -41,13 +43,19 @@ public class CategoryFragment extends Fragment {
         handelObserve();
 
         Log.d(TAG, "CategoryFragment启动");
-
         return binding.getRoot();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d(TAG, TAG + ".onStart()");
+        Log.d(TAG, "网络请求数据。。。");
+        categoryViewModel.getCategoryList();
     }
 
     private void initData() {
         Log.d(TAG, "加载数据");
-        categoryViewModel.getCategoryList();
     }
 
     private void initView() {
