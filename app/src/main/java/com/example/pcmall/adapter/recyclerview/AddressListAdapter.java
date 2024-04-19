@@ -7,12 +7,11 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.databinding.RecyclerviewAddressItemBinding;
+import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.model.Address;
 
 import java.util.List;
-
 
 public class AddressListAdapter extends RecyclerView.Adapter<AddressListAdapter.AddressItmeViewHolder> {
     private final List<Address> list;

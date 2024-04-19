@@ -7,8 +7,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.databinding.RecyclerviewAddressSelectItemBinding;
+import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.model.Address;
 
 import java.util.List;

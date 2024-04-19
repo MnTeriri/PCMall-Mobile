@@ -8,8 +8,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.pcmall.R;
-import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.databinding.RecyclerviewGoodsItemBinding;
+import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.model.Goods;
 import com.example.pcmall.module.GlideApp;
 import com.example.pcmall.module.NetworkModule;

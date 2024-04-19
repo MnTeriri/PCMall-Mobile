@@ -27,6 +27,7 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
 
     private ListenerInterface.OnClickListener<Order> clickListener;
     private ListenerInterface.OnClickListener<Order> payClickListener;
+    private ListenerInterface.OnClickListener<Order> finishClickListener;
     private ListenerInterface.OnClickListener<Order> cancelClickListener;
     private ListenerInterface.OnClickListener<Order> refundClickListener;
 
@@ -62,32 +63,50 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         if (order.getStatus() == 0) {
             holder.binding.buttonLayout.setVisibility(View.VISIBLE);
             holder.binding.payButton.setVisibility(View.VISIBLE);
+            holder.binding.finishButton.setVisibility(View.GONE);
             holder.binding.cancelButton.setVisibility(View.VISIBLE);
             holder.binding.refundButton.setVisibility(View.GONE);
+            if (payClickListener != null) {
+                holder.binding.payButton.setOnClickListener(v -> payClickListener.onClick(v, order));
+            }
+            if (cancelClickListener != null) {
+                holder.binding.cancelButton.setOnClickListener(v -> cancelClickListener.onClick(v, order));
+            }
         } else if (order.getStatus() == 1) {
             holder.binding.buttonLayout.setVisibility(View.VISIBLE);
             holder.binding.payButton.setVisibility(View.GONE);
+            holder.binding.finishButton.setVisibility(View.GONE);
             holder.binding.cancelButton.setVisibility(View.VISIBLE);
             holder.binding.refundButton.setVisibility(View.GONE);
-        } else if (order.getStatus() == 2 || order.getStatus() == 3) {
+            if (cancelClickListener != null) {
+                holder.binding.cancelButton.setOnClickListener(v -> cancelClickListener.onClick(v, order));
+            }
+        } else if (order.getStatus() == 2) {
             holder.binding.buttonLayout.setVisibility(View.VISIBLE);
             holder.binding.payButton.setVisibility(View.GONE);
+            holder.binding.finishButton.setVisibility(View.VISIBLE);
             holder.binding.cancelButton.setVisibility(View.GONE);
             holder.binding.refundButton.setVisibility(View.VISIBLE);
+            if (finishClickListener != null) {
+                holder.binding.finishButton.setOnClickListener(v -> finishClickListener.onClick(v, order));
+            }
+            if (refundClickListener != null) {
+                holder.binding.refundButton.setOnClickListener(v -> refundClickListener.onClick(v, order));
+            }
+        } else if (order.getStatus() == 3) {
+            holder.binding.buttonLayout.setVisibility(View.VISIBLE);
+            holder.binding.payButton.setVisibility(View.GONE);
+            holder.binding.finishButton.setVisibility(View.GONE);
+            holder.binding.cancelButton.setVisibility(View.GONE);
+            holder.binding.refundButton.setVisibility(View.VISIBLE);
+            if (refundClickListener != null) {
+                holder.binding.refundButton.setOnClickListener(v -> refundClickListener.onClick(v, order));
+            }
         } else if (order.getStatus() == 4 || order.getStatus() == 5 || order.getStatus() == 6) {
             holder.binding.buttonLayout.setVisibility(View.GONE);
         }
         if (clickListener != null) {
             holder.binding.orderCard.setOnClickListener(v -> clickListener.onClick(v, order));
-        }
-        if (payClickListener != null) {
-            holder.binding.payButton.setOnClickListener(v -> payClickListener.onClick(v, order));
-        }
-        if (cancelClickListener != null) {
-            holder.binding.cancelButton.setOnClickListener(v -> cancelClickListener.onClick(v, order));
-        }
-        if (refundClickListener != null) {
-            holder.binding.refundButton.setOnClickListener(v -> refundClickListener.onClick(v, order));
         }
     }
 
@@ -102,6 +121,10 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
 
     public void setOnPayButtonClickListener(ListenerInterface.OnClickListener<Order> listener) {
         this.payClickListener = listener;
+    }
+
+    public void setOnFinishButtonClickListener(ListenerInterface.OnClickListener<Order> listener) {
+        this.finishClickListener = listener;
     }
 
     public void setOnCancelButtonClickListener(ListenerInterface.OnClickListener<Order> listener) {
