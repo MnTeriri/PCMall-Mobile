@@ -5,7 +5,7 @@ import android.util.Log;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.pcmall.model.User;
+import com.example.pcmall.model.LoginUser;
 import com.example.pcmall.model.response.ResponseCode;
 import com.example.pcmall.model.response.ResponseResult;
 import com.example.pcmall.service.LoginRegisterService;
@@ -27,7 +27,7 @@ public class LoginRegisterViewModel extends ViewModel {
     private final CompositeDisposable compositeDisposable;
 
     @Getter
-    private final MutableLiveData<ResponseResult<User>> loginResponse;//登录信息
+    private final MutableLiveData<ResponseResult<LoginUser>> loginResponse;//登录信息
     @Getter
     private final MutableLiveData<String> registerResponse;//注册信息
     @Getter
