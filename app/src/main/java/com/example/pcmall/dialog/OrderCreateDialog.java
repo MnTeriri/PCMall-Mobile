@@ -31,7 +31,7 @@ import cn.pedant.SweetAlert.SweetAlertDialog;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
-public class CreateOrderDialog extends FullScreenDialog {
+public class OrderCreateDialog extends FullScreenDialog {
     private final String TAG = "CreateOrderDialog";
     private DialogFragmentOrderCreateBinding binding;
     private OrderViewModel orderViewModel;
@@ -41,7 +41,7 @@ public class CreateOrderDialog extends FullScreenDialog {
     private List<Cart> cartList;
     private Address selectAddress;
 
-    public CreateOrderDialog(FragmentActivity activity) {
+    public OrderCreateDialog(FragmentActivity activity) {
         super(activity);
     }
 
