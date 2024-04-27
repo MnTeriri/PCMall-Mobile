@@ -9,7 +9,7 @@ import retrofit2.HttpException;
 
 public class RetrofitUtils {
     public static ResponseResult<String> getErrorMessage(Throwable throwable) throws IOException {
-        ResponseResult<String> responseResult = null;
+        ResponseResult<String> responseResult = ResponseResult.error("");
         if (throwable instanceof HttpException) {
             responseResult = new ResponseResult<>();
             String errorMessage = "";
