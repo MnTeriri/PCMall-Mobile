@@ -20,7 +20,6 @@ public class PCMallApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        //NetworkModule.getOkHttpClientInstance(getApplicationContext());
         Log.d(TAG, "PCMallApplication启动");
         boolean remember = sharedPreferences.getBoolean("remember", false);
         if (!remember) {
@@ -28,6 +27,7 @@ public class PCMallApplication extends Application {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString("data", null);
             editor.putString("token", null);
+            editor.putBoolean("remember", false);
             editor.apply();
         }
 //        SharedPreferences.Editor editor = sharedPreferences.edit();
