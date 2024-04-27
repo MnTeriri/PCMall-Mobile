@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -25,7 +24,6 @@ import com.example.pcmall.dialog.CartDialog;
 import com.example.pcmall.dialog.MessageDialog;
 import com.example.pcmall.dialog.UserInformationDialog;
 import com.example.pcmall.dialog.UserPasswordDialog;
-import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.model.User;
 import com.example.pcmall.module.GlideApp;
 import com.example.pcmall.module.NetworkModule;
@@ -156,7 +154,9 @@ public class MySelfFragment extends Fragment {
                 dialog.setOnDialogClosedListener(dialogFragment -> initUserInformation());
                 dialog.show();
             } else if (itemId == R.id.navigation_password) {
-                new UserPasswordDialog(getActivity()).show();
+                UserPasswordDialog dialog = new UserPasswordDialog(getActivity());
+                dialog.setOnDialogClosedListener(dialogFragment -> initUserInformation());
+                dialog.show();
             } else if (itemId == R.id.navigation_logout) {
                 new SweetAlertDialog(getContext(), SweetAlertDialog.WARNING_TYPE)
                         .setTitleText("是否退出登录")
