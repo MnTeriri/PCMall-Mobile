@@ -11,18 +11,18 @@
         android:title="购物车管理" />
 
     <item
-        android:id="@+id/navigation_send"
+        android:id="@+id/navigation_information"
         android:icon="@drawable/ic_service_info"
         android:title="信息修改" />
 
     <item
-        android:id="@+id/navigation_deliver"
+        android:id="@+id/navigation_password"
         android:icon="@drawable/ic_service_password"
         android:title="密码修改" />
 
 
     <item
-        android:id="@+id/navigation_refund"
+        android:id="@+id/navigation_logout"
         android:icon="@drawable/ic_service_logout"
         android:title="退出登录" />
 </menu>

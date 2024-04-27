@@ -16,9 +16,9 @@
         android:title="@string/title_deliver" />
 
     <item
-        android:id="@+id/navigation_comment"
-        android:icon="@drawable/ic_order_comment"
-        android:title="@string/title_comment" />
+        android:id="@+id/navigation_finish"
+        android:icon="@drawable/ic_order_finish"
+        android:title="@string/title_finish" />
 
     <item
         android:id="@+id/navigation_refund"
