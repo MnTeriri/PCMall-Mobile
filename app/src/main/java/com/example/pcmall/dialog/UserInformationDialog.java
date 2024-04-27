@@ -15,7 +15,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.alibaba.fastjson2.JSON;
@@ -75,13 +74,15 @@ public class UserInformationDialog extends FullScreenDialog {
     @Override
     public void onStart() {
         super.onStart();
+        Log.d(TAG, TAG + ".onStart()");
     }
 
     private void initData() {
-
+        Log.d(TAG, "加载数据");
     }
 
     private void initView() {
+        Log.d(TAG, "初始化View");
         binding.unameInputText.setText(user.getUname());
     }
 
@@ -144,6 +145,7 @@ public class UserInformationDialog extends FullScreenDialog {
     }
 
     private void handelObserve() {
+        Log.d(TAG, "添加ViewModel返回结果方法");
         userViewModel.getUserLiveData().observe(getViewLifecycleOwner(), user -> {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString("data", JSON.toJSONString(user));

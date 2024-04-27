@@ -16,7 +16,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.pcmall.R;
-import com.example.pcmall.adapter.recyclerview.OrderCartListAdapter;
 import com.example.pcmall.adapter.recyclerview.OrderGoodsListAdapter;
 import com.example.pcmall.adapter.recyclerview.OrderListAdapter;
 import com.example.pcmall.databinding.DialogFragmentOrderDetailBinding;
