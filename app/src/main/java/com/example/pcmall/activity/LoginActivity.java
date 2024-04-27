@@ -138,7 +138,7 @@ public class LoginActivity extends AppCompatActivity {
         loginRegisterViewModel.getLoginResponse().observe(this, responseResult -> {
             //登录成功
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString("data", JSON.toJSONString(responseResult.getData()));
+            editor.putString("data", JSON.toJSONString(responseResult.getData().getUser()));
             editor.putString("token", responseResult.getMessage());
             editor.putBoolean("remember", binding.rememberCheckBox.isChecked());
             editor.apply();
