@@ -9,7 +9,9 @@
     <string name="title_address_update">编辑地址</string>
     <string name="title_address_select">选择地址</string>
     <string name="title_order_create">确认订单</string>
+    <string name="title_order_detail">订单详情</string>
     <string name="title_goods_list">商品列表</string>
+    <string name="title_user_information">信息修改</string>
     <string name="searchbar_goods">搜索商品</string>
     <string name="searchbar_order">搜索订单</string>
     <string name="edit">编辑</string>
@@ -18,7 +20,7 @@
     <string name="title_pay">待付款</string>
     <string name="title_send">待发货</string>
     <string name="title_deliver">待收货</string>
-    <string name="title_comment">待评价</string>
+    <string name="title_finish">已完成</string>
     <string name="title_refund">退款/售后</string>
     <string name="remember_me">记住我</string>
 
