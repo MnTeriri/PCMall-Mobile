@@ -22,7 +22,6 @@ import com.example.pcmall.model.response.ResponseCode;
 import com.example.pcmall.ui.viewmodel.LoginRegisterViewModel;
 import com.example.pcmall.utils.ImageUtils;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.progressindicator.BaseProgressIndicator;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.Objects;
