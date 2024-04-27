@@ -1,9 +1,15 @@
 package com.example.pcmall.utils;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.Base64;
 
 public class ImageUtils {
@@ -21,4 +27,21 @@ public class ImageUtils {
         return imageString;
     }
 
+    public static Bitmap getImageFromUri(Context context, String imageUri) {
+        try {
+            InputStream inputStream = context.getContentResolver().openInputStream(Uri.parse(imageUri));
+            return BitmapFactory.decodeStream(inputStream);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Bitmap getImageFromFile(File file) {
+        try {
+            InputStream inputStream = new FileInputStream(file);
+            return BitmapFactory.decodeStream(inputStream);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
