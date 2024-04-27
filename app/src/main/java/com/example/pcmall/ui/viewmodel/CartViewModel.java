@@ -72,9 +72,11 @@ public class CartViewModel extends ViewModel {
                         cartList.addAll(responseResult.getData());
                         flagLiveData.setValue(CartViewModel.LOAD_MORE_SUCCESS);
                     }
+                    new Thread(() -> {
+                        selectItemTotalPriceHandel();
+                        selectItemCountHandel();
+                    }).start();
                     cartListLiveData.setValue(cartList);
-                    selectItemTotalPriceHandel();
-                    selectItemCountHandel();
                 }, throwable -> {
                     flagLiveData.setValue(CartViewModel.LOAD_ERROR);
                 });
@@ -89,7 +91,7 @@ public class CartViewModel extends ViewModel {
                 total = total.add(goods.getPrice().multiply(BigDecimal.valueOf(cart.getCount())));
             }
         }
-        selectItemTotalPriceLiveData.setValue(total);
+        selectItemTotalPriceLiveData.postValue(total);
     }
 
     private void selectItemCountHandel() {
@@ -100,7 +102,7 @@ public class CartViewModel extends ViewModel {
                 total = total + cart.getCount();
             }
         }
-        selectItemCountLiveData.setValue(total);
+        selectItemCountLiveData.postValue(total);
     }
 
     public void getTotalCount(String uid) {

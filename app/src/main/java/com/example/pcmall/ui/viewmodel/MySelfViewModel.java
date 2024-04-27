@@ -5,6 +5,7 @@ import android.util.Log;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.pcmall.model.response.ResponseCode;
 import com.example.pcmall.service.OrderService;
 
 import javax.inject.Inject;
@@ -30,7 +31,11 @@ public class MySelfViewModel extends ViewModel {
     @Getter
     private final MutableLiveData<Long> notDeliverCountLiveData;//待收货订单个数
     @Getter
+    private final MutableLiveData<Long> finishCountLiveData;//已完成订单个数
+    @Getter
     private final MutableLiveData<Long> refundCountLiveData;//退款售后订单个数
+    @Getter
+    private final MutableLiveData<Integer> flagLiveData;
 
     @Inject
     public MySelfViewModel(OrderService orderService) {
@@ -39,7 +44,9 @@ public class MySelfViewModel extends ViewModel {
         this.notPayCountLiveData = new MutableLiveData<>();
         this.notSendCountLiveData = new MutableLiveData<>();
         this.notDeliverCountLiveData = new MutableLiveData<>();
+        this.finishCountLiveData = new MutableLiveData<>();
         this.refundCountLiveData = new MutableLiveData<>();
+        this.flagLiveData = new MutableLiveData<>();
         Log.d(TAG, "自动注入OrderService完成");
         Log.d(TAG, "MutableLiveData初始化完成");
     }
@@ -50,13 +57,9 @@ public class MySelfViewModel extends ViewModel {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        responseResult -> notPayCountLiveData.setValue(responseResult.getData())
-                        , new Consumer<Throwable>() {
-                            @Override
-                            public void accept(Throwable throwable) throws Throwable {
-
-                            }
-                        });
+                        responseResult -> notPayCountLiveData.setValue(responseResult.getData()),
+                        throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
+                );
         compositeDisposable.add(disposable);
     }
 
@@ -66,13 +69,9 @@ public class MySelfViewModel extends ViewModel {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        responseResult -> notSendCountLiveData.setValue(responseResult.getData())
-                        , new Consumer<Throwable>() {
-                            @Override
-                            public void accept(Throwable throwable) throws Throwable {
-
-                            }
-                        });
+                        responseResult -> notSendCountLiveData.setValue(responseResult.getData()),
+                        throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
+                );
         compositeDisposable.add(disposable);
     }
 
@@ -82,13 +81,21 @@ public class MySelfViewModel extends ViewModel {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        responseResult -> notDeliverCountLiveData.setValue(responseResult.getData())
-                        , new Consumer<Throwable>() {
-                            @Override
-                            public void accept(Throwable throwable) throws Throwable {
+                        responseResult -> notDeliverCountLiveData.setValue(responseResult.getData()),
+                        throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
+                );
+        compositeDisposable.add(disposable);
+    }
 
-                            }
-                        });
+    //已完成订单个数
+    public void getFinishCount(String uid) {
+        Disposable disposable = orderService.getRecordsFiltered("", uid, 3)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        responseResult -> finishCountLiveData.setValue(responseResult.getData()),
+                        throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
+                );
         compositeDisposable.add(disposable);
     }
 
@@ -98,13 +105,9 @@ public class MySelfViewModel extends ViewModel {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        responseResult -> refundCountLiveData.setValue(responseResult.getData())
-                        , new Consumer<Throwable>() {
-                            @Override
-                            public void accept(Throwable throwable) throws Throwable {
-
-                            }
-                        });
+                        responseResult -> refundCountLiveData.setValue(responseResult.getData()),
+                        throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
+                );
         compositeDisposable.add(disposable);
     }
 

@@ -91,9 +91,11 @@ public class OrderViewModel extends ViewModel {
                 .subscribe(responseResult -> {
                     Log.d(TAG, responseResult.toString());
                     cartList = responseResult.getData();
+                    new Thread(() -> {
+                        selectItemTotalPriceHandel();
+                        selectItemCountHandel();
+                    }).start();
                     cartListLiveData.setValue(cartList);
-                    selectItemTotalPriceHandel();
-                    selectItemCountHandel();
                 }, throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode()));
         compositeDisposable.add(disposable);
     }
@@ -106,7 +108,7 @@ public class OrderViewModel extends ViewModel {
                 total = total.add(goods.getPrice().multiply(BigDecimal.valueOf(cart.getCount())));
             }
         }
-        selectItemTotalPriceLiveData.setValue(total);
+        selectItemTotalPriceLiveData.postValue(total);
     }
 
     private void selectItemCountHandel() {
@@ -117,7 +119,7 @@ public class OrderViewModel extends ViewModel {
                 total = total + cart.getCount();
             }
         }
-        selectItemCountLiveData.setValue(total);
+        selectItemCountLiveData.postValue(total);
     }
 
     public void getDefaultAddress(String uid) {
