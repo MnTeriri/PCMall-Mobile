@@ -10,6 +10,7 @@ import com.example.pcmall.service.BrandService;
 import com.example.pcmall.service.CartService;
 import com.example.pcmall.service.CategoryService;
 import com.example.pcmall.service.GoodsService;
+import com.example.pcmall.service.ImageService;
 import com.example.pcmall.service.LoginRegisterService;
 import com.example.pcmall.service.OrderService;
 import com.example.pcmall.service.UserService;
@@ -51,7 +52,6 @@ public class NetworkModule {
     @Singleton
     @Provides
     public static LoginRegisterService provideLoginService(@ApplicationContext Context context) {
-        Log.d(TAG, "LoginRegisterServices生成");
         return new Retrofit.Builder()
                 .baseUrl(baseUrl)
                 .client(getOkHttpClientInstance(context))
@@ -64,7 +64,6 @@ public class NetworkModule {
     @Singleton
     @Provides
     public static GoodsService provideGoodsService(@ApplicationContext Context context) {
-        Log.d(TAG, "GoodsService生成");
         return new Retrofit.Builder()
                 .baseUrl(baseUrl + "mobile/goods/")
                 .client(getOkHttpClientInstance(context))
@@ -77,7 +76,6 @@ public class NetworkModule {
     @Singleton
     @Provides
     public static CategoryService provideCategoryService(@ApplicationContext Context context) {
-        Log.d(TAG, "CategoryService生成");
         return new Retrofit.Builder()
                 .baseUrl(baseUrl + "mobile/category/")
                 .client(getOkHttpClientInstance(context))
@@ -90,7 +88,6 @@ public class NetworkModule {
     @Singleton
     @Provides
     public static BrandService provideBrandService(@ApplicationContext Context context) {
-        Log.d(TAG, "CategoryService生成");
         return new Retrofit.Builder()
                 .baseUrl(baseUrl + "mobile/brand/")
                 .client(getOkHttpClientInstance(context))
@@ -103,7 +100,6 @@ public class NetworkModule {
     @Singleton
     @Provides
     public static CartService provideCartService(@ApplicationContext Context context) {
-        Log.d(TAG, "CartService生成");
         return new Retrofit.Builder()
                 .baseUrl(baseUrl + "mobile/cart/")
                 .client(getOkHttpClientInstance(context))
@@ -116,7 +112,6 @@ public class NetworkModule {
     @Singleton
     @Provides
     public static AddressService provideAddressService(@ApplicationContext Context context) {
-        Log.d(TAG, "CartService生成");
         return new Retrofit.Builder()
                 .baseUrl(baseUrl + "mobile/address/")
                 .client(getOkHttpClientInstance(context))
@@ -141,10 +136,22 @@ public class NetworkModule {
 
     @Singleton
     @Provides
-    public static UserService provideUserService() {
-        Log.d(TAG, "UserService生成");
+    public static ImageService provideImageService(@ApplicationContext Context context) {
         return new Retrofit.Builder()
-                .baseUrl(baseUrl)
+                .baseUrl(baseUrl + "image/")
+                .client(getOkHttpClientInstance(context))
+                .addConverterFactory(FastJsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+                .build()
+                .create(ImageService.class);
+    }
+
+    @Singleton
+    @Provides
+    public static UserService provideUserService(@ApplicationContext Context context) {
+        return new Retrofit.Builder()
+                .baseUrl(baseUrl + "mobile/user/")
+                .client(getOkHttpClientInstance(context))
                 .addConverterFactory(FastJsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                 .build()
