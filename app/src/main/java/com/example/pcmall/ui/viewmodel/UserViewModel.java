@@ -10,6 +10,7 @@ import com.example.pcmall.model.response.ResponseCode;
 import com.example.pcmall.model.response.ResponseResult;
 import com.example.pcmall.service.ImageService;
 import com.example.pcmall.service.UserService;
+import com.example.pcmall.utils.RetrofitUtils;
 
 import java.io.File;
 
@@ -19,7 +20,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.Getter;
 import okhttp3.MediaType;
@@ -75,8 +75,22 @@ public class UserViewModel extends ViewModel {
                             Log.d(TAG, responseResult.toString());
                             userLiveData.setValue(responseResult.getData());
                         },
+                        throwable -> flagLiveData.setValue(ResponseCode.ERROR.getCode())
+                );
+        compositeDisposable.add(disposable);
+    }
+
+    public void updatePassword(String uid, String oldPassword, String newPassword) {
+        Disposable disposable = userService.updatePassword(uid, oldPassword, newPassword)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        responseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
                         throwable -> {
-                            flagLiveData.setValue(ResponseCode.ERROR.getCode());
+                            ResponseResult<String> message = RetrofitUtils.getErrorMessage(throwable);
+                            if (message != null) {
+                                flagLiveData.setValue(message.getCode());
+                            }
                         }
                 );
         compositeDisposable.add(disposable);
