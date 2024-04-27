@@ -6,9 +6,18 @@ import com.example.pcmall.model.response.ResponseResult;
 import io.reactivex.rxjava3.core.Observable;
 import retrofit2.http.Body;
 import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.POST;
 
 public interface UserService {
     @POST("updateInformation")
     Observable<ResponseResult<User>> updateInformation(@Body User user);
+
+    @FormUrlEncoded
+    @POST("updatePassword")
+    Observable<ResponseResult<String>> updatePassword(
+            @Field("uid") String uid,
+            @Field("oldPassword") String oldPassword,
+            @Field("newPassword") String newPassword
+    );
 }
