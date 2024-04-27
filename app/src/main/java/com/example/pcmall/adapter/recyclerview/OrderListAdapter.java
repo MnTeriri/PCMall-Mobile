@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.OrderItmeViewHolder> {
-    private final static String[] STATUS = {"待付款", "待发货", "待收货", "交易成功", "交易取消", "退货中", "退货成功"};
+    public final static String[] STATUS = {"待付款", "待发货", "待收货", "交易成功", "交易取消", "退货中", "退货成功"};
     private final List<Order> orderList;
     private Context context;
 
@@ -52,11 +52,13 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         holder.binding.statusTextView.setText(STATUS[order.getStatus()]);
         holder.binding.createdTimeTextView.setText(order.getCreatedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         holder.binding.priceTextView.setText(String.format(context.getString(R.string.price), order.getPrice()));
-        Integer count = 0;
-        for (Goods goods : goodsList) {
-            count += goods.getCount();
-        }
-        holder.binding.countTextView.setText(String.format(context.getString(R.string.order_item_count), count.toString()));
+        new Thread(() -> {
+            Integer count = 0;
+            for (Goods goods : goodsList) {
+                count += goods.getCount();
+            }
+            holder.binding.countTextView.setText(String.format(context.getString(R.string.order_item_count), count.toString()));
+        }).start();
         RecyclerView recycleView = holder.binding.recycleView;
         recycleView.setAdapter(new OrderGoodsListAdapter(goodsList));
         recycleView.setLayoutManager(new LinearLayoutManager(context));
