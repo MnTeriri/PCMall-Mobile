@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -42,13 +43,14 @@ public class HomeFragment extends Fragment {
     private String searchValue = "";
     private final Pagination searchPagination = new Pagination();
     private final Pagination pagination = new Pagination();
+    private FragmentActivity activity;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        activity = getActivity();
 
         initData();
         initView();
@@ -56,7 +58,7 @@ public class HomeFragment extends Fragment {
         handelObserve();
 
         Log.d(TAG, "HomeFragment启动");
-        return root;
+        return binding.getRoot();
     }
 
     @Override
@@ -112,9 +114,9 @@ public class HomeFragment extends Fragment {
 
         //点击打开商品页面
         goodsListAdapter.setOnClickListener((v, goods) -> {
-            Intent intent = new Intent(getActivity(), GoodsActivity.class);
+            Intent intent = new Intent(activity, GoodsActivity.class);
             intent.putExtra("goods", JSON.toJSONString(goods));
-            getActivity().startActivity(intent);
+            activity.startActivity(intent);
         });
 
         //搜索界面
@@ -155,9 +157,9 @@ public class HomeFragment extends Fragment {
 
         //点击打开商品页面
         searchListAdapter.setOnClickListener((v, goods) -> {
-            Intent intent = new Intent(getActivity(), GoodsActivity.class);
+            Intent intent = new Intent(activity, GoodsActivity.class);
             intent.putExtra("goods", JSON.toJSONString(goods));
-            getActivity().startActivity(intent);
+            activity.startActivity(intent);
         });
 
     }
@@ -169,6 +171,17 @@ public class HomeFragment extends Fragment {
             goodsList.clear();
             goodsList.addAll(list);
             goodsListAdapter.notifyDataSetChanged();
+            new Thread(() -> {
+                try {
+                    Thread.sleep(750);
+                    activity.runOnUiThread(() -> {
+                        binding.progressIndicator.hide();
+                        binding.recycleView.setVisibility(View.VISIBLE);
+                    });
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }).start();
         });
 
         homeViewModel.getSearchLiveData().observe(getViewLifecycleOwner(), list -> {
@@ -204,7 +217,6 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null;
         Log.d(TAG, "HomeFragment销毁");
     }
 }

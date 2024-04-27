@@ -12,6 +12,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -22,7 +23,7 @@ import com.example.pcmall.activity.GoodsActivity;
 import com.example.pcmall.adapter.recyclerview.CartListAdapter;
 import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.FragmentCartBinding;
-import com.example.pcmall.dialog.CreateOrderDialog;
+import com.example.pcmall.dialog.OrderCreateDialog;
 import com.example.pcmall.dialog.MessageDialog;
 import com.example.pcmall.model.Cart;
 import com.example.pcmall.model.Pagination;
@@ -50,6 +51,7 @@ public class CartFragment extends Fragment {
     private CartListAdapter cartListAdapter;
     private List<Cart> cartList;
     private final Pagination pagination = new Pagination();
+    private FragmentActivity activity;
     @Inject
     public SharedPreferences sharedPreferences;
 
@@ -58,8 +60,8 @@ public class CartFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentCartBinding.inflate(inflater, container, false);
         cartViewModel = new ViewModelProvider(this).get(CartViewModel.class);
-        View root = binding.getRoot();
         user = ((PCMallApplication) getActivity().getApplication()).getUserData();
+        activity = getActivity();
 
         initData();
         initView();
@@ -67,7 +69,7 @@ public class CartFragment extends Fragment {
         handelObserve();
 
         Log.d(TAG, "CartFragment启动");
-        return root;
+        return binding.getRoot();
     }
 
     @Override
@@ -82,6 +84,7 @@ public class CartFragment extends Fragment {
             binding.information.setVisibility(View.VISIBLE);
             binding.refreshLayout.setVisibility(View.GONE);
             binding.selectLayout.setVisibility(View.GONE);
+            binding.progressIndicator.setVisibility(View.GONE);
         }
     }
 
@@ -123,9 +126,9 @@ public class CartFragment extends Fragment {
 
         //点击打开商品页面
         cartListAdapter.setOnClickListener((v, cart) -> {
-            Intent intent = new Intent(getActivity(), GoodsActivity.class);
+            Intent intent = new Intent(activity, GoodsActivity.class);
             intent.putExtra("goods", JSON.toJSONString(cart.getGoods()));
-            getActivity().startActivity(intent);
+            activity.startActivity(intent);
         });
 
         //长按进行购物车删除
@@ -166,7 +169,7 @@ public class CartFragment extends Fragment {
         //结算按钮
         binding.createOrderButton.setOnClickListener(v -> {
             if (cartViewModel.getSelectItemCountLiveData().getValue() > 0) {
-                CreateOrderDialog dialog = new CreateOrderDialog(getActivity());
+                OrderCreateDialog dialog = new OrderCreateDialog(activity);
                 dialog.setOnDialogClosedListener(dialogFragment -> {
                     Log.d(TAG, dialogFragment.getTag() + "关闭！");
                     pagination.setCurrentPage(1);
@@ -187,6 +190,17 @@ public class CartFragment extends Fragment {
             cartList.clear();
             cartList.addAll(list);
             cartListAdapter.notifyDataSetChanged();
+            new Thread(() -> {
+                try {
+                    Thread.sleep(750);
+                    activity.runOnUiThread(() -> {
+                        binding.progressIndicator.hide();
+                        binding.recycleView.setVisibility(View.VISIBLE);
+                    });
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }).start();
         });
 
         cartViewModel.getSelectItemTotalPriceLiveData().observe(getViewLifecycleOwner(), bigDecimal -> {
@@ -225,7 +239,6 @@ public class CartFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null;
         Log.d(TAG, "CartFragment销毁");
     }
 }

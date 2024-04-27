@@ -1,6 +1,7 @@
 package com.example.pcmall.ui.fragment;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,7 +10,9 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.pcmall.R;
@@ -20,11 +23,16 @@ import com.example.pcmall.databinding.FragmentMyselfBinding;
 import com.example.pcmall.dialog.AddressDialog;
 import com.example.pcmall.dialog.CartDialog;
 import com.example.pcmall.dialog.MessageDialog;
+import com.example.pcmall.dialog.UserInformationDialog;
+import com.example.pcmall.dialog.UserPasswordDialog;
+import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.model.User;
 import com.example.pcmall.module.GlideApp;
 import com.example.pcmall.module.NetworkModule;
 import com.example.pcmall.ui.viewmodel.MySelfViewModel;
 import com.google.android.material.badge.BadgeDrawable;
+
+import javax.inject.Inject;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
 import dagger.hilt.android.AndroidEntryPoint;
@@ -35,6 +43,10 @@ public class MySelfFragment extends Fragment {
     private FragmentMyselfBinding binding;
     private MySelfViewModel mySelfViewModel;
     private User user;
+    private FragmentActivity activity;
+
+    @Inject
+    public SharedPreferences sharedPreferences;
 
     @Nullable
     @Override
@@ -42,6 +54,7 @@ public class MySelfFragment extends Fragment {
         binding = FragmentMyselfBinding.inflate(inflater, container, false);
         mySelfViewModel = new ViewModelProvider(this).get(MySelfViewModel.class);
         user = ((PCMallApplication) getActivity().getApplication()).getUserData();
+        activity = getActivity();
 
         initData();
         initView();
@@ -57,7 +70,19 @@ public class MySelfFragment extends Fragment {
         super.onStart();
         Log.d(TAG, TAG + ".onStart()");
         Log.d(TAG, "网络请求数据。。。");
-        user = ((PCMallApplication) getActivity().getApplication()).getUserData();
+        user = ((PCMallApplication) activity.getApplication()).getUserData();
+        if (user != null) {
+            mySelfViewModel.getNotPayCount(user.getUid());
+            mySelfViewModel.getNotSendCount(user.getUid());
+            mySelfViewModel.getNotDeliverCount(user.getUid());
+            mySelfViewModel.getFinishCount(user.getUid());
+            mySelfViewModel.getRefundCount(user.getUid());
+        }
+        initUserInformation();
+    }
+
+    private void initUserInformation() {
+        user = ((PCMallApplication) activity.getApplication()).getUserData();
         if (user != null) {
             binding.loginButton.setVisibility(View.GONE);
             binding.userInformationLinearLayout.setVisibility(View.VISIBLE);
@@ -66,11 +91,16 @@ public class MySelfFragment extends Fragment {
             GlideApp.with(getContext())
                     .load(NetworkModule.baseUrl + "image/" + user.getImage())
                     .into(binding.userImage);
+        } else {
+            binding.loginButton.setVisibility(View.VISIBLE);
+            binding.userInformationLinearLayout.setVisibility(View.GONE);
+            binding.userImage.setImageResource(R.drawable.userimage);
 
-            mySelfViewModel.getNotPayCount(user.getUid());
-            mySelfViewModel.getNotSendCount(user.getUid());
-            mySelfViewModel.getNotDeliverCount(user.getUid());
-            mySelfViewModel.getRefundCount(user.getUid());
+            mySelfViewModel.getNotPayCountLiveData().setValue(0L);
+            mySelfViewModel.getNotSendCountLiveData().setValue(0L);
+            mySelfViewModel.getNotDeliverCountLiveData().setValue(0L);
+            mySelfViewModel.getFinishCountLiveData().setValue(0L);
+            mySelfViewModel.getRefundCountLiveData().setValue(0L);
         }
     }
 
@@ -100,7 +130,7 @@ public class MySelfFragment extends Fragment {
                 intent.putExtra("tabId", 3);
             } else if (itemId == R.id.navigation_refund) {
                 intent.putExtra("tabId", 4);
-            } else if (itemId == R.id.navigation_comment) {
+            } else if (itemId == R.id.navigation_finish) {
                 intent.putExtra("tabId", 5);
             } else {
                 return false;
@@ -118,11 +148,33 @@ public class MySelfFragment extends Fragment {
             }
             int itemId = menuItem.getItemId();
             if (itemId == R.id.navigation_address) {
-                AddressDialog addressDialog = new AddressDialog(getActivity());
-                addressDialog.show();
+                new AddressDialog(getActivity()).show();
             } else if (itemId == R.id.navigation_cart) {
-                CartDialog cartDialog = new CartDialog(getActivity());
-                cartDialog.show();
+                new CartDialog(getActivity()).show();
+            } else if (itemId == R.id.navigation_information) {
+                UserInformationDialog dialog = new UserInformationDialog(getActivity());
+                dialog.setOnDialogClosedListener(dialogFragment -> initUserInformation());
+                dialog.show();
+            } else if (itemId == R.id.navigation_password) {
+                new UserPasswordDialog(getActivity()).show();
+            } else if (itemId == R.id.navigation_logout) {
+                new SweetAlertDialog(getContext(), SweetAlertDialog.WARNING_TYPE)
+                        .setTitleText("是否退出登录")
+                        .setConfirmText("确认")
+                        .setConfirmClickListener(dialog -> {
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putString("data", null);
+                            editor.putString("token", null);
+                            editor.putBoolean("remember", false);
+                            editor.apply();
+                            initUserInformation();
+                            dialog.dismissWithAnimation();
+                        })
+                        .setCancelText("取消")
+                        .setCancelClickListener(SweetAlertDialog::dismissWithAnimation)
+                        .show();
+            } else {
+                return false;
             }
             return true;
         });
@@ -177,6 +229,16 @@ public class MySelfFragment extends Fragment {
             }
         });
 
+        //已完成订单个数
+        mySelfViewModel.getFinishCountLiveData().observe(getViewLifecycleOwner(), count -> {
+            BadgeDrawable badgeDrawable = binding.orderNavigation.getOrCreateBadge(R.id.navigation_finish);
+            if (count != 0) {
+                badgeDrawable.setNumber(count.intValue());
+            } else {
+                badgeDrawable.clearNumber();
+            }
+        });
+
         //退款订单个数
         mySelfViewModel.getRefundCountLiveData().observe(getViewLifecycleOwner(), count -> {
             BadgeDrawable badgeDrawable = binding.orderNavigation.getOrCreateBadge(R.id.navigation_refund);
@@ -191,7 +253,6 @@ public class MySelfFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null;
         Log.d(TAG, "MySelfFragment销毁");
     }
 }

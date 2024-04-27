@@ -10,6 +10,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -17,7 +18,7 @@ import com.example.pcmall.adapter.recyclerview.OrderListAdapter;
 import com.example.pcmall.application.PCMallApplication;
 import com.example.pcmall.databinding.FragmentOrderBinding;
 import com.example.pcmall.dialog.MessageDialog;
-import com.example.pcmall.listener.ListenerInterface;
+import com.example.pcmall.dialog.OrderDetailDialog;
 import com.example.pcmall.model.Order;
 import com.example.pcmall.model.Pagination;
 import com.example.pcmall.model.User;
@@ -40,8 +41,8 @@ public class OrderFragment extends Fragment {
     public final static Integer TITLE_PAY = 0;
     public final static Integer TITLE_SEND = 1;
     public final static Integer TITLE_DELIVER = 2;
+    public final static Integer TITLE_FINISH = 3;
     public final static Integer TITLE_REFUND = 5;
-    public final static Integer TITLE_COMMENT = 4;
     private final static Map<Integer, String> TITLE;
 
     static {
@@ -51,7 +52,7 @@ public class OrderFragment extends Fragment {
         TITLE.put(TITLE_SEND, "待发货");
         TITLE.put(TITLE_DELIVER, "待收货");
         TITLE.put(TITLE_REFUND, "退款/售后");
-        TITLE.put(TITLE_COMMENT, "待评价");
+        TITLE.put(TITLE_FINISH, "已完成");
     }
 
     private final Integer type;
@@ -61,6 +62,7 @@ public class OrderFragment extends Fragment {
     private OrderListAdapter orderListAdapter;
     private List<Order> orderList;
     private final Pagination pagination = new Pagination();
+    private FragmentActivity activity;
 
     public OrderFragment(Integer type) {
         this.type = type;
@@ -77,6 +79,7 @@ public class OrderFragment extends Fragment {
         binding = FragmentOrderBinding.inflate(inflater, container, false);
         orderViewModel = new ViewModelProvider(this).get(OrderViewModel.class);
         user = ((PCMallApplication) getActivity().getApplication()).getUserData();
+        activity = getActivity();
 
         initData();
         initView();
@@ -130,11 +133,14 @@ public class OrderFragment extends Fragment {
         });
 
         //点击订单Card进入订单详情界面
-        orderListAdapter.setOnClickListener(new ListenerInterface.OnClickListener<Order>() {
-            @Override
-            public void onClick(View v, Order data) {
-                Log.d(TAG, data.toString());
-            }
+        orderListAdapter.setOnClickListener((v, order) -> {
+            OrderDetailDialog dialog = new OrderDetailDialog(activity, order);
+            dialog.setOnDialogClosedListener(dialogFragment -> {
+                Log.d(TAG, dialogFragment.getTag() + "关闭！");
+                orderViewModel.searchOrderList("", user.getUid(), type, 1, pagination.getCurrentPage() * pagination.getPageSize(), true);
+                orderViewModel.getRecordsFiltered("", user.getUid(), type);
+            });
+            dialog.show();
         });
 
         //点击付款按钮
@@ -200,6 +206,17 @@ public class OrderFragment extends Fragment {
             orderList.clear();
             orderList.addAll(list);
             orderListAdapter.notifyDataSetChanged();
+            new Thread(() -> {
+                try {
+                    Thread.sleep(750);
+                    activity.runOnUiThread(() -> {
+                        binding.progressIndicator.hide();
+                        binding.recycleView.setVisibility(View.VISIBLE);
+                    });
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }).start();
         });
 
         orderViewModel.getSearchCountLiveData().observe(getViewLifecycleOwner(), totalCount -> {
@@ -252,7 +269,6 @@ public class OrderFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null;
         Log.d(TAG, TAG + "销毁");
     }
 
