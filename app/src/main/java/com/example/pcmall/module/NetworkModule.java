@@ -34,7 +34,7 @@ import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory;
 @InstallIn(SingletonComponent.class)
 public class NetworkModule {
     private static final String TAG = "NetworkModule";
-    public static String baseUrl = "http://192.168.31.109:10000/api/";
+    public static final String baseUrl = "http://192.168.31.109:10000/api/";
     private static OkHttpClient okHttpClientInstance;
 
     public static OkHttpClient getOkHttpClientInstance(Context context) {

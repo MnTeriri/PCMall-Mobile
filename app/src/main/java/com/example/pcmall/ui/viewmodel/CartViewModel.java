@@ -8,7 +8,9 @@ import androidx.lifecycle.ViewModel;
 import com.example.pcmall.model.Cart;
 import com.example.pcmall.model.Goods;
 import com.example.pcmall.model.response.ResponseCode;
+import com.example.pcmall.model.response.ResponseResult;
 import com.example.pcmall.service.CartService;
+import com.example.pcmall.utils.RetrofitUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -122,7 +124,12 @@ public class CartViewModel extends ViewModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         responseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
-                        throwable -> flagLiveData.setValue(ResponseCode.GOODS_NOT_ENOUGH_ERROR.getCode())
+                        throwable -> {
+                            ResponseResult<String> message = RetrofitUtils.getErrorMessage(throwable);
+                            if (message != null) {
+                                flagLiveData.setValue(message.getCode());
+                            }
+                        }
                 );
         compositeDisposable.add(disposable);
     }
@@ -133,7 +140,12 @@ public class CartViewModel extends ViewModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         responseResult -> flagLiveData.setValue(ResponseCode.OK.getCode()),
-                        throwable -> flagLiveData.setValue(ResponseCode.CART_MIN_COUNT_ERROR.getCode())
+                        throwable -> {
+                            ResponseResult<String> message = RetrofitUtils.getErrorMessage(throwable);
+                            if (message != null) {
+                                flagLiveData.setValue(message.getCode());
+                            }
+                        }
                 );
         compositeDisposable.add(disposable);
     }

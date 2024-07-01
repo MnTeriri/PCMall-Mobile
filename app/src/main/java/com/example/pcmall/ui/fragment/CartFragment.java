@@ -221,6 +221,9 @@ public class CartFragment extends Fragment {
                 binding.refreshLayout.finishLoadMore(false);
             } else if (Objects.equals(flag, ResponseCode.OK.getCode())) {
                 cartViewModel.getCartList(user.getUid(), 1, pagination.getCurrentPage() * pagination.getPageSize(), true);
+            } else if (Objects.equals(flag, ResponseCode.GOODS_OFF_SHELF_ERROR.getCode())) {
+                Toast.makeText(getContext(), "商品下架！", Toast.LENGTH_SHORT).show();
+                cartViewModel.getCartList(user.getUid(), 1, pagination.getCurrentPage() * pagination.getPageSize(), true);
             } else if (Objects.equals(flag, ResponseCode.GOODS_NOT_ENOUGH_ERROR.getCode())) {
                 Toast.makeText(getContext(), "商品库存不足！", Toast.LENGTH_SHORT).show();
                 cartViewModel.getCartList(user.getUid(), 1, pagination.getCurrentPage() * pagination.getPageSize(), true);
@@ -229,6 +232,7 @@ public class CartFragment extends Fragment {
                 cartViewModel.getCartList(user.getUid(), 1, pagination.getCurrentPage() * pagination.getPageSize(), true);
             } else if (Objects.equals(flag, ResponseCode.CART_GOODS_ERROR.getCode())) {
                 cartViewModel.getCartList(user.getUid(), 1, pagination.getCurrentPage() * pagination.getPageSize(), true);
+                Toast.makeText(getContext(), "购物车商品状态异常！", Toast.LENGTH_SHORT).show();
             } else if (Objects.equals(flag, ResponseCode.ERROR.getCode())) {
                 Toast.makeText(getContext(), "错误！", Toast.LENGTH_SHORT).show();
             }

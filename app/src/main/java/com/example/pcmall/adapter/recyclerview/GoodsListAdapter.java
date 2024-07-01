@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.pcmall.R;
 import com.example.pcmall.databinding.RecyclerviewGoodsItemBinding;
 import com.example.pcmall.listener.ListenerInterface;
 import com.example.pcmall.model.Goods;
@@ -39,9 +38,10 @@ public class GoodsListAdapter extends RecyclerView.Adapter<GoodsListAdapter.Good
         GlideApp.with(context)
                 .load(NetworkModule.baseUrl + "image/" + goods.getImage())
                 .into(holder.binding.imageView);
-        holder.binding.gnameTextView.setText(String.format(context.getString(R.string.goods_item_name), goods.getBrand().getBname(), goods.getGname()));
-        holder.binding.descriptionTextView.setText(goods.getDescription());
-        holder.binding.priceTextView.setText(String.format(context.getString(R.string.price), goods.getPrice()));
+        holder.binding.setGoods(goods);
+//        holder.binding.gnameTextView.setText(String.format(context.getString(R.string.goods_item_name), goods.getBrand().getBname(), goods.getGname()));
+//        holder.binding.descriptionTextView.setText(goods.getDescription());
+//        holder.binding.priceTextView.setText(String.format(context.getString(R.string.price), goods.getPrice()));
         //点击事件，进入商品界面
         if (clickListener != null) {
             holder.binding.getRoot().setOnClickListener(v -> clickListener.onClick(v, goods));

@@ -12,9 +12,10 @@ import retrofit2.http.POST;
 public interface LoginRegisterService {
     @FormUrlEncoded
     @POST("login")
-    Observable<ResponseResult<LoginUser>> login(@Field("uid") String uid,
-                                                @Field("password") String password,
-                                                @Field("code") String code);
+    Observable<ResponseResult<LoginUser>> login(
+            @Field("uid") String uid,
+            @Field("password") String password,
+            @Field("code") String code);
 
     @FormUrlEncoded
     @POST("register")

@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import cn.pedant.SweetAlert.SweetAlertDialog;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -135,6 +136,7 @@ public class AddressDialog extends FullScreenDialog {
             } else if (Objects.equals(flag, AddressViewModel.LOAD_ERROR)) {
                 binding.refreshLayout.finishRefresh(false);
             } else if (Objects.equals(flag, ResponseCode.OK.getCode())) {
+                new MessageDialog(getContext(), SweetAlertDialog.SUCCESS_TYPE).setTitleText("删除地址成功！").show();
                 addressViewModel.getAddressList(user.getUid());
             }
         });
