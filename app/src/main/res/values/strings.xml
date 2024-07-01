@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">PCMallCompose</string>
+    <string name="title_home">主页</string>
+    <string name="title_category">分类</string>
+    <string name="title_cart">购物车</string>
+    <string name="title_myself">我的</string>
+</resources>

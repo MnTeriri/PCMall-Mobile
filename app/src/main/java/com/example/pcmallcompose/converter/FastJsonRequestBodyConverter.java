@@ -1,0 +1,22 @@
+package com.example.pcmallcompose.converter;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.alibaba.fastjson2.JSON;
+
+import java.io.IOException;
+
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
+import retrofit2.Converter;
+
+public class FastJsonRequestBodyConverter<T> implements Converter<T, RequestBody> {
+    private static final MediaType MEDIA_TYPE = MediaType.get("application/json; charset=UTF-8");
+
+    @Nullable
+    @Override
+    public RequestBody convert(@NonNull T value) throws IOException {
+        return RequestBody.create(MEDIA_TYPE, JSON.toJSONBytes(value));
+    }
+}
