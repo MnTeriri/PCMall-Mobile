@@ -1,5 +1,6 @@
 package com.example.pcmallcompose
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,17 +23,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.pcmallcompose.model.Address
-import com.example.pcmallcompose.model.Screen
+import com.example.pcmallcompose.model.NavigationItem
+import com.example.pcmallcompose.service.GoodsService
 import com.example.pcmallcompose.ui.page.CategoryPage
 import com.example.pcmallcompose.ui.page.HomePage
+import com.example.pcmallcompose.viewmodel.HomeViewModel
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+const val TAG: String = "MainActivity"
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var goodsService: GoodsService
+
+    @SuppressLint("CheckResult")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -59,23 +72,23 @@ fun MainActivityPage() {
 @Composable
 fun MainActivityBottomBar(navController: NavHostController) {
     var selectedItem by remember { mutableIntStateOf(0) }
-    val iconItems = listOf(
-        ImageVector.vectorResource(R.drawable.ic_bottom_home),
-        ImageVector.vectorResource(R.drawable.ic_bottom_category),
-        ImageVector.vectorResource(R.drawable.ic_bottom_cart),
-        ImageVector.vectorResource(R.drawable.ic_bottom_myself),
+
+    val navigationItems = listOf(
+        NavigationItem.Home,
+        NavigationItem.Category,
+        NavigationItem.Cart,
+        NavigationItem.Myself
     )
-    val items = listOf(Screen.Home, Screen.Category, Screen.Cart, Screen.Myself)
     NavigationBar {
-        items.forEachIndexed { index, item ->
+        navigationItems.forEachIndexed { index, item ->
             NavigationBarItem(
                 icon = {
                     Icon(
-                        iconItems[index],
-                        contentDescription = stringResource(item.resourceId)
+                        imageVector = ImageVector.vectorResource(item.drawableResId),
+                        contentDescription = stringResource(item.stringResId)
                     )
                 },
-                label = { Text(stringResource(item.resourceId)) },
+                label = { Text(stringResource(item.stringResId)) },
                 selected = selectedItem == index,
                 onClick = {
                     navController.navigate(item.route) {
@@ -103,18 +116,18 @@ fun MainActivityNavHost(navController: NavHostController, innerPadding: PaddingV
     NavHost(
         navController = navController,
         startDestination = "主页",
-        modifier = Modifier.padding(innerPadding),
+        modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
     ) {
-        composable(Screen.Home.route) {
+        composable(NavigationItem.Home.route) {
             HomePage()
         }
-        composable(Screen.Category.route) {
+        composable(NavigationItem.Category.route) {
             CategoryPage()
         }
-        composable(Screen.Cart.route) {
+        composable(NavigationItem.Cart.route) {
 
         }
-        composable(Screen.Myself.route) {
+        composable(NavigationItem.Myself.route) {
 
         }
     }
