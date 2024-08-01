@@ -1,6 +1,6 @@
 package com.example.pcmallcompose
 
-import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,20 +21,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.pcmallcompose.model.NavigationItem
+import com.example.pcmallcompose.model.Screen
 import com.example.pcmallcompose.service.GoodsService
+import com.example.pcmallcompose.ui.page.CartPage
 import com.example.pcmallcompose.ui.page.CategoryPage
 import com.example.pcmallcompose.ui.page.HomePage
-import com.example.pcmallcompose.viewmodel.HomeViewModel
+import com.example.pcmallcompose.ui.page.MySelfPage
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -45,7 +45,6 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var goodsService: GoodsService
 
-    @SuppressLint("CheckResult")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -73,14 +72,14 @@ fun MainActivityPage() {
 fun MainActivityBottomBar(navController: NavHostController) {
     var selectedItem by remember { mutableIntStateOf(0) }
 
-    val navigationItems = listOf(
-        NavigationItem.Home,
-        NavigationItem.Category,
-        NavigationItem.Cart,
-        NavigationItem.Myself
+    val items = listOf(
+        Screen.Home,
+        Screen.Category,
+        Screen.Cart,
+        Screen.Myself
     )
     NavigationBar {
-        navigationItems.forEachIndexed { index, item ->
+        items.forEachIndexed { index, item ->
             NavigationBarItem(
                 icon = {
                     Icon(
@@ -91,18 +90,14 @@ fun MainActivityBottomBar(navController: NavHostController) {
                 label = { Text(stringResource(item.stringResId)) },
                 selected = selectedItem == index,
                 onClick = {
+                    navController.popBackStack()
                     navController.navigate(item.route) {
-                        // Pop up to the start destination of the graph to
-                        // avoid building up a large stack of destinations
-                        // on the back stack as users select items
+                        //进入界面时，清空栈内popUpTo ID到栈顶之间的所有节点，避免节点持续增加
                         popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+                            saveState = true//用于页面状态的恢复
                         }
-                        // Avoid multiple copies of the same destination when
-                        // reselecting the same item
-                        launchSingleTop = true
-                        // Restore state when reselecting a previously selected item
-                        restoreState = true
+                        launchSingleTop = true//避免多次重复点击产生多个实例
+                        restoreState = true//再次点击之前的Item时，恢复之前的状态
                     }
                     selectedItem = index
                 }
@@ -115,20 +110,24 @@ fun MainActivityBottomBar(navController: NavHostController) {
 fun MainActivityNavHost(navController: NavHostController, innerPadding: PaddingValues) {
     NavHost(
         navController = navController,
-        startDestination = "主页",
+        startDestination = Screen.Home.route,
         modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
     ) {
-        composable(NavigationItem.Home.route) {
+        composable(Screen.Home.route) {
             HomePage()
         }
-        composable(NavigationItem.Category.route) {
+        composable(Screen.Category.route) {
             CategoryPage()
         }
-        composable(NavigationItem.Cart.route) {
-
+        composable(Screen.Cart.route) {
+            CartPage()
         }
-        composable(NavigationItem.Myself.route) {
-
+        composable(Screen.Myself.route) {
+            val context = LocalContext.current
+            MySelfPage {
+                val intent = Intent(context, LoginRegisterActivity::class.java)
+                context.startActivity(intent)
+            }
         }
     }
 }
