@@ -14,7 +14,9 @@ import com.example.pcmallcompose.model.Screen
 import com.example.pcmallcompose.ui.page.LoginPage
 import com.example.pcmallcompose.ui.page.RegisterPage
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class LoginRegisterActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
