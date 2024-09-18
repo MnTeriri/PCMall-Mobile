@@ -181,7 +181,6 @@ fun GoodsListView(modifier: Modifier, lazyPagingItems: LazyPagingItems<Goods>) {
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun GoodsItemView(goods: Goods) {
     Log.d(TAG, goods.toString())

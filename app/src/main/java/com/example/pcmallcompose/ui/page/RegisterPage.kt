@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -32,16 +31,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.pcmallcompose.R
+import com.example.pcmallcompose.ui.dialog.CaptchaDialog
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
+import com.example.pcmallcompose.viewmodel.RegisterViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterPage(onBackClick: () -> Unit = {}) {
+fun RegisterPage(
+    registerViewModel: RegisterViewModel = hiltViewModel(),
+    onBackClick: () -> Unit = {}
+) {
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
@@ -51,7 +55,7 @@ fun RegisterPage(onBackClick: () -> Unit = {}) {
             RegisterPageTopBar(scrollBehavior, onBackClick)
         },
     ) { innerPadding ->
-        RegisterPageContent(innerPadding, onBackClick)
+        RegisterPageContent(registerViewModel, innerPadding, onBackClick)
     }
 }
 
@@ -76,9 +80,38 @@ fun RegisterPageTopBar(scrollBehavior: TopAppBarScrollBehavior, onBackClick: () 
     )
 }
 
-
 @Composable
-fun RegisterPageContent(paddingValues: PaddingValues, onBackClick: () -> Unit) {
+fun RegisterPageContent(
+    registerViewModel: RegisterViewModel,
+    paddingValues: PaddingValues,
+    onBackClick: () -> Unit
+) {
+    var openAlertDialog by remember { mutableStateOf(false) }
+    var captchaImage by registerViewModel.captchaString
+
+    when {
+        openAlertDialog -> {
+            CaptchaDialog(
+                onDismissRequest = {
+                    openAlertDialog = false
+                    captchaImage = ""
+                },
+                onConfirmation = {
+                    /*TODO*/
+                },
+                onClickCaptchaImage = {
+                    captchaImage = ""
+                    registerViewModel.getCaptcha()
+                },
+                onReloadCaptchaImage = {
+                    captchaImage = ""
+                    registerViewModel.getCaptcha()
+                },
+                captchaImage = captchaImage
+            )
+        }
+    }
+
     Column(modifier = Modifier.padding(paddingValues)) {
         Row(
             modifier = Modifier
@@ -142,7 +175,10 @@ fun RegisterPageContent(paddingValues: PaddingValues, onBackClick: () -> Unit) {
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colorResource(R.color.yellow)
                 ),
-                onClick = { }
+                onClick = {
+                    registerViewModel.getCaptcha()
+                    openAlertDialog = true
+                }
             ) { Text(text = "注册") }
         }
 
