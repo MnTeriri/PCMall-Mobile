@@ -2,8 +2,10 @@ package com.example.pcmallcompose.module;
 
 import android.content.Context;
 
+import com.example.pcmallcompose.converter.FastJsonConverterFactory;
 import com.example.pcmallcompose.interceptor.HeaderInterceptor;
 import com.example.pcmallcompose.service.GoodsService;
+import com.example.pcmallcompose.service.LoginRegisterService;
 import com.franmontiel.persistentcookiejar.ClearableCookieJar;
 import com.franmontiel.persistentcookiejar.PersistentCookieJar;
 import com.franmontiel.persistentcookiejar.cache.SetCookieCache;
@@ -25,7 +27,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 @InstallIn(SingletonComponent.class)
 public class NetworkModule {
     private static final String TAG = "NetworkModule";
-    public static final String baseUrl = "http://192.168.31.109:10000/api/";
+    public static final String baseUrl = "http://192.168.31.109:13000/api/";
     private static OkHttpClient okHttpClientInstance;
 
     public static OkHttpClient getOkHttpClientInstance(Context context) {
@@ -38,6 +40,18 @@ public class NetworkModule {
                     .build();
         }
         return okHttpClientInstance;
+    }
+
+    @Singleton
+    @Provides
+    public static LoginRegisterService provideLoginService(@ApplicationContext Context context) {
+        return new Retrofit.Builder()
+                .baseUrl(baseUrl)
+                .client(getOkHttpClientInstance(context))
+                .addConverterFactory(JacksonConverterFactory.create())
+                .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+                .build()
+                .create(LoginRegisterService.class);
     }
 
     @Singleton
