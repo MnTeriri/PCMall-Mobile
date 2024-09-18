@@ -1,6 +1,5 @@
 package com.example.pcmallcompose.model
 
-import com.alibaba.fastjson2.annotation.JSONField
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
