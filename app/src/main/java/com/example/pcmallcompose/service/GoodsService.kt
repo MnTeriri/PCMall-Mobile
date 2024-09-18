@@ -1,5 +1,6 @@
 package com.example.pcmallcompose.service
 
+import com.example.pcmallcompose.model.Goods
 import com.example.pcmallcompose.model.response.ResponseResult
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
@@ -9,8 +10,12 @@ interface GoodsService {
     @FormUrlEncoded
     @POST("searchGoodsList")
     suspend fun searchGoodsList(
-        @Field("searchValue") searchValue: String?,
-        @Field("currentPage") currentPage: Int?,
-        @Field("pageSize") pageSize: Int?
-    ): ResponseResult<Map<String, String>>
+        @Field("searchValue") searchValue: String,
+        @Field("currentPage") currentPage: Int,
+        @Field("pageSize") pageSize: Int
+    ): ResponseResult<List<Goods>>
+
+    @FormUrlEncoded
+    @POST("getRecordsFiltered")
+    suspend fun getTotalCount(@Field("searchValue") searchValue: String): ResponseResult<Long>
 }
