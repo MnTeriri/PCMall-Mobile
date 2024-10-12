@@ -7,10 +7,8 @@ pluginManagement {
                 includeGroupByRegex("androidx.*")
             }
         }
-        maven {
-            url 'https://maven.aliyun.com/repository/public/'
-        }
-        maven { url "https://jitpack.io" }
+        maven (url = "https://maven.aliyun.com/repository/public/")
+        maven (url = "https://jitpack.io")
         mavenCentral()
         gradlePluginPortal()
     }
@@ -19,13 +17,11 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
-        maven {
-            url 'https://maven.aliyun.com/repository/public/'
-        }
-        maven { url "https://jitpack.io" }
+        maven (url = "https://maven.aliyun.com/repository/public/")
+        maven (url = "https://jitpack.io")
         mavenCentral()
     }
 }
 
 rootProject.name = "PCMallCompose"
-include ':app'
+include(":app")
