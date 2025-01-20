@@ -4,16 +4,17 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("kotlin-kapt")
     alias(libs.plugins.hilt)
+    alias(libs.plugins.room)
 }
 
 android {
     namespace = "com.example.pcmallcompose"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.pcmallcompose"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -27,16 +28,17 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            //signingConfig = signingConfigs.getByName("debug")
         }
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 
     buildFeatures {
@@ -48,26 +50,22 @@ android {
     kapt {
         correctErrorTypes = true
     }
+
+    room {
+        schemaDirectory("$projectDir/schemas")
+    }
 }
 
 dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.lifecycle.viewmodel.ktx)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.compose.runtime)
-    implementation(libs.compose.runtime.livedata)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.material3.window.size)
-    implementation(libs.androidx.material3.adaptive.navigation.suite)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -75,6 +73,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
 
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
@@ -87,6 +87,11 @@ dependencies {
     implementation(libs.paging.rxjava3) // optional - RxJava3 support
     implementation(libs.paging.compose) // optional - Jetpack Compose integration
 
+    implementation(libs.room.runtime)
+    kapt(libs.room.compiler)// To use Kotlin annotation processing tool (kapt)
+    implementation(libs.room.ktx)// optional - Kotlin Extensions and Coroutines support for Room
+    implementation(libs.room.rxjava3)// optional - RxJava3 support for Room
+    implementation(libs.room.paging)// optional - Paging 3 Integration
 
     // https://mvnrepository.com/artifact/com.squareup.retrofit2/retrofit
     implementation(libs.retrofit2)

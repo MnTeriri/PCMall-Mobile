@@ -1,5 +1,6 @@
 package com.example.pcmallcompose.ui.page
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -14,21 +15,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MySelfPage(jumpToActivity:() -> Unit = {}) {
+fun MySelfPage(onClick: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -42,8 +35,9 @@ fun MySelfPage(jumpToActivity:() -> Unit = {}) {
             )
         },
         floatingActionButton = {
+            val context = LocalContext.current
             FloatingActionButton(onClick = {
-                jumpToActivity()
+                onClick()
             }) {
                 Icon(Icons.Default.Add, contentDescription = "Add")
             }

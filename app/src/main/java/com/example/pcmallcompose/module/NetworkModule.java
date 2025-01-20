@@ -2,7 +2,6 @@ package com.example.pcmallcompose.module;
 
 import android.content.Context;
 
-import com.example.pcmallcompose.converter.FastJsonConverterFactory;
 import com.example.pcmallcompose.interceptor.HeaderInterceptor;
 import com.example.pcmallcompose.service.GoodsService;
 import com.example.pcmallcompose.service.LoginRegisterService;

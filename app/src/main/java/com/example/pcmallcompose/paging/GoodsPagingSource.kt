@@ -3,23 +3,11 @@ package com.example.pcmallcompose.paging
 import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.alibaba.fastjson2.JSON
 import com.example.pcmallcompose.model.Goods
 import com.example.pcmallcompose.service.GoodsService
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.GlobalScope.coroutineContext
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import kotlin.coroutines.*
-import kotlin.system.measureTimeMillis
-import kotlin.time.measureTime
 
 class GoodsPagingSource(
     private val goodsService: GoodsService,
