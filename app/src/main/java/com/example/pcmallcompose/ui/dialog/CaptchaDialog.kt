@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -32,125 +33,100 @@ import com.example.pcmallcompose.utils.ImageUtils
 
 @Composable
 fun CaptchaDialog(
+    enabled: Boolean = true,
     onDismissRequest: () -> Unit,
     onConfirmation: (captcha: String) -> Unit,
-    onClickCaptchaImage: () -> Unit,
     onReloadCaptchaImage: () -> Unit,
-    captchaImage: String,
+    captchaImage: ImageBitmap? = null,
     isError: Boolean = false,
     errorMessage: String = "",
     validate: (String) -> Unit = {},
 ) {
-    var text by remember { mutableStateOf("") }
+    if (enabled) {
+        var text by remember { mutableStateOf("") }
 
-    AlertDialog(
-        title = {
-            Text(text = "请输入验证码")
-        },
-        text = {
-            Column {
-                Text(text = "请在下方输入框输入图片验证码")
-                if (captchaImage == "") {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .size(50.dp)
-                            .padding(top = 5.dp)
-                            .align(Alignment.CenterHorizontally),
-                        color = MaterialTheme.colorScheme.secondary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                    )
-                } else {
-                    Image(
-                        modifier = Modifier
-                            .size(width = 135.dp, height = 50.dp)
-                            .padding(top = 5.dp)
-                            .align(Alignment.CenterHorizontally)
-                            .clickable {
-                                onClickCaptchaImage()
-                            },
-                        bitmap = ImageUtils.decodeImageString(captchaImage),
-                        contentDescription = null,
-                    )
-                    TextButton(
-                        modifier = Modifier
-                            .size(width = Dp.Unspecified, height = 25.dp)
-                            .padding(top = 5.dp)
-                            .align(Alignment.CenterHorizontally),
-                        contentPadding = PaddingValues(0.dp),
-                        shape = RoundedCornerShape(0),
-                        onClick = {
-                            onReloadCaptchaImage()
-                        }
-                    ) {
-                        Text(
-                            fontSize = 12.sp,
-                            color = Color.Black,
-                            text = "看不清？换一张",
+        AlertDialog(
+            title = {
+                Text(text = "请输入验证码")
+            },
+            text = {
+                Column {
+                    Text(text = "请在下方输入框输入图片验证码")
+                    if (captchaImage == null) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(50.dp)
+                                .padding(top = 5.dp)
+                                .align(Alignment.CenterHorizontally),
+                            color = MaterialTheme.colorScheme.secondary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
                         )
-                    }
-                }
-
-                OutlinedTextField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 5.dp),
-                    value = text,
-                    onValueChange = { text = it },
-                    label = { Text(text = "验证码") },
-                    supportingText = {
-                        if (isError) {
-                            Text(errorMessage)
+                    } else {
+                        Image(
+                            modifier = Modifier
+                                .size(width = 135.dp, height = 50.dp)
+                                .padding(top = 5.dp)
+                                .align(Alignment.CenterHorizontally)
+                                .clickable {
+                                    onReloadCaptchaImage()
+                                },
+                            bitmap = captchaImage,
+                            contentDescription = null,
+                        )
+                        TextButton(
+                            modifier = Modifier
+                                .size(width = Dp.Unspecified, height = 25.dp)
+                                .padding(top = 5.dp)
+                                .align(Alignment.CenterHorizontally),
+                            contentPadding = PaddingValues(0.dp),
+                            shape = RoundedCornerShape(0),
+                            onClick = {
+                                onReloadCaptchaImage()
+                            }
+                        ) {
+                            Text(
+                                fontSize = 12.sp,
+                                color = Color.Black,
+                                text = "看不清？换一张",
+                            )
                         }
-                    },
-                    isError = isError,
-                    singleLine = true
-                )
-            }
-        },
-        onDismissRequest = {
-            onDismissRequest()
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    validate(text)
-                    onConfirmation(text)
-                }
-            ) {
-                Text("确定")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = {
-                    onDismissRequest()
-                }
-            ) {
-                Text("取消")
-            }
-        }
-    )
-}
+                    }
 
-@Preview(showBackground = true)
-@Composable
-fun CaptchaDialogPreview() {
-    PCMallComposeTheme {
-        var errorMessage by rememberSaveable { mutableStateOf("") }
-        var isError by rememberSaveable { mutableStateOf(false) }
-
-        CaptchaDialog(
-            onDismissRequest = { /*TODO*/ },
-            onConfirmation = { /*TODO*/ },
-            onClickCaptchaImage = { /*TODO*/ },
-            onReloadCaptchaImage = {/*TODO*/ },
-            captchaImage = "",
-            isError = isError,
-            errorMessage = errorMessage,
-            validate = {
-                isError = it.length != 5
-                if (isError) {
-                    errorMessage = "aaaaaaa"
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 5.dp),
+                        value = text,
+                        onValueChange = { text = it },
+                        label = { Text(text = "验证码") },
+                        supportingText = {
+                            if (isError) {
+                                Text(errorMessage)
+                            }
+                        },
+                        isError = isError,
+                        singleLine = true
+                    )
+                }
+            },
+            onDismissRequest = onDismissRequest,
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        validate(text)
+                        onConfirmation(text)
+                    }
+                ) {
+                    Text("确定")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        onDismissRequest()
+                    }
+                ) {
+                    Text("取消")
                 }
             }
         )

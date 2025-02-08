@@ -1,43 +1,35 @@
-package com.example.pcmallcompose.application;
+package com.example.pcmallcompose.application
 
-import android.app.Application;
-import android.util.Log;
-
-import dagger.hilt.android.HiltAndroidApp;
+import android.app.Application
+import android.content.SharedPreferences
+import android.util.Log
+import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
 @HiltAndroidApp
-public class PCMallApplication extends Application {
-    private final String TAG = "PCMallApplication";
-//    @Inject
-//    public SharedPreferences sharedPreferences;
+class PCMallApplication : Application() {
+    companion object {
+        const val TAG = "PCMallApplication"
+    }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        Log.d(TAG, "PCMallApplication启动");
-//        boolean remember = sharedPreferences.getBoolean("remember", false);
-//        if (!remember) {
-//            Log.d(TAG, "用户没有记住账号，清空token和登录信息");
-//            SharedPreferences.Editor editor = sharedPreferences.edit();
-//            editor.putString("data", null);
-//            editor.putString("token", null);
-//            editor.putBoolean("remember", false);
-//            editor.apply();
-//        }
-//        SharedPreferences.Editor editor = sharedPreferences.edit();
+    @Inject
+    lateinit var sharedPreferences: SharedPreferences
+
+    override fun onCreate() {
+        super.onCreate()
+        Log.d(TAG, "PCMallApplication启动")
+        val remember: Boolean = sharedPreferences.getBoolean("remember", false)
+        if (!remember) {
+            Log.d(TAG, "用户没有记住账号，清空token和登录信息")
+            val editor: SharedPreferences.Editor = sharedPreferences.edit()
+            editor.putString("data", null)
+            editor.putString("token", null)
+            editor.putBoolean("remember", false)
+            editor.apply()
+        }
+//        val editor = sharedPreferences.edit()
 //        editor.putString("data", null);
 //        editor.putString("token", null);
 //        editor.apply();
     }
-
-//    public User getUserData() {
-//        User user = null;
-//        String data = sharedPreferences.getString("data", null);
-//        if ("".equals(data)) {
-//            Log.d(TAG, "用户没登陆");
-//            return null;
-//        }
-//        user = JSON.parseObject(data, User.class);
-//        return user;
-//    }
 }

@@ -120,4 +120,6 @@ dependencies {
     kapt("com.github.bumptech.glide:compiler:4.16.0")
     implementation("com.github.bumptech.glide:compose:1.0.0-alpha.6")
 
+    implementation("com.github.f0ris.sweetalert:library:1.6.2")
+
 }

@@ -19,9 +19,7 @@
         android:theme="@style/Theme.PCMallCompose"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
-<!--        <activity-->
-<!--            android:name=".activity.LoginRegisterActivity"-->
-<!--            android:exported="false" />-->
+
         <activity
             android:name=".activity.MainActivity"
             android:exported="true"

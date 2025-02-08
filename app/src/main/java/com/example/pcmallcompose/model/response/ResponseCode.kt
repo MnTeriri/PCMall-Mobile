@@ -1,6 +1,6 @@
 package com.example.pcmallcompose.model.response
 
-enum class ResponseCode(val code: Int? = null, val message: String? = null) {
+enum class ResponseCode(val code: Int, val message: String) {
     OK(200, "操作成功"),
     ERROR(100000, "操作失败"),
     NO_TOKEN_ERROR(500000, "没有token"),

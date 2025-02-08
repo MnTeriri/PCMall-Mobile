@@ -89,28 +89,28 @@ fun RegisterPageContent(
     var openAlertDialog by remember { mutableStateOf(false) }
     var captchaImage by registerViewModel.captchaString
 
-    when {
-        openAlertDialog -> {
-            CaptchaDialog(
-                onDismissRequest = {
-                    openAlertDialog = false
-                    captchaImage = ""
-                },
-                onConfirmation = {
-                    /*TODO*/
-                },
-                onClickCaptchaImage = {
-                    captchaImage = ""
-                    registerViewModel.getCaptcha()
-                },
-                onReloadCaptchaImage = {
-                    captchaImage = ""
-                    registerViewModel.getCaptcha()
-                },
-                captchaImage = captchaImage
-            )
-        }
-    }
+//    when {
+//        openAlertDialog -> {
+//            CaptchaDialog(
+//                onDismissRequest = {
+//                    openAlertDialog = false
+//                    captchaImage = ""
+//                },
+//                onConfirmation = {
+//                    /*TODO*/
+//                },
+//                onClickCaptchaImage = {
+//                    captchaImage = ""
+//                    registerViewModel.getCaptcha()
+//                },
+//                onReloadCaptchaImage = {
+//                    captchaImage = ""
+//                    registerViewModel.getCaptcha()
+//                },
+//                captchaImage = captchaImage
+//            )
+//        }
+//    }
 
     Column(modifier = Modifier.padding(paddingValues)) {
         Row(

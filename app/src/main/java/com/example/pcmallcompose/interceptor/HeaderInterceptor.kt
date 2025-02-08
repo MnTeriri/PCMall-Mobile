@@ -1,29 +1,22 @@
-package com.example.pcmallcompose.interceptor;
+package com.example.pcmallcompose.interceptor
 
-import static android.content.Context.MODE_PRIVATE;
+import android.content.Context
+import android.content.SharedPreferences
+import okhttp3.Interceptor
+import okhttp3.Response
 
-import android.content.Context;
-import android.content.SharedPreferences;
+class HeaderInterceptor(context: Context) : Interceptor {
+    private var sharedPreferences: SharedPreferences =
+        context.getSharedPreferences("userData", Context.MODE_PRIVATE)
 
-import java.io.IOException;
-
-import okhttp3.Interceptor;
-import okhttp3.Request;
-import okhttp3.Response;
-
-public class HeaderInterceptor implements Interceptor {
-    private final SharedPreferences sharedPreferences;
-
-    public HeaderInterceptor(Context context) {
-        sharedPreferences = context.getSharedPreferences("userData", MODE_PRIVATE);
-    }
-
-    @Override
-    public Response intercept(Chain chain) throws IOException {
-        String token = sharedPreferences.getString("token", "");
-        Request request = chain.request().newBuilder()
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val token = sharedPreferences.getString("token", null)
+        var request = chain.request()
+        if (token != null) {
+            request = request.newBuilder()
                 .addHeader("token", token)
-                .build();
-        return chain.proceed(request);
+                .build()
+        }
+        return chain.proceed(request)
     }
 }

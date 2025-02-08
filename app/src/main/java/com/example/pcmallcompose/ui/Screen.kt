@@ -1,4 +1,4 @@
-package com.example.pcmallcompose.model
+package com.example.pcmallcompose.ui
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes

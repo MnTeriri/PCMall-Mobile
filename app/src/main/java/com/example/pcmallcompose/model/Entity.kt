@@ -8,6 +8,31 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
+data class User(
+    var id: Int? = null,
+    var uid: String? = null, //账号
+    var uname: String? = null,//用户名
+    var password: String? = null,//密码（MD5加密）
+    @field:JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @field:JsonDeserialize(using = LocalDateTimeDeserializer::class)
+    @field:JsonSerialize(using = LocalDateTimeSerializer::class)
+    var createdTime: LocalDateTime? = null,//创建时间
+    @field:JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @field:JsonDeserialize(using = LocalDateTimeDeserializer::class)
+    @field:JsonSerialize(using = LocalDateTimeSerializer::class)
+    var loginTime: LocalDateTime? = null,//最后一次登录时间
+    var image: String? = null,
+    var isDelete: Int? = null//是否删除（0正常 1删除）
+) {
+    fun setIsDelete(isDelete: Int?) {
+        this.isDelete = isDelete
+    }
+
+    fun getIsDelete(): Int? {
+        return this.isDelete
+    }
+}
+
 data class Address(
     var id: Int? = null, //地址编号
     var uid: String? = null, //用户编号
@@ -36,7 +61,7 @@ data class Brand(
     var categoryCount: Long? = null,
     var image: String? = null,
     var isDelete: Int? = null, //是否删除（0正常 1删除）
-){
+) {
     fun setIsDelete(isDelete: Int?) {
         this.isDelete = isDelete;
     }
@@ -100,7 +125,7 @@ data class Goods(
     var description: String? = null,//商品描述
     var status: Int? = null,//商品状态（0正常、1缺货、2下架）
     var isDelete: Int? = null, //是否删除（0正常 1删除）
-){
+) {
     fun setIsDelete(isDelete: Int?) {
         this.isDelete = isDelete;
     }
