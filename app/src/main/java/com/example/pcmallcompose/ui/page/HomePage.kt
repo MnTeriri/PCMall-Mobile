@@ -1,21 +1,22 @@
 package com.example.pcmallcompose.ui.page
 
-import android.util.Log
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -36,38 +37,46 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.paging.compose.LazyPagingItems
+import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
+import com.bumptech.glide.integration.compose.placeholder
 import com.example.pcmallcompose.R
 import com.example.pcmallcompose.model.Goods
+import com.example.pcmallcompose.module.NetworkModule
+import com.example.pcmallcompose.ui.component.GoodsSheet
+import com.example.pcmallcompose.ui.theme.BackgroundColor
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
+import com.example.pcmallcompose.ui.theme.PriceColor
 import com.example.pcmallcompose.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
-const val TAG = "HomePage"
-
 @Composable
-fun HomePage(homeViewModel: HomeViewModel = hiltViewModel()) {
+fun HomePage() {
+    val homeViewModel: HomeViewModel = hiltViewModel()
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(BackgroundColor)
             .semantics { isTraversalGroup = true }
     ) {
         SearchBarView(modifier = Modifier.align(Alignment.TopCenter))
-        GoodsListView(
-            modifier = Modifier.padding(top = 104.dp),
-            lazyPagingItems = homeViewModel.getGoodsPagingData().collectAsLazyPagingItems()
-        )
+        GoodsListView(homeViewModel.getGoodsPagingData())
     }
 }
 
@@ -118,12 +127,13 @@ fun SearchBarView(modifier: Modifier) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GoodsListView(modifier: Modifier, lazyPagingItems: LazyPagingItems<Goods>) {
+fun GoodsListView(flowData: Flow<PagingData<Goods>>) {
+    val pager = remember { flowData }
+    val lazyPagingItems = pager.collectAsLazyPagingItems()
+
     val coroutineScope = rememberCoroutineScope()
-    //是否在刷新
-    var isRefreshing by remember { mutableStateOf(false) }
-    //下拉刷新的状态管理
-    val state = rememberPullToRefreshState()
+    var isRefreshing by remember { mutableStateOf(false) }//是否在刷新
+    val state = rememberPullToRefreshState()//下拉刷新的状态管理
 
     val onRefresh: () -> Unit = {
         coroutineScope.launch {
@@ -135,60 +145,95 @@ fun GoodsListView(modifier: Modifier, lazyPagingItems: LazyPagingItems<Goods>) {
     }
 
     PullToRefreshBox(
-        modifier = modifier,
+        modifier = Modifier.padding(top = 104.dp),
         state = state,
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
     ) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
+        LazyVerticalStaggeredGrid(
+            columns = StaggeredGridCells.Fixed(2),
             modifier = Modifier
                 .fillMaxSize()
                 .semantics { isTraversalGroup = true }
         ) {
             items(
-                count = lazyPagingItems.itemCount,
-                key = { index ->
-                    lazyPagingItems[index]?.id!!
-                }
+                lazyPagingItems.itemCount,
+                key = lazyPagingItems.itemKey { it.id!! }
             ) { index ->
-                val goods = lazyPagingItems[index]
-                if (goods != null) {
-                    GoodsItemView(goods)
-                } else {
-                    Text(text = "")
-                }
+                GoodsItemView(lazyPagingItems[index]!!)
             }
         }
     }
 }
 
+@OptIn(ExperimentalGlideComposeApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun GoodsItemView(goods: Goods) {
-    Log.d(TAG, goods.toString())
-    ElevatedCard(
-        modifier = Modifier.padding(8.dp)
-    ) {
-        Column {
-            Image(painter = painterResource(R.drawable.img), contentDescription = "")
+    var openGoodsSheet by rememberSaveable { mutableStateOf(false) }
 
-            Text(
-                modifier = Modifier.padding(20.dp, 20.dp, 20.dp, 20.dp),
-                text = "${goods.brand?.bname} ${goods.gname}"
+    ElevatedCard(
+        modifier = Modifier
+            .padding(8.dp)
+            .clickable { openGoodsSheet = true },
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        )
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            GlideImage(
+                model = NetworkModule.IMAGE_URL + goods.image,
+                modifier = Modifier.fillMaxWidth(),
+                contentDescription = null,
+                failure = placeholder(R.drawable.test_image),
+                contentScale = ContentScale.FillWidth
             )
-            Text(
-                modifier = Modifier.padding(20.dp, 20.dp, 20.dp, 20.dp),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                text = "${goods.description}"
-            )
-            Text(
-                modifier = Modifier.padding(20.dp, 20.dp, 20.dp, 20.dp),
-                color = colorResource(R.color.danger),
-                text = "￥${goods.price}"
-            )
+
+            ConstraintLayout(
+                modifier = Modifier
+                    .height(90.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            ) {
+                val (name, description, price) = createRefs()
+                Text(
+                    modifier = Modifier.constrainAs(name) {
+                        top.linkTo(parent.top)
+                    },
+                    text = "${goods.brand?.bname} ${goods.gname}",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1
+                )
+                Text(
+                    modifier = Modifier.constrainAs(description) {
+                        start.linkTo(parent.start)
+                        top.linkTo(name.bottom)
+                    },
+                    text = "${goods.description}",
+                    fontSize = 13.sp,
+                    color = Color.Gray,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1
+                )
+                Text(
+                    modifier = Modifier.constrainAs(price) {
+                        bottom.linkTo(parent.bottom)
+                    },
+                    text = "￥${goods.price?.setScale(2)}",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = PriceColor
+                )
+            }
         }
     }
+
+    GoodsSheet(
+        enabled = openGoodsSheet,
+        goods = goods,
+        onDismissRequest = { openGoodsSheet = false }
+    )
 }
 
 @Preview(showBackground = true)

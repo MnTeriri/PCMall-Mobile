@@ -3,9 +3,11 @@ package com.example.pcmallcompose.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.example.pcmallcompose.model.Goods
 import com.example.pcmallcompose.paging.GoodsPagingSource
 import com.example.pcmallcompose.service.GoodsService
@@ -27,6 +29,6 @@ class HomeViewModel @Inject constructor(
             PagingConfig(pageSize = pageSize, initialLoadSize = initialLoadSize)
         ) {
             GoodsPagingSource(goodsService, searchValue)
-        }.flow
+        }.flow.cachedIn(viewModelScope)
     }
 }

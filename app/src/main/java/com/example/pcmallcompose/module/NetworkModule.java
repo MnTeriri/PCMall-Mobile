@@ -26,7 +26,8 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 @InstallIn(SingletonComponent.class)
 public class NetworkModule {
     private static final String TAG = "NetworkModule";
-    public static final String baseUrl = "http://192.168.31.109:13000/api/";
+    private static final String BASE_URL = "http://192.168.31.109:13000/api/";
+    public static final String IMAGE_URL = BASE_URL + "image/";
     private static OkHttpClient okHttpClientInstance;
 
     public static OkHttpClient getOkHttpClientInstance(Context context) {
@@ -45,7 +46,7 @@ public class NetworkModule {
     @Provides
     public static LoginRegisterService provideLoginService(@ApplicationContext Context context) {
         return new Retrofit.Builder()
-                .baseUrl(baseUrl)
+                .baseUrl(BASE_URL)
                 .client(getOkHttpClientInstance(context))
                 .addConverterFactory(JacksonConverterFactory.create())
                 .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
@@ -57,7 +58,7 @@ public class NetworkModule {
     @Provides
     public static GoodsService provideGoodsService(@ApplicationContext Context context) {
         return new Retrofit.Builder()
-                .baseUrl("http://192.168.31.109:11004/goods/")
+                .baseUrl(BASE_URL + "mobile/goods/")
                 .client(getOkHttpClientInstance(context))
                 .addConverterFactory(JacksonConverterFactory.create())
                 .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
