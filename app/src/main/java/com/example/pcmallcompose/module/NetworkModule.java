@@ -3,6 +3,7 @@ package com.example.pcmallcompose.module;
 import android.content.Context;
 
 import com.example.pcmallcompose.interceptor.HeaderInterceptor;
+import com.example.pcmallcompose.service.CartService;
 import com.example.pcmallcompose.service.GoodsService;
 import com.example.pcmallcompose.service.LoginRegisterService;
 import com.franmontiel.persistentcookiejar.ClearableCookieJar;
@@ -52,6 +53,18 @@ public class NetworkModule {
                 .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                 .build()
                 .create(LoginRegisterService.class);
+    }
+
+    @Singleton
+    @Provides
+    public static CartService provideCartService(@ApplicationContext Context context) {
+        return new Retrofit.Builder()
+                .baseUrl(BASE_URL + "mobile/cart/")
+                .client(getOkHttpClientInstance(context))
+                .addConverterFactory(JacksonConverterFactory.create())
+                .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+                .build()
+                .create(CartService.class);
     }
 
     @Singleton

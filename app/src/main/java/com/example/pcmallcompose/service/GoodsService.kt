@@ -8,7 +8,7 @@ import retrofit2.http.POST
 
 interface GoodsService {
     @FormUrlEncoded
-    @POST("searchGoodsList")
+    @POST("searchGoodsByValue")
     suspend fun searchGoodsList(
         @Field("searchValue") searchValue: String,
         @Field("currentPage") currentPage: Int,
@@ -16,6 +16,6 @@ interface GoodsService {
     ): ResponseResult<List<Goods>>
 
     @FormUrlEncoded
-    @POST("getRecordsFiltered")
+    @POST("getTotalCountByValue")
     suspend fun getTotalCount(@Field("searchValue") searchValue: String): ResponseResult<Long>
 }

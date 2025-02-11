@@ -21,7 +21,6 @@ class MessageDialog(
         super.setOnDismissListener(dismissListener)
     }
 
-
     @OptIn(DelicateCoroutinesApi::class)
     override fun show() {
         super.show()

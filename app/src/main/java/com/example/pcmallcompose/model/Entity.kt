@@ -1,5 +1,9 @@
 package com.example.pcmallcompose.model
 
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
@@ -71,15 +75,29 @@ data class Brand(
     }
 }
 
+@Entity(tableName = "cart")
 data class Cart(
-    var id: Int? = null, //购物车信息编号
+    @PrimaryKey var id: Int? = null, //购物车信息编号
     var uid: String? = null, //用户编号
     var gid: Int? = null,//商品编号
     var goods: Goods? = null,
     var count: Int? = null, //选购数量
+    @field:JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @field:JsonDeserialize(using = LocalDateTimeDeserializer::class)
+    @field:JsonSerialize(using = LocalDateTimeSerializer::class)
     var createdTime: LocalDateTime? = null, //创建时间
     var isSelect: Int? = null,//0为未选购，1为选购
-)
+) {
+    @Ignore
+    fun setIsSelect(isSelect: Int?) {
+        this.isSelect = isSelect
+    }
+
+    @Ignore
+    fun getIsSelect(): Int? {
+        return this.isSelect
+    }
+}
 
 data class Category(
     var id: Int? = null, //分类编号
