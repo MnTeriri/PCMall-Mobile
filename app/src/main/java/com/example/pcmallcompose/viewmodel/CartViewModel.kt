@@ -8,7 +8,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.pcmallcompose.model.Cart
-import com.example.pcmallcompose.paging.BaseRemoteMediator
+import com.example.pcmallcompose.paging.CartRemoteMediator
 import com.example.pcmallcompose.room.PCMallDatabase
 import com.example.pcmallcompose.service.CartService
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +24,7 @@ class CartViewModel @Inject constructor(
     fun getCartPagingData(uid: String): Flow<PagingData<Cart>> {
         return Pager(
             config = PagingConfig(pageSize = 30, initialLoadSize = 30),
-            remoteMediator = BaseRemoteMediator(database,cartService)
+            remoteMediator = CartRemoteMediator(database,cartService)
         ) {
             database.cartDao().pagingSource()
         }.flow.cachedIn(viewModelScope)

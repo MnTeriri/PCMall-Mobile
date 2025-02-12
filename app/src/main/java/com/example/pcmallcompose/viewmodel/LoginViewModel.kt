@@ -27,7 +27,7 @@ class LoginViewModel @Inject constructor(
     private val sharedPreferences: SharedPreferences
 ) : ViewModel() {
     companion object {
-        const val TAG: String = "LoginViewModel"
+        private const val TAG: String = "LoginViewModel"
     }
 
     val uiState = MutableSharedFlow<UiState>()

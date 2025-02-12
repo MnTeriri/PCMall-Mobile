@@ -55,13 +55,12 @@ import com.example.pcmallcompose.viewmodel.state.UiState
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginPage(
-    loginViewModel: LoginViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {},
     jumpToRegister: () -> Unit = {}
 ) {
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val loginViewModel: LoginViewModel = hiltViewModel()
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {

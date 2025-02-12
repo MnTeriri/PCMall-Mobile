@@ -88,17 +88,13 @@ fun CartPage() {
     val cartViewModel: CartViewModel = hiltViewModel()
 
     val lazyPagingItems = cartViewModel.getCartPagingData("").collectAsLazyPagingItems()
-    lazyPagingItems.itemKey{item->
-        println(item)
-    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = { CartPageTopBar(scrollBehavior) },
         bottomBar = { CartPageBottomBar() }
     ) { innerPadding ->
-        println(innerPadding)
-//        CartListView(innerPadding)
+        CartListView(innerPadding, lazyPagingItems)
     }
 }
 
