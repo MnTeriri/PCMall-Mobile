@@ -2,19 +2,21 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     alias(libs.plugins.hilt)
     alias(libs.plugins.room)
 }
 
 android {
     namespace = "com.example.pcmallcompose"
-    compileSdk = 35
+    compileSdk {
+        version = release(36)
+    }
 
     defaultConfig {
         applicationId = "com.example.pcmallcompose"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -37,18 +39,16 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
     }
 
     buildFeatures {
         compose = true
         viewBinding = true
         dataBinding = true
-    }
-
-    kapt {
-        correctErrorTypes = true
     }
 
     room {
@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.ui.material.icons)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -73,23 +74,22 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
     implementation(libs.androidx.appcompat)
-    implementation(libs.material)
+    implementation(libs.material)//传统 View 系统 Material
+    implementation(libs.navigation.compose)
+    implementation(libs.constraintlayout.compose)
 
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-
-    implementation("androidx.navigation:navigation-compose:2.8.0")
-    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
-    implementation("androidx.compose.material:material-icons-extended")
+    ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
 
     implementation(libs.paging.runtime)
     implementation(libs.paging.rxjava3) // optional - RxJava3 support
     implementation(libs.paging.compose) // optional - Jetpack Compose integration
 
     implementation(libs.room.runtime)
-    kapt(libs.room.compiler)// To use Kotlin annotation processing tool (kapt)
+    ksp(libs.room.compiler)// If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
     implementation(libs.room.ktx)// optional - Kotlin Extensions and Coroutines support for Room
     implementation(libs.room.rxjava3)// optional - RxJava3 support for Room
     implementation(libs.room.paging)// optional - Paging 3 Integration
@@ -103,24 +103,17 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.0")
     implementation("com.github.franmontiel:PersistentCookieJar:v1.0.1")
 
-
-    //https://mvnrepository.com/artifact/com.alibaba.fastjson2/fastjson2
-    implementation("com.alibaba.fastjson2:fastjson2:2.0.52.android8")
-
-    // https://mvnrepository.com/artifact/cn.hutool/hutool-all
-    implementation("cn.hutool:hutool-all:5.8.29")
-
-    // https://mvnrepository.com/artifact/io.reactivex.rxjava3/rxandroid
-    implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
-
-    // https://mvnrepository.com/artifact/io.reactivex.rxjava3/rxjava
-    implementation("io.reactivex.rxjava3:rxjava:3.1.8")
-
-    //https://mvnrepository.com/artifact/com.github.bumptech.glide/glide
-    implementation("com.github.bumptech.glide:glide:4.16.0")
-    kapt("com.github.bumptech.glide:compiler:4.16.0")
-    implementation("com.github.bumptech.glide:compose:1.0.0-alpha.6")
+    implementation(libs.fastjson)
+    implementation(libs.hutool)
+    implementation(libs.rxjava)
+    implementation(libs.rxandroid)
+    implementation(libs.glide)
+    ksp(libs.glide.compiler)
+    implementation(libs.glide.compose)
 
     implementation("com.github.f0ris.sweetalert:library:1.6.2")
 
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 }

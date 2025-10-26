@@ -19,12 +19,12 @@ import javax.inject.Inject
 class CartViewModel @Inject constructor(
     private val database: PCMallDatabase,
     private val cartService: CartService
-):ViewModel() {
+) : ViewModel() {
     @OptIn(ExperimentalPagingApi::class)
     fun getCartPagingData(uid: String): Flow<PagingData<Cart>> {
         return Pager(
             config = PagingConfig(pageSize = 30, initialLoadSize = 30),
-            remoteMediator = CartRemoteMediator(database,cartService)
+            remoteMediator = CartRemoteMediator("000000000", database, cartService)
         ) {
             database.cartDao().pagingSource()
         }.flow.cachedIn(viewModelScope)

@@ -1,15 +1,24 @@
 package com.example.pcmallcompose.ui.page
 
+import android.widget.Toast
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -22,9 +31,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -38,6 +51,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
@@ -82,7 +99,7 @@ fun HomePage() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchBarView(modifier: Modifier) {
+fun SearchBarView(modifier: Modifier = Modifier) {
     var text by rememberSaveable { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(false) }
 
@@ -127,7 +144,41 @@ fun SearchBarView(modifier: Modifier) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+fun GoodsCarouselContent() {
+    data class CarouselItem(
+        val id: Int,
+        @DrawableRes val imageResId: Int
+    )
+
+    val items = listOf(
+        CarouselItem(0, R.drawable.test_image),
+        CarouselItem(1, R.drawable.test_image),
+        CarouselItem(2, R.drawable.test_image),
+        CarouselItem(3, R.drawable.test_image),
+        CarouselItem(4, R.drawable.test_image),
+    )
+
+    HorizontalMultiBrowseCarousel(
+        state = rememberCarouselState { items.count() },
+        modifier = Modifier.fillMaxWidth().height(221.dp),
+        preferredItemWidth = 500.dp,
+        itemSpacing = 8.dp,
+        contentPadding = PaddingValues(horizontal = 16.dp)
+    ) { i ->
+        val item = items[i]
+        Image(
+            modifier = Modifier.height(205.dp).fillMaxWidth().maskClip(MaterialTheme.shapes.extraLarge),
+            painter = painterResource(id = item.imageResId),
+            contentDescription = null,
+            contentScale = ContentScale.Crop
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun GoodsListView(flowData: Flow<PagingData<Goods>>) {
+    val context = LocalContext.current
     val pager = remember { flowData }
     val lazyPagingItems = pager.collectAsLazyPagingItems()
 
@@ -138,8 +189,8 @@ fun GoodsListView(flowData: Flow<PagingData<Goods>>) {
     val onRefresh: () -> Unit = {
         coroutineScope.launch {
             isRefreshing = true//设置正在刷新
-            delay(1000)
             lazyPagingItems.refresh()
+            delay(1000)
             isRefreshing = false //刷新业务执行完毕后修改状态
         }
     }
@@ -156,6 +207,10 @@ fun GoodsListView(flowData: Flow<PagingData<Goods>>) {
                 .fillMaxSize()
                 .semantics { isTraversalGroup = true }
         ) {
+            item(span = StaggeredGridItemSpan.FullLine) {
+                GoodsCarouselContent()
+            }
+
             items(
                 lazyPagingItems.itemCount,
                 key = lazyPagingItems.itemKey { it.id!! }
@@ -163,6 +218,10 @@ fun GoodsListView(flowData: Flow<PagingData<Goods>>) {
                 GoodsItemView(lazyPagingItems[index]!!)
             }
         }
+    }
+
+    if (lazyPagingItems.loadState.hasError) {
+        Toast.makeText(context, "错误！", Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -234,12 +293,4 @@ fun GoodsItemView(goods: Goods) {
         goods = goods,
         onDismissRequest = { openGoodsSheet = false }
     )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingHomePagePreview() {
-    PCMallComposeTheme {
-        HomePage()
-    }
 }
