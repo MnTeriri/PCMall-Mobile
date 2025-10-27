@@ -20,6 +20,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.alibaba.fastjson2.JSON
+import com.example.pcmallcompose.R
 import com.example.pcmallcompose.ui.Screen
 
 @Composable
@@ -32,21 +34,23 @@ fun IndexPage(mainNavController: NavHostController) {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.route,
+            startDestination = Screen.Home,
             modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
         ) {
-            composable(Screen.Home.route) {
-                HomePage()
+            composable<Screen.Home> {
+                HomePage { goods ->
+                    mainNavController.navigate(Screen.GoodsDetail(JSON.toJSONString(goods)))
+                }
             }
-            composable(Screen.Category.route) {
+            composable<Screen.Category> {
                 CategoryPage()
             }
-            composable(Screen.Cart.route) {
+            composable<Screen.Cart> {
                 CartPage()
             }
-            composable(Screen.Myself.route) {
+            composable<Screen.Myself> {
                 MySelfPage {
-                    mainNavController.navigate("login") {
+                    mainNavController.navigate(Screen.Login) {
                         launchSingleTop = true
                         restoreState = true
                     }
@@ -60,26 +64,41 @@ fun IndexPage(mainNavController: NavHostController) {
 fun IndexPageBottomBar(navController: NavHostController) {
     var selectedItem by rememberSaveable { mutableIntStateOf(0) }
 
+    val labels = listOf(
+        R.string.title_home,
+        R.string.title_home,
+        R.string.title_home,
+        R.string.title_home,
+    )
+
+    val images = listOf(
+        R.drawable.ic_bottom_home,
+        R.drawable.ic_bottom_home,
+        R.drawable.ic_bottom_home,
+        R.drawable.ic_bottom_home,
+    )
+
     val items = listOf(
         Screen.Home,
         Screen.Category,
         Screen.Cart,
         Screen.Myself
     )
+
     NavigationBar {
         items.forEachIndexed { index, item ->
             NavigationBarItem(
                 icon = {
                     Icon(
-                        imageVector = ImageVector.vectorResource(item.drawableResId),
-                        contentDescription = stringResource(item.stringResId)
+                        imageVector = ImageVector.vectorResource(images[index]),
+                        contentDescription = stringResource(labels[index])
                     )
                 },
-                label = { Text(stringResource(item.stringResId)) },
+                label = { Text(stringResource(labels[index])) },
                 selected = selectedItem == index,
                 onClick = {
                     navController.popBackStack()
-                    navController.navigate(item.route) {
+                    navController.navigate(item) {
                         //进入界面时，清空栈内popUpTo ID到栈顶之间的所有节点，避免节点持续增加
                         popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true//用于页面状态的恢复

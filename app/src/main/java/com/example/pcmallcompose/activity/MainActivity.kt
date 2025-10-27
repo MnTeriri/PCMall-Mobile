@@ -11,6 +11,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.edit
 import com.alibaba.fastjson2.JSON
 import com.example.pcmallcompose.model.User
 import com.example.pcmallcompose.ui.page.MainActivityPage
@@ -53,11 +54,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun logout() {
-        val editor = sharedPreferences.edit()
-        editor.putString("data", null)
-        editor.putString("token", null)
-        editor.putBoolean("remember", false)
-        editor.apply()
+        sharedPreferences.edit {
+            putString("data", null)
+            putString("token", null)
+            putBoolean("remember", false)
+        }
         userData = null
     }
 

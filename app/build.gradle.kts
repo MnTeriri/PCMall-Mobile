@@ -5,6 +5,8 @@ plugins {
     id("com.google.devtools.ksp")
     alias(libs.plugins.hilt)
     alias(libs.plugins.room)
+
+    kotlin("plugin.serialization") version "2.0.21"
 }
 
 android {
@@ -78,6 +80,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)//传统 View 系统 Material
     implementation(libs.navigation.compose)
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation(libs.constraintlayout.compose)
 
     implementation(libs.hilt.android)

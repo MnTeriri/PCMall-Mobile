@@ -2,7 +2,6 @@ package com.example.pcmallcompose.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 
 @Entity(tableName = "remote_key", primaryKeys = ["table_name", "label"])
 data class RemoteKey(

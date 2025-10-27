@@ -2,20 +2,16 @@ package com.example.pcmallcompose.ui.page
 
 import android.widget.Toast
 import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
@@ -36,7 +32,6 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
-import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -52,19 +47,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
@@ -74,9 +66,7 @@ import com.bumptech.glide.integration.compose.placeholder
 import com.example.pcmallcompose.R
 import com.example.pcmallcompose.model.Goods
 import com.example.pcmallcompose.module.NetworkModule
-import com.example.pcmallcompose.ui.component.GoodsSheet
 import com.example.pcmallcompose.ui.theme.BackgroundColor
-import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import com.example.pcmallcompose.ui.theme.PriceColor
 import com.example.pcmallcompose.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
@@ -84,7 +74,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 @Composable
-fun HomePage() {
+fun HomePage(
+    jumpToDetail: (goods: Goods) -> Unit = {}
+) {
     val homeViewModel: HomeViewModel = hiltViewModel()
     Box(
         modifier = Modifier
@@ -93,7 +85,7 @@ fun HomePage() {
             .semantics { isTraversalGroup = true }
     ) {
         SearchBarView(modifier = Modifier.align(Alignment.TopCenter))
-        GoodsListView(homeViewModel.getGoodsPagingData())
+        GoodsListView(homeViewModel.getGoodsPagingData(), jumpToDetail)
     }
 }
 
@@ -160,14 +152,19 @@ fun GoodsCarouselContent() {
 
     HorizontalMultiBrowseCarousel(
         state = rememberCarouselState { items.count() },
-        modifier = Modifier.fillMaxWidth().height(221.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(221.dp),
         preferredItemWidth = 500.dp,
         itemSpacing = 8.dp,
         contentPadding = PaddingValues(horizontal = 16.dp)
     ) { i ->
         val item = items[i]
         Image(
-            modifier = Modifier.height(205.dp).fillMaxWidth().maskClip(MaterialTheme.shapes.extraLarge),
+            modifier = Modifier
+                .height(205.dp)
+                .fillMaxWidth()
+                .maskClip(MaterialTheme.shapes.extraLarge),
             painter = painterResource(id = item.imageResId),
             contentDescription = null,
             contentScale = ContentScale.Crop
@@ -177,7 +174,10 @@ fun GoodsCarouselContent() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GoodsListView(flowData: Flow<PagingData<Goods>>) {
+fun GoodsListView(
+    flowData: Flow<PagingData<Goods>>,
+    jumpToDetail: (goods: Goods) -> Unit = {}
+) {
     val context = LocalContext.current
     val pager = remember { flowData }
     val lazyPagingItems = pager.collectAsLazyPagingItems()
@@ -215,7 +215,7 @@ fun GoodsListView(flowData: Flow<PagingData<Goods>>) {
                 lazyPagingItems.itemCount,
                 key = lazyPagingItems.itemKey { it.id!! }
             ) { index ->
-                GoodsItemView(lazyPagingItems[index]!!)
+                GoodsItemView(lazyPagingItems[index]!!, jumpToDetail)
             }
         }
     }
@@ -227,13 +227,14 @@ fun GoodsListView(flowData: Flow<PagingData<Goods>>) {
 
 @OptIn(ExperimentalGlideComposeApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun GoodsItemView(goods: Goods) {
-    var openGoodsSheet by rememberSaveable { mutableStateOf(false) }
-
+fun GoodsItemView(
+    goods: Goods,
+    jumpToDetail: (goods: Goods) -> Unit = {}
+) {
     ElevatedCard(
         modifier = Modifier
             .padding(8.dp)
-            .clickable { openGoodsSheet = true },
+            .clickable { jumpToDetail(goods) },
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         )
@@ -287,10 +288,4 @@ fun GoodsItemView(goods: Goods) {
             }
         }
     }
-
-    GoodsSheet(
-        enabled = openGoodsSheet,
-        goods = goods,
-        onDismissRequest = { openGoodsSheet = false }
-    )
 }

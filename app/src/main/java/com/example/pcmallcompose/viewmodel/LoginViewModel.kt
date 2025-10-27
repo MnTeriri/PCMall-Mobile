@@ -5,10 +5,12 @@ import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alibaba.fastjson2.JSON
 import com.example.pcmallcompose.model.response.ResponseCode
+import com.example.pcmallcompose.model.response.ResponseResult
 import com.example.pcmallcompose.service.LoginRegisterService
 import com.example.pcmallcompose.utils.ImageUtils
 import com.example.pcmallcompose.utils.RetrofitUtils
@@ -16,15 +18,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import javax.inject.Inject
-import androidx.core.content.edit
-import com.example.pcmallcompose.model.response.ResponseResult
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
 import java.net.UnknownHostException
+import javax.inject.Inject
 
 sealed class LoginUiEvent {
     data class Success(val message: String = "") : LoginUiEvent()//成功

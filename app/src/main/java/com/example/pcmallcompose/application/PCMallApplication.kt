@@ -3,6 +3,7 @@ package com.example.pcmallcompose.application
 import android.app.Application
 import android.content.SharedPreferences
 import android.util.Log
+import androidx.core.content.edit
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -21,11 +22,11 @@ class PCMallApplication : Application() {
         val remember: Boolean = sharedPreferences.getBoolean("remember", false)
         if (!remember) {
             Log.d(TAG, "用户没有记住账号，清空token和登录信息")
-            val editor: SharedPreferences.Editor = sharedPreferences.edit()
-            editor.putString("data", null)
-            editor.putString("token", null)
-            editor.putBoolean("remember", false)
-            editor.apply()
+            sharedPreferences.edit {
+                putString("data", null)
+                putString("token", null)
+                putBoolean("remember", false)
+            }
         }
 //        val editor = sharedPreferences.edit()
 //        editor.putString("data", null);

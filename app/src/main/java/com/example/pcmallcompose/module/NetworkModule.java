@@ -27,7 +27,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 @InstallIn(SingletonComponent.class)
 public class NetworkModule {
     private static final String TAG = "NetworkModule";
-    private static final String BASE_URL = "http://10.9.89.241:13000/api/";
+    private static final String BASE_URL = "http://172.20.10.2:13000/api/";
     public static final String IMAGE_URL = BASE_URL + "image/";
     private static OkHttpClient okHttpClientInstance;
 
