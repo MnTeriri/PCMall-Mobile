@@ -1,8 +1,6 @@
 package com.example.pcmallcompose.ui.page
 
 import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -44,13 +42,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.pedant.SweetAlert.SweetAlertDialog
-import com.example.pcmallcompose.model.response.ResponseCode
 import com.example.pcmallcompose.ui.component.PasswordTextField
 import com.example.pcmallcompose.ui.dialog.CaptchaDialog
 import com.example.pcmallcompose.ui.dialog.MessageDialog
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
+import com.example.pcmallcompose.viewmodel.LoginUiEvent
 import com.example.pcmallcompose.viewmodel.LoginViewModel
-import com.example.pcmallcompose.viewmodel.state.UiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -110,41 +107,37 @@ fun LoginPageContent(
     var password by remember { mutableStateOf("") }
     var isRemember by remember { mutableStateOf(true) }
 
-    val uidError by remember { derivedStateOf { uid.length != 9 } }
+    var isSubmitted by remember { mutableStateOf(false) } // 标记是否尝试提交
+    val uidError by remember { derivedStateOf { isSubmitted && uid.length != 9 } }
+    val passWordError by remember { derivedStateOf { isSubmitted && (password.length < 5 || password.length > 16) } }
+
 
     LaunchedEffect(Unit) {
-        loginViewModel.uiState.collect { uiState ->
-            when (uiState) {
-                is UiState.Success -> {
+        loginViewModel.uiEvent.collect { event ->
+            when (event) {
+                is LoginUiEvent.Success -> {
                     openCaptchaDialog = false
                     MessageDialog(
                         context = context,
                         alertType = SweetAlertDialog.SUCCESS_TYPE,
-                        title = uiState.message,
+                        title = event.message,
                         dismissListener = { onBackClick() }
                     ).show()
                 }
 
-                is UiState.Error -> {
-                    when (uiState.code) {
-                        ResponseCode.CAPTCHA_ERROR.code -> {
-                            captchaError = true
-                            captchaErrorMessage = "验证码错误！"
-                        }
-
-                        ResponseCode.ACCOUNT_ERROR.code -> {
-                            openCaptchaDialog = false
-                            MessageDialog(context, SweetAlertDialog.WARNING_TYPE, uiState.message).show()
-                        }
-
-                        null -> {
-                            Toast.makeText(context, "错误！", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                is LoginUiEvent.AccountError -> {
+                    openCaptchaDialog = false
+                    MessageDialog(context, SweetAlertDialog.WARNING_TYPE, "账号或密码错误").show()
                 }
 
-                is UiState.Loading -> {}
-                is UiState.Idle -> {}
+                is LoginUiEvent.CaptchaError -> {
+                    captchaError = true
+                    captchaErrorMessage = "验证码错误！"
+                }
+
+                is LoginUiEvent.Error -> {
+                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -218,11 +211,11 @@ fun LoginPageContent(
                     keyboardType = KeyboardType.Number
                 ),
                 supportingText = {
-                    if (uid.isNotEmpty() && uidError) {
+                    if (uidError) {
                         Text("账号必须是9位数字！")
                     }
                 },
-                isError = if (uid.isEmpty()) false else uidError,
+                isError = uidError,
                 singleLine = true
             )
 
@@ -233,6 +226,12 @@ fun LoginPageContent(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text(text = "密码") },
+                supportingText = {
+                    if (passWordError) {
+                        Text("密码必须在5~16位之间！")
+                    }
+                },
+                isError = passWordError,
                 singleLine = true
             )
 
@@ -253,7 +252,8 @@ fun LoginPageContent(
                     .padding(top = 5.dp),
                 colors = ButtonDefaults.buttonColors(),
                 onClick = {
-                    if (!uidError) {
+                    isSubmitted = true // 点击按钮时标记为已提交
+                    if (!uidError && !passWordError) {
                         loginViewModel.getCaptcha()
                         openCaptchaDialog = true
                     }

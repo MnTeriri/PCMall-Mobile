@@ -35,21 +35,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.pedant.SweetAlert.SweetAlertDialog
-import com.example.pcmallcompose.R
-import com.example.pcmallcompose.model.response.ResponseCode
 import com.example.pcmallcompose.ui.component.PasswordTextField
 import com.example.pcmallcompose.ui.dialog.CaptchaDialog
 import com.example.pcmallcompose.ui.dialog.MessageDialog
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
+import com.example.pcmallcompose.viewmodel.RegisterUiEvent
 import com.example.pcmallcompose.viewmodel.RegisterViewModel
-import com.example.pcmallcompose.viewmodel.state.UiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,39 +103,33 @@ fun RegisterPageContent(
     val uidError by remember { derivedStateOf { uid.length != 9 } }
     val twoPasswordError by remember { derivedStateOf { password != rePassword } }
 
+
     LaunchedEffect(Unit) {
-        registerViewModel.uiState.collect { uiState ->
-            when (uiState) {
-                is UiState.Success -> {
+        registerViewModel.uiEvent.collect { event ->
+            when (event) {
+                is RegisterUiEvent.Success -> {
                     openCaptchaDialog = false
                     MessageDialog(
                         context = context,
                         alertType = SweetAlertDialog.SUCCESS_TYPE,
-                        title = uiState.message,
+                        title = event.message,
                         dismissListener = { onBackClick() }
                     ).show()
                 }
 
-                is UiState.Error -> {
-                    when (uiState.code) {
-                        ResponseCode.CAPTCHA_ERROR.code -> {
-                            captchaError = true
-                            captchaErrorMessage = "验证码错误！"
-                        }
-
-                        ResponseCode.USER_EXIST_ERROR.code -> {
-                            openCaptchaDialog = false
-                            MessageDialog(context, SweetAlertDialog.WARNING_TYPE, uiState.message).show()
-                        }
-
-                        null -> {
-                            Toast.makeText(context, "错误！", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                is RegisterUiEvent.CaptchaError -> {
+                    captchaError = true
+                    captchaErrorMessage = "验证码错误！"
                 }
 
-                is UiState.Loading -> {}
-                is UiState.Idle -> {}
+                is RegisterUiEvent.UserExistError -> {
+                    openCaptchaDialog = false
+                    MessageDialog(context, SweetAlertDialog.WARNING_TYPE, "账号存在").show()
+                }
+
+                is RegisterUiEvent.Error -> {
+                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

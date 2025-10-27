@@ -12,7 +12,6 @@ import com.example.pcmallcompose.model.response.ResponseCode
 import com.example.pcmallcompose.service.LoginRegisterService
 import com.example.pcmallcompose.utils.ImageUtils
 import com.example.pcmallcompose.utils.RetrofitUtils
-import com.example.pcmallcompose.viewmodel.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -20,6 +19,19 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import javax.inject.Inject
+import androidx.core.content.edit
+import com.example.pcmallcompose.model.response.ResponseResult
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.withContext
+import java.net.UnknownHostException
+
+sealed class LoginUiEvent {
+    data class Success(val message: String = "") : LoginUiEvent()//成功
+    data class Error(val message: String = "") : LoginUiEvent()//未知错误
+    data object CaptchaError : LoginUiEvent()//验证码错误
+    data object AccountError : LoginUiEvent()//账号或密码错误
+}
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
@@ -30,56 +42,66 @@ class LoginViewModel @Inject constructor(
         private const val TAG: String = "LoginViewModel"
     }
 
-    val uiState = MutableSharedFlow<UiState>()
+    private val _uiEvent = MutableSharedFlow<LoginUiEvent>()
+    val uiEvent: SharedFlow<LoginUiEvent> = _uiEvent.asSharedFlow()
+
     val captchaImage: MutableState<ImageBitmap?> = mutableStateOf(null)//验证码
 
-    fun getCaptcha() {
-        viewModelScope.launch(Dispatchers.IO) {
-            delay(1000)
+    fun launchSafe(
+        block: suspend () -> Unit,
+        handleCustomError: suspend (errorResult: ResponseResult<String>) -> Unit = {},
+    ) {
+        viewModelScope.launch {
             try {
-                captchaImage.value =
-                    ImageUtils.decodeImageString(loginRegisterService.getCaptcha().data!!)
-            } catch (e: HttpException) {
+                withContext(Dispatchers.IO) { block() }
+            } catch (e: UnknownHostException) { // 网络异常
+                Log.e(TAG, "网络异常：$e")
+            } catch (e: HttpException) {//HTTP异常
                 val errorResult = RetrofitUtils.getErrorMessage(e)
                 if (errorResult != null) {
-                    Log.e(TAG, "出现自定义错误：$errorResult")
-                    uiState.emit(UiState.Error(errorResult.message!!, errorResult.code!!))
+                    handleCustomError(errorResult)
                 } else {
-                    Log.e(TAG, "出现错误：$e")
-                    uiState.emit(UiState.Error("错误！"))
+                    Log.e(TAG, "出现HTTP错误：$e")
+                    _uiEvent.emit(LoginUiEvent.Error("错误！"))
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "出现错误：$e")
                 e.printStackTrace()
-                uiState.emit(UiState.Error("错误！"))
+                _uiEvent.emit(LoginUiEvent.Error("错误！"))
             }
         }
     }
 
+    fun getCaptcha() {
+        launchSafe({
+            delay(1000)
+            captchaImage.value = ImageUtils.decodeImageString(loginRegisterService.getCaptcha().data!!)
+        })
+    }
+
     fun login(uid: String, password: String, code: String, remember: Boolean) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val loginResponse = loginRegisterService.login(uid, password, code)
-                Log.d(TAG, "登录成功：$loginResponse")
-                val editor = sharedPreferences.edit()
-                editor.putString("data", JSON.toJSONString(loginResponse.data))
-                editor.putString("token", loginResponse.message)
-                editor.putBoolean("remember", remember)
-                editor.apply()
-                uiState.emit(UiState.Success("登录成功！"))
-            } catch (e: HttpException) {
-                val errorResult = RetrofitUtils.getErrorMessage(e)
-                if (errorResult != null) {
-                    Log.e(TAG, "出现自定义错误：$errorResult")
-                    uiState.emit(UiState.Error(errorResult.message!!, errorResult.code!!))
-                } else {
-                    Log.e(TAG, "出现错误：$e")
-                    uiState.emit(UiState.Error("错误！"))
+        launchSafe({
+            val loginResponse = loginRegisterService.login(uid, password, code)
+            Log.d(TAG, "登录成功：$loginResponse")
+            sharedPreferences.edit {
+                putString("data", JSON.toJSONString(loginResponse.data))
+                putString("token", loginResponse.message)
+                putBoolean("remember", remember)
+            }
+            _uiEvent.emit(LoginUiEvent.Success("登录成功！"))
+        }) { errorResult ->
+            when (errorResult.code) {
+                ResponseCode.CAPTCHA_ERROR.code -> {
+                    _uiEvent.emit(LoginUiEvent.CaptchaError)
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "出现错误：$e")
-                e.printStackTrace()
-                uiState.emit(UiState.Error("错误！"))
+
+                ResponseCode.ACCOUNT_ERROR.code -> {
+                    _uiEvent.emit(LoginUiEvent.AccountError)
+                }
+
+                else -> {
+                    _uiEvent.emit(LoginUiEvent.Error(errorResult.message!!))
+                }
             }
         }
     }
