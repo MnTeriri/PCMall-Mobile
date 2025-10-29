@@ -1,57 +1,77 @@
 package com.example.pcmallcompose.ui.page
 
 import android.widget.Toast
-import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SearchBar
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
-import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -66,51 +86,88 @@ import com.bumptech.glide.integration.compose.placeholder
 import com.example.pcmallcompose.R
 import com.example.pcmallcompose.model.Goods
 import com.example.pcmallcompose.module.NetworkModule
-import com.example.pcmallcompose.ui.theme.BackgroundColor
 import com.example.pcmallcompose.ui.theme.PriceColor
 import com.example.pcmallcompose.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomePage(
     jumpToDetail: (goods: Goods) -> Unit = {}
 ) {
     val homeViewModel: HomeViewModel = hiltViewModel()
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BackgroundColor)
-            .semantics { isTraversalGroup = true }
-    ) {
-        SearchBarView(modifier = Modifier.align(Alignment.TopCenter))
-        GoodsListView(homeViewModel.getGoodsPagingData(), jumpToDetail)
+
+    Scaffold(
+        topBar = { SearchBarView() },
+    ) { innerPadding ->
+        GoodsListView(
+            modifier = Modifier.padding(innerPadding),
+            flowData = homeViewModel.getGoodsPagingData(),
+            jumpToDetail = jumpToDetail
+        )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchBarView(modifier: Modifier = Modifier) {
-    var text by rememberSaveable { mutableStateOf("") }
-    var expanded by rememberSaveable { mutableStateOf(false) }
+fun SearchBarView() {
+    val textFieldState = rememberTextFieldState()
+    val searchBarState = rememberSearchBarState()
+    val scope = rememberCoroutineScope()
+    val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+    val appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors()
 
-    SearchBar(
-        modifier = modifier.semantics { traversalIndex = 0f },
-        inputField = {
+    val inputField =
+        @Composable {
             SearchBarDefaults.InputField(
-                query = text,
-                onQueryChange = { text = it },
-                onSearch = { expanded = false },
-                expanded = expanded,
-                onExpandedChange = { expanded = it },
-                placeholder = { Text("搜索商品") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                trailingIcon = { Icon(Icons.Default.MoreVert, contentDescription = null) },
+                modifier = Modifier,
+                searchBarState = searchBarState,
+                textFieldState = textFieldState,
+                onSearch = { scope.launch { searchBarState.animateToCollapsed() } },
+                placeholder = {
+                    if (searchBarState.currentValue == SearchBarValue.Collapsed) {
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clearAndSetSemantics {},
+                            text = "搜索商品",
+                        )
+                    }
+                },
+                leadingIcon = {
+                    if (searchBarState.currentValue == SearchBarValue.Expanded) {
+                        IconButton(
+                            onClick = { scope.launch { searchBarState.animateToCollapsed() } }
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                                contentDescription = null
+                            )
+                        }
+                    } else {
+                        Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                    }
+                },
+                trailingIcon = {
+                    IconButton(onClick = { /* doSomething() */ }) {
+                        Icon(imageVector = Icons.Default.Mic, contentDescription = null)
+                    }
+                },
             )
-        },
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
+        }
+
+    AppBarWithSearch(
+        scrollBehavior = scrollBehavior,
+        state = searchBarState,
+        inputField = inputField,
+        colors = appBarWithSearchColors,
+        contentPadding = PaddingValues(horizontal = 20.dp),
+    )
+    ExpandedFullScreenSearchBar(
+        state = searchBarState,
+        inputField = inputField
     ) {
         Column(Modifier.verticalScroll(rememberScrollState())) {
             repeat(4) { idx ->
@@ -120,14 +177,6 @@ fun SearchBarView(modifier: Modifier = Modifier) {
                     supportingContent = { Text("Additional info") },
                     leadingContent = { Icon(Icons.Filled.Star, contentDescription = null) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    modifier =
-                    Modifier
-                        .clickable {
-                            text = resultText
-                            expanded = false
-                        }
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp)
                 )
             }
         }
@@ -137,44 +186,74 @@ fun SearchBarView(modifier: Modifier = Modifier) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GoodsCarouselContent() {
-    data class CarouselItem(
-        val id: Int,
-        @DrawableRes val imageResId: Int
-    )
-
-    val items = listOf(
-        CarouselItem(0, R.drawable.test_image),
-        CarouselItem(1, R.drawable.test_image),
-        CarouselItem(2, R.drawable.test_image),
-        CarouselItem(3, R.drawable.test_image),
-        CarouselItem(4, R.drawable.test_image),
-    )
-
-    HorizontalMultiBrowseCarousel(
-        state = rememberCarouselState { items.count() },
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(221.dp),
-        preferredItemWidth = 500.dp,
-        itemSpacing = 8.dp,
-        contentPadding = PaddingValues(horizontal = 16.dp)
-    ) { i ->
-        val item = items[i]
-        Image(
+            .height(200.dp)
+    ) {
+        val pagerState = rememberPagerState(pageCount = { 10 })
+        val pagerIsDragged by pagerState.interactionSource.collectIsDraggedAsState()
+
+        val pageInteractionSource = remember { MutableInteractionSource() }
+        val pageIsPressed by pageInteractionSource.collectIsPressedAsState()
+
+        val autoAdvance = !pagerIsDragged && !pageIsPressed
+
+        if (autoAdvance) {
+            LaunchedEffect(pagerState, pageInteractionSource) {
+                while (true) {
+                    delay(5000)
+                    val nextPage = (pagerState.currentPage + 1) % pagerState.pageCount
+                    pagerState.animateScrollToPage(
+                        nextPage,
+                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                    )
+                }
+            }
+        }
+
+        HorizontalPager(
+            state = pagerState,
+            beyondViewportPageCount = 2
+        ) { page ->
+            Image(
+                modifier = Modifier.fillMaxWidth(),
+                painter = painterResource(R.drawable.test_image),
+                contentDescription = null,
+                contentScale = ContentScale.Crop
+            )
+        }
+
+        Box(
             modifier = Modifier
-                .height(205.dp)
+                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .maskClip(MaterialTheme.shapes.extraLarge),
-            painter = painterResource(id = item.imageResId),
-            contentDescription = null,
-            contentScale = ContentScale.Crop
-        )
+        ) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 3.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                repeat(pagerState.pageCount) { iteration ->
+                    val color = if (pagerState.currentPage == iteration) Color.DarkGray else Color.LightGray
+                    Box(
+                        modifier = Modifier
+                            .padding(3.dp)
+                            .clip(CircleShape)
+                            .background(color)
+                            .size(8.dp)
+                    )
+                }
+            }
+        }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun GoodsListView(
+    modifier: Modifier = Modifier,
     flowData: Flow<PagingData<Goods>>,
     jumpToDetail: (goods: Goods) -> Unit = {}
 ) {
@@ -196,10 +275,17 @@ fun GoodsListView(
     }
 
     PullToRefreshBox(
-        modifier = Modifier.padding(top = 104.dp),
+        modifier = modifier,
         state = state,
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
+        indicator = {
+            PullToRefreshDefaults.LoadingIndicator(
+                modifier = Modifier.align(Alignment.TopCenter),
+                isRefreshing = isRefreshing,
+                state = state,
+            )
+        }
     ) {
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
