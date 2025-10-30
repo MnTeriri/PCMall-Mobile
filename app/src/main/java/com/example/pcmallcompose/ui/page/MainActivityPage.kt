@@ -11,7 +11,6 @@ import com.alibaba.fastjson2.JSON
 import com.example.pcmallcompose.activity.MainActivity
 import com.example.pcmallcompose.model.Goods
 import com.example.pcmallcompose.ui.Screen
-import com.example.pcmallcompose.ui.component.GoodsDetail
 
 @Composable
 fun MainActivityPage() {
@@ -50,7 +49,7 @@ fun MainActivityPage() {
             val goods = remember(goodsDetail.goods) {
                 JSON.parseObject(goodsDetail.goods, Goods::class.java)
             }
-            GoodsDetail(goods)
+            GoodsDetailPage(goods)
         }
     }
 }

@@ -66,16 +66,16 @@ fun IndexPageBottomBar(navController: NavHostController) {
 
     val labels = listOf(
         R.string.title_home,
-        R.string.title_home,
-        R.string.title_home,
-        R.string.title_home,
+        R.string.title_category,
+        R.string.title_cart,
+        R.string.title_myself,
     )
 
     val images = listOf(
         R.drawable.ic_bottom_home,
-        R.drawable.ic_bottom_home,
-        R.drawable.ic_bottom_home,
-        R.drawable.ic_bottom_home,
+        R.drawable.ic_bottom_category,
+        R.drawable.ic_bottom_cart,
+        R.drawable.ic_bottom_myself,
     )
 
     val items = listOf(
