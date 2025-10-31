@@ -1,4 +1,4 @@
-package com.example.pcmallcompose.model
+package com.example.pcmallcompose.room.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

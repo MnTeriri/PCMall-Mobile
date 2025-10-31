@@ -19,21 +19,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -42,9 +38,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarValue
@@ -71,7 +64,6 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -100,7 +92,7 @@ fun HomePage(
     val homeViewModel: HomeViewModel = hiltViewModel()
 
     Scaffold(
-        topBar = { SearchBarView() },
+        topBar = { SearchBarView(homeViewModel) },
     ) { innerPadding ->
         GoodsListView(
             modifier = Modifier.padding(innerPadding),
@@ -112,12 +104,21 @@ fun HomePage(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchBarView() {
+fun SearchBarView(viewModel: HomeViewModel) {
     val textFieldState = rememberTextFieldState()
     val searchBarState = rememberSearchBarState()
     val scope = rememberCoroutineScope()
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
     val appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors()
+
+    var pager by remember {
+        mutableStateOf(
+            viewModel.getGoodsPagingData(
+                label = "goods_search",
+                searchValue = "${textFieldState.text}"
+            )
+        )
+    }
 
     val inputField =
         @Composable {
@@ -125,7 +126,12 @@ fun SearchBarView() {
                 modifier = Modifier,
                 searchBarState = searchBarState,
                 textFieldState = textFieldState,
-                onSearch = { scope.launch { searchBarState.animateToCollapsed() } },
+                onSearch = { searchValue ->
+                    pager = viewModel.getGoodsPagingData(
+                        label = "goods_search",
+                        searchValue = searchValue
+                    )
+                },
                 placeholder = {
                     if (searchBarState.currentValue == SearchBarValue.Collapsed) {
                         Text(
@@ -169,15 +175,21 @@ fun SearchBarView() {
         state = searchBarState,
         inputField = inputField
     ) {
-        Column(Modifier.verticalScroll(rememberScrollState())) {
-            repeat(4) { idx ->
-                val resultText = "Suggestion $idx"
-                ListItem(
-                    headlineContent = { Text(resultText) },
-                    supportingContent = { Text("Additional info") },
-                    leadingContent = { Icon(Icons.Filled.Star, contentDescription = null) },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                )
+        val lazyPagingItems = pager.collectAsLazyPagingItems()
+
+        LazyVerticalStaggeredGrid(
+            columns = StaggeredGridCells.Fixed(2),
+            modifier = Modifier
+                .fillMaxSize()
+                .semantics { isTraversalGroup = true }
+        ) {
+            items(
+                lazyPagingItems.itemCount,
+                key = lazyPagingItems.itemKey { it.id!! }
+            ) { index ->
+                lazyPagingItems[index]?.let {
+                    GoodsItemView(it)
+                }
             }
         }
     }
@@ -236,7 +248,8 @@ fun GoodsCarouselContent() {
                 horizontalArrangement = Arrangement.Center
             ) {
                 repeat(pagerState.pageCount) { iteration ->
-                    val color = if (pagerState.currentPage == iteration) Color.DarkGray else Color.LightGray
+                    val color =
+                        if (pagerState.currentPage == iteration) Color.DarkGray else Color.LightGray
                     Box(
                         modifier = Modifier
                             .padding(3.dp)
@@ -301,7 +314,9 @@ fun GoodsListView(
                 lazyPagingItems.itemCount,
                 key = lazyPagingItems.itemKey { it.id!! }
             ) { index ->
-                GoodsItemView(lazyPagingItems[index]!!, jumpToDetail)
+                lazyPagingItems[index]?.let {
+                    GoodsItemView(it, jumpToDetail)
+                }
             }
         }
     }

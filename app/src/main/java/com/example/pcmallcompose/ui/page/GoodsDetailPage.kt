@@ -187,7 +187,6 @@ fun GoodsDetailBottomBar() {
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun GoodsDetailContent(
     modifier: Modifier = Modifier,

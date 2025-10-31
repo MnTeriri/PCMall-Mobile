@@ -9,38 +9,34 @@ import androidx.paging.LoadType.REFRESH
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
-import com.example.pcmallcompose.model.Cart
 import com.example.pcmallcompose.room.PCMallDatabase
+import com.example.pcmallcompose.room.entity.GoodsEntity
 import com.example.pcmallcompose.room.entity.RemoteKey
-import com.example.pcmallcompose.service.CartService
+import com.example.pcmallcompose.service.GoodsService
 
 @OptIn(ExperimentalPagingApi::class)
-class CartRemoteMediator(
-    private val uid: String = "000000000",
+class GoodsRemoteMediator(
+    private val label: String,
+    private val searchValue: String,
     private val database: PCMallDatabase,
-    private val cartService: CartService
-) : RemoteMediator<Int, Cart>() {
+    private val goodsService: GoodsService
+) : RemoteMediator<Int, GoodsEntity>() {
     companion object {
-        private const val TAG = "BaseRemoteMediator"
-        private const val TABLE_NAME = "cart"
+        private const val TAG = "GoodsRemoteMediator"
+        private const val TABLE_NAME = "goods"
     }
 
-    private val cartDao = database.cartDao()
+    private val goodsDao = database.goodsDao()
     private val remoteKeyDao = database.remoteKeyDao()
 
-    override suspend fun load(loadType: LoadType, state: PagingState<Int, Cart>): MediatorResult {
+    override suspend fun load(loadType: LoadType, state: PagingState<Int, GoodsEntity>): MediatorResult {
         try {
             val loadKey = when (loadType) {
-                //刷新直接从第一页开始
                 REFRESH -> 1
-                // 前置加载（在列表顶部加载更多）
-                // 在此示例中无需前置加载，因为 REFRESH 总是加载第一页。
-                // 因此直接返回，表示没有更多数据需要加载。
                 PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
-                // 后置加载（在列表底部加载更多）
                 APPEND -> {
                     val remoteKey = database.withTransaction {
-                        remoteKeyDao.remoteKeyByQuery(TABLE_NAME, uid)
+                        remoteKeyDao.remoteKeyByQuery(TABLE_NAME, "${label}_${searchValue}")
                     }
                     if (remoteKey.currentPage == null) {
                         return MediatorResult.Success(endOfPaginationReached = true)
@@ -48,26 +44,23 @@ class CartRemoteMediator(
                     remoteKey.currentPage + 1
                 }
             }
-            val response = cartService.searchAllCart(uid, loadKey, state.config.pageSize)
+            val response = goodsService.searchGoodsList(searchValue, loadKey, state.config.pageSize)
 
             Log.d(TAG, "loadType:$loadType,loadPage:$loadKey,response:$response")
 
-            //当列表为空时，代表没有新数据了
             if (response.data.isNullOrEmpty()) {
                 return MediatorResult.Success(endOfPaginationReached = true)
             }
 
-            // 在事务中存储加载的数据和下一个 key，确保它们始终保持一致。
             database.withTransaction {
                 if (loadType == REFRESH) {
-                    remoteKeyDao.deleteByQuery(TABLE_NAME, uid)
-                    cartDao.clearAll()
+                    remoteKeyDao.deleteByQuery(TABLE_NAME, "${label}_${searchValue}")
+                    goodsDao.clearAll(label, searchValue)
                 }
-                // 更新该查询的 RemoteKey。
-                remoteKeyDao.insertOrReplace(RemoteKey(TABLE_NAME, uid, loadKey))
-                // 将新用户插入到数据库中，这会使当前的 PagingData 无效，
-                // 让 Paging 可以呈现数据库中的更新。
-                cartDao.insertAll(response.data!!)
+                remoteKeyDao.insertOrReplace(RemoteKey(TABLE_NAME, "${label}_${searchValue}", loadKey))
+                goodsDao.insertAll(response.data!!.map { goods ->
+                    GoodsEntity(label = label, searchValue = searchValue, goods = goods)
+                })
             }
             return MediatorResult.Success(endOfPaginationReached = false)
         } catch (e: Exception) {

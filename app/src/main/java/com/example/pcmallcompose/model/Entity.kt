@@ -1,5 +1,6 @@
 package com.example.pcmallcompose.model
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
@@ -65,10 +66,11 @@ data class Brand(
     var image: String? = null,
     var isDelete: Int? = null, //是否删除（0正常 1删除）
 ) {
+    @Ignore
     fun setIsDelete(isDelete: Int?) {
         this.isDelete = isDelete;
     }
-
+    @Ignore
     fun getIsDelete(): Int? {
         return this.isDelete;
     }
@@ -111,10 +113,11 @@ data class Category(
     var updateTime: LocalDateTime? = null,//修改时间
     var isDelete: Int? = null,//是否删除（0正常 1删除）
 ) {
+    @Ignore
     fun setIsDelete(isDelete: Int?) {
         this.isDelete = isDelete;
     }
-
+    @Ignore
     fun getIsDelete(): Int? {
         return this.isDelete;
     }
@@ -123,9 +126,9 @@ data class Category(
 data class Goods(
     var id: Int? = null, //商品编号
     var cid: Int? = null, //分类编号，参考category的主键
-    var category: Category? = null,
+    @Embedded(prefix = "category_") var category: Category? = null,
     var bid: Int? = null, //品牌编号，参考brand的主键
-    var brand: Brand? = null,
+    @Embedded(prefix = "brand_") var brand: Brand? = null,
     var gname: String? = null,//商品名称
     @field:JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @field:JsonDeserialize(using = LocalDateTimeDeserializer::class)
@@ -143,10 +146,11 @@ data class Goods(
     var status: Int? = null,//商品状态（0正常、1缺货、2下架）
     var isDelete: Int? = null, //是否删除（0正常 1删除）
 ) {
+    @Ignore
     fun setIsDelete(isDelete: Int?) {
         this.isDelete = isDelete;
     }
-
+    @Ignore
     fun getIsDelete(): Int? {
         return this.isDelete;
     }
