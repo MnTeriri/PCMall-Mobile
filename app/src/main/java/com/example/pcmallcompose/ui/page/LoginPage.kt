@@ -34,19 +34,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import cn.pedant.SweetAlert.SweetAlertDialog
+import com.example.pcmallcompose.model.response.ResponseCode
 import com.example.pcmallcompose.ui.component.PasswordTextField
 import com.example.pcmallcompose.ui.dialog.CaptchaDialog
 import com.example.pcmallcompose.ui.dialog.MessageDialog
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
-import com.example.pcmallcompose.viewmodel.LoginUiEvent
 import com.example.pcmallcompose.viewmodel.LoginViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,16 +56,65 @@ fun LoginPage(
     onBackClick: () -> Unit = {},
     jumpToRegister: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+
     val loginViewModel: LoginViewModel = hiltViewModel()
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior =
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+
+    var openCaptchaDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(loginViewModel.uiState) {
+        if (loginViewModel.uiState.isLoginSuccess) {
+            openCaptchaDialog = false
+            MessageDialog(
+                context = context,
+                alertType = SweetAlertDialog.SUCCESS_TYPE,
+                title = "登录成功！",
+                dismissListener = { onBackClick() }
+            ).show()
+            return@LaunchedEffect
+        }
+        if (!loginViewModel.uiState.isError) {
+            return@LaunchedEffect
+        }
+        when (loginViewModel.uiState.message?.code) {
+            ResponseCode.CAPTCHA_ERROR.code -> {
+                Toast.makeText(context, "验证码错误！", Toast.LENGTH_SHORT).show()
+                loginViewModel.getCaptcha()
+            }
+
+            ResponseCode.ACCOUNT_ERROR.code -> {
+                openCaptchaDialog = false
+                MessageDialog(context, SweetAlertDialog.WARNING_TYPE, "账号或密码错误").show()
+            }
+
+            ResponseCode.ERROR.code -> {
+                Toast.makeText(context, "错误！", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LoginPageTopBar(scrollBehavior, onBackClick)
         },
     ) { innerPadding ->
-        LoginPageContent(loginViewModel, innerPadding, onBackClick, jumpToRegister)
+        LoginPageContent(
+            paddingValues = innerPadding,
+            login = { uid, password, captchaCode, isRemember ->
+                loginViewModel.login(uid, password, captchaCode, isRemember)
+            },
+            captchaImage = loginViewModel.uiState.captchaUiState.captchaImage,
+            openCaptchaDialog = openCaptchaDialog,
+            onOpenValueChange = { openCaptchaDialog = it },
+            getCaptcha = {
+                loginViewModel.getCaptcha()
+            },
+            jumpToRegister = jumpToRegister
+        )
     }
 }
 
@@ -78,7 +128,7 @@ fun LoginPageTopBar(scrollBehavior: TopAppBarScrollBehavior, onBackClick: () -> 
         ),
         title = { Text(text = "亲，欢迎登录") },
         navigationIcon = {
-            IconButton(onClick = { onBackClick() }) {
+            IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null
@@ -91,87 +141,54 @@ fun LoginPageTopBar(scrollBehavior: TopAppBarScrollBehavior, onBackClick: () -> 
 
 @Composable
 fun LoginPageContent(
-    loginViewModel: LoginViewModel,
     paddingValues: PaddingValues,
-    onBackClick: () -> Unit,
-    jumpToRegister: () -> Unit
+    login: (String, String, String, Boolean) -> Unit,
+    openCaptchaDialog: Boolean = false,
+    onOpenValueChange: (Boolean) -> Unit,
+    captchaImage: ImageBitmap? = null,
+    getCaptcha: () -> Unit = {},
+    jumpToRegister: () -> Unit = {}
 ) {
-    val context = LocalContext.current
-
-    var openCaptchaDialog by remember { mutableStateOf(false) }
-    var captchaImage by loginViewModel.captchaImage
-    var captchaError by remember { mutableStateOf(false) }
-    var captchaErrorMessage by remember { mutableStateOf("") }
-
     var uid by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var captchaCode by remember { mutableStateOf("") }
     var isRemember by remember { mutableStateOf(true) }
 
     var isSubmitted by remember { mutableStateOf(false) } // 标记是否尝试提交
+    var isCaptchaSubmitted by remember { mutableStateOf(false) } // 标记是否尝试提交
+
     val uidError by remember { derivedStateOf { isSubmitted && uid.length != 9 } }
-    val passWordError by remember { derivedStateOf { isSubmitted && (password.length < 5 || password.length > 16) } }
+    val passWordError by remember { derivedStateOf { isSubmitted && (password.length !in 5..16) } }
+    val captchaError by remember { derivedStateOf { isCaptchaSubmitted && captchaCode.length != 5 } }
 
-
-    LaunchedEffect(Unit) {
-        loginViewModel.uiEvent.collect { event ->
-            when (event) {
-                is LoginUiEvent.Success -> {
-                    openCaptchaDialog = false
-                    MessageDialog(
-                        context = context,
-                        alertType = SweetAlertDialog.SUCCESS_TYPE,
-                        title = event.message,
-                        dismissListener = { onBackClick() }
-                    ).show()
-                }
-
-                is LoginUiEvent.AccountError -> {
-                    openCaptchaDialog = false
-                    MessageDialog(context, SweetAlertDialog.WARNING_TYPE, "账号或密码错误").show()
-                }
-
-                is LoginUiEvent.CaptchaError -> {
-                    captchaError = true
-                    captchaErrorMessage = "验证码错误！"
-                }
-
-                is LoginUiEvent.Error -> {
-                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(openCaptchaDialog) {
-        captchaImage = null
-        captchaError = false
+    if (!openCaptchaDialog) {
+        isCaptchaSubmitted = false
+        captchaCode = ""
     }
 
     CaptchaDialog(
         enabled = openCaptchaDialog,
+        value = captchaCode,
+        onValueChange = { captchaCode = it },
         onDismissRequest = {
-            openCaptchaDialog = false
+            onOpenValueChange(false)
+            isCaptchaSubmitted = false
+            captchaCode = ""
         },
-        onConfirmation = { captcha ->
+        onConfirmation = {
+            isCaptchaSubmitted = true // 点击按钮时标记为已提交
             if (!captchaError) {
-                loginViewModel.login(uid, password, captcha, isRemember)
+                login(uid, password, captchaCode, isRemember)
             }
         },
-        onReloadCaptchaImage = {
-            captchaImage = null
-            captchaError = false
-            loginViewModel.getCaptcha()
+        reloadCaptchaImage = {
+            getCaptcha()
         },
         captchaImage = captchaImage,
         isError = captchaError,
-        errorMessage = captchaErrorMessage,
-        validate = {
-            captchaError = it.length != 5
-            if (captchaError) {
-                captchaErrorMessage = "验证码是五位字符！"
-            }
-        }
+        errorMessage = "验证码是五位字符！",
     )
+
 
     Column(modifier = Modifier.padding(paddingValues)) {
         Row(
@@ -186,7 +203,8 @@ fun LoginPageContent(
             )
             TextButton(
                 contentPadding = PaddingValues(start = 2.dp),
-                onClick = { jumpToRegister() }) {
+                onClick = jumpToRegister
+            ) {
                 Text(
                     modifier = Modifier.align(Alignment.CenterVertically),
                     fontSize = 15.sp,
@@ -254,15 +272,14 @@ fun LoginPageContent(
                 onClick = {
                     isSubmitted = true // 点击按钮时标记为已提交
                     if (!uidError && !passWordError) {
-                        loginViewModel.getCaptcha()
-                        openCaptchaDialog = true
+                        getCaptcha()
+                        onOpenValueChange(true)
                     }
                 }
             ) { Text(text = "登录") }
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

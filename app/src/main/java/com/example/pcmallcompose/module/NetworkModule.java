@@ -5,6 +5,7 @@ import android.content.Context;
 import com.example.pcmallcompose.interceptor.HeaderInterceptor;
 import com.example.pcmallcompose.service.CartService;
 import com.example.pcmallcompose.service.GoodsService;
+import com.example.pcmallcompose.service.ImageService;
 import com.example.pcmallcompose.service.LoginRegisterService;
 import com.franmontiel.persistentcookiejar.ClearableCookieJar;
 import com.franmontiel.persistentcookiejar.PersistentCookieJar;
@@ -77,5 +78,17 @@ public class NetworkModule {
                 .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                 .build()
                 .create(GoodsService.class);
+    }
+
+    @Singleton
+    @Provides
+    public static ImageService provideImageService(@ApplicationContext Context context) {
+        return new Retrofit.Builder()
+                .baseUrl(IMAGE_URL)
+                .client(getOkHttpClientInstance(context))
+                .addConverterFactory(JacksonConverterFactory.create())
+                .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+                .build()
+                .create(ImageService.class);
     }
 }
