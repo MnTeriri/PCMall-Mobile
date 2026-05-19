@@ -3,9 +3,9 @@ package com.example.pcmallcompose.activity
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
@@ -13,7 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.edit
 import com.alibaba.fastjson2.JSON
-import com.example.pcmallcompose.model.User
+import com.example.pcmallcompose.core.model.User
 import com.example.pcmallcompose.ui.page.MainActivityPage
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -22,7 +22,7 @@ import javax.inject.Inject
 val LocalUserData = compositionLocalOf<User?> { null }
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
     companion object {
         const val TAG = "MainActivity"
     }

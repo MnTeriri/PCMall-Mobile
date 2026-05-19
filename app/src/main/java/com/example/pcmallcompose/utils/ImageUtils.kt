@@ -6,13 +6,11 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import java.util.Base64
 
-class ImageUtils {
-    companion object {
-        @SuppressLint("NewApi")
-        @JvmStatic
-        fun decodeImageString(imageString: String): ImageBitmap {
-            val bytes = Base64.getMimeDecoder().decode(imageString)
-            return BitmapFactory.decodeByteArray(bytes, 0, bytes.size).asImageBitmap()
-        }
+object ImageUtils {
+    @SuppressLint("NewApi")
+    @JvmStatic
+    fun decodeImageString(imageString: String): ImageBitmap {
+        val bytes = Base64.getMimeDecoder().decode(imageString)
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size).asImageBitmap()
     }
 }

@@ -3,7 +3,6 @@ package com.example.pcmallcompose.ui.page
 import android.widget.Toast
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -59,7 +58,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
@@ -76,8 +74,8 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.integration.compose.placeholder
 import com.example.pcmallcompose.R
-import com.example.pcmallcompose.model.Goods
-import com.example.pcmallcompose.module.NetworkModule
+import com.example.pcmallcompose.core.model.Goods
+import com.example.pcmallcompose.core.network.di.NetworkModule
 import com.example.pcmallcompose.ui.theme.PriceColor
 import com.example.pcmallcompose.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
@@ -87,38 +85,49 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomePage(
-    jumpToDetail: (goods: Goods) -> Unit = {}
+    onDetailClick: (goods: Goods) -> Unit = {}
 ) {
     val homeViewModel: HomeViewModel = hiltViewModel()
 
+    LaunchedEffect(Unit) {
+        homeViewModel.getADImageList()
+    }
+
+    var searchBarData by remember { mutableStateOf(homeViewModel.getGoodsPagingData("goods_search", "")) }
+
     Scaffold(
-        topBar = { SearchBarView(homeViewModel) },
+        topBar = {
+            SearchBarView(
+                goodsFlowData = searchBarData,
+                onSearch = { searchValue ->
+                    searchBarData = homeViewModel.getGoodsPagingData("goods_search", searchValue)
+                }
+            )
+        },
     ) { innerPadding ->
         GoodsListView(
             modifier = Modifier.padding(innerPadding),
-            flowData = homeViewModel.getGoodsPagingData(),
-            jumpToDetail = jumpToDetail
+            goodsFlowData = homeViewModel.getGoodsPagingData() ,
+            adImageList = homeViewModel.uiState.adImageList,
+            onRefresh = {
+                homeViewModel.getADImageList()
+            },
+            jumpToDetail = onDetailClick,
         )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchBarView(viewModel: HomeViewModel) {
+fun SearchBarView(
+    goodsFlowData: Flow<PagingData<Goods>>,
+    onSearch: (searchValue: String) -> Unit = {},
+) {
     val textFieldState = rememberTextFieldState()
     val searchBarState = rememberSearchBarState()
     val scope = rememberCoroutineScope()
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
     val appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors()
-
-    var pager by remember {
-        mutableStateOf(
-            viewModel.getGoodsPagingData(
-                label = "goods_search",
-                searchValue = "${textFieldState.text}"
-            )
-        )
-    }
 
     val inputField =
         @Composable {
@@ -126,12 +135,7 @@ fun SearchBarView(viewModel: HomeViewModel) {
                 modifier = Modifier,
                 searchBarState = searchBarState,
                 textFieldState = textFieldState,
-                onSearch = { searchValue ->
-                    pager = viewModel.getGoodsPagingData(
-                        label = "goods_search",
-                        searchValue = searchValue
-                    )
-                },
+                onSearch = onSearch,
                 placeholder = {
                     if (searchBarState.currentValue == SearchBarValue.Collapsed) {
                         Text(
@@ -175,7 +179,7 @@ fun SearchBarView(viewModel: HomeViewModel) {
         state = searchBarState,
         inputField = inputField
     ) {
-        val lazyPagingItems = pager.collectAsLazyPagingItems()
+        val lazyPagingItems = goodsFlowData.collectAsLazyPagingItems()
 
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
@@ -184,8 +188,8 @@ fun SearchBarView(viewModel: HomeViewModel) {
                 .semantics { isTraversalGroup = true }
         ) {
             items(
-                lazyPagingItems.itemCount,
-                key = lazyPagingItems.itemKey { it.id!! }
+                count = lazyPagingItems.itemCount,
+                key = lazyPagingItems.itemKey { it.id }
             ) { index ->
                 lazyPagingItems[index]?.let {
                     GoodsItemView(it)
@@ -195,15 +199,15 @@ fun SearchBarView(viewModel: HomeViewModel) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
 @Composable
-fun GoodsCarouselContent() {
+fun GoodsCarouselContent(adImageList: List<String>) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(200.dp)
     ) {
-        val pagerState = rememberPagerState(pageCount = { 10 })
+        val pagerState = rememberPagerState(pageCount = { adImageList.size })
         val pagerIsDragged by pagerState.interactionSource.collectIsDraggedAsState()
 
         val pageInteractionSource = remember { MutableInteractionSource() }
@@ -217,7 +221,7 @@ fun GoodsCarouselContent() {
                     delay(5000)
                     val nextPage = (pagerState.currentPage + 1) % pagerState.pageCount
                     pagerState.animateScrollToPage(
-                        nextPage,
+                        page = nextPage,
                         animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
                     )
                 }
@@ -228,12 +232,19 @@ fun GoodsCarouselContent() {
             state = pagerState,
             beyondViewportPageCount = 2
         ) { page ->
-            Image(
+            GlideImage(
+                model = NetworkModule.IMAGE_URL + adImageList[page],
                 modifier = Modifier.fillMaxWidth(),
-                painter = painterResource(R.drawable.test_image),
                 contentDescription = null,
+                failure = placeholder(R.drawable.test_image),
                 contentScale = ContentScale.Crop
             )
+//            Image(
+//                modifier = Modifier.fillMaxWidth(),
+//                painter = painterResource(R.drawable.test_image),
+//                contentDescription = null,
+//                contentScale = ContentScale.Crop
+//            )
         }
 
         Box(
@@ -267,12 +278,13 @@ fun GoodsCarouselContent() {
 @Composable
 fun GoodsListView(
     modifier: Modifier = Modifier,
-    flowData: Flow<PagingData<Goods>>,
-    jumpToDetail: (goods: Goods) -> Unit = {}
+    goodsFlowData: Flow<PagingData<Goods>>,
+    adImageList: List<String>,
+    onRefresh: () -> Unit = {},
+    jumpToDetail: (goods: Goods) -> Unit = {},
 ) {
     val context = LocalContext.current
-    val pager = remember { flowData }
-    val lazyPagingItems = pager.collectAsLazyPagingItems()
+    val lazyPagingItems = goodsFlowData.collectAsLazyPagingItems()
 
     val coroutineScope = rememberCoroutineScope()
     var isRefreshing by remember { mutableStateOf(false) }//是否在刷新
@@ -282,6 +294,7 @@ fun GoodsListView(
         coroutineScope.launch {
             isRefreshing = true//设置正在刷新
             lazyPagingItems.refresh()
+            onRefresh()
             delay(1000)
             isRefreshing = false //刷新业务执行完毕后修改状态
         }
@@ -306,13 +319,13 @@ fun GoodsListView(
                 .fillMaxSize()
                 .semantics { isTraversalGroup = true }
         ) {
-            item(span = StaggeredGridItemSpan.FullLine) {
-                GoodsCarouselContent()
-            }
+//            item(span = StaggeredGridItemSpan.FullLine) {
+//                GoodsCarouselContent(adImageList)
+//            }
 
             items(
                 lazyPagingItems.itemCount,
-                key = lazyPagingItems.itemKey { it.id!! }
+                key = lazyPagingItems.itemKey { it.id }
             ) { index ->
                 lazyPagingItems[index]?.let {
                     GoodsItemView(it, jumpToDetail)

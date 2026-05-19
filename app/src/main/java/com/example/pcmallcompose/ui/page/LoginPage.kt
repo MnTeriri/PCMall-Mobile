@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import cn.pedant.SweetAlert.SweetAlertDialog
-import com.example.pcmallcompose.model.response.ResponseCode
+import com.example.pcmallcompose.core.model.response.ResponseCode
 import com.example.pcmallcompose.ui.component.PasswordTextField
 import com.example.pcmallcompose.ui.dialog.CaptchaDialog
 import com.example.pcmallcompose.ui.dialog.MessageDialog
@@ -54,7 +54,7 @@ import com.example.pcmallcompose.viewmodel.LoginViewModel
 @Composable
 fun LoginPage(
     onBackClick: () -> Unit = {},
-    jumpToRegister: () -> Unit = {}
+    onRegisterClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
 
@@ -113,7 +113,7 @@ fun LoginPage(
             getCaptcha = {
                 loginViewModel.getCaptcha()
             },
-            jumpToRegister = jumpToRegister
+            jumpToRegister = onRegisterClick
         )
     }
 }

@@ -65,8 +65,8 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.integration.compose.placeholder
 import com.example.pcmallcompose.R
-import com.example.pcmallcompose.model.Cart
-import com.example.pcmallcompose.module.NetworkModule
+import com.example.pcmallcompose.core.model.Cart
+import com.example.pcmallcompose.core.network.di.NetworkModule
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import com.example.pcmallcompose.ui.theme.PriceColor
 import com.example.pcmallcompose.viewmodel.CartViewModel

@@ -6,9 +6,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.pcmallcompose.model.response.ResponseCode
-import com.example.pcmallcompose.model.response.ResponseResult
-import com.example.pcmallcompose.service.LoginRegisterService
+import com.example.pcmallcompose.core.model.response.ResponseCode
+import com.example.pcmallcompose.core.model.response.ResponseResult
+import com.example.pcmallcompose.core.network.service.LoginRegisterService
 import com.example.pcmallcompose.utils.ImageUtils
 import com.example.pcmallcompose.utils.RetrofitUtils
 import dagger.hilt.android.lifecycle.HiltViewModel

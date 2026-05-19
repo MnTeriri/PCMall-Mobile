@@ -20,7 +20,9 @@ import com.example.pcmallcompose.activity.LocalUserData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MySelfPage(onClick: () -> Unit) {
+fun MySelfPage(
+    onLoginClick: () -> Unit = {}
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -35,7 +37,7 @@ fun MySelfPage(onClick: () -> Unit) {
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                onClick()
+                onLoginClick()
             }) {
                 Icon(Icons.Default.Add, contentDescription = "Add")
             }

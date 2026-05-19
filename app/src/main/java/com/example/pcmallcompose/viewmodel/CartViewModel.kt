@@ -7,12 +7,14 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.example.pcmallcompose.model.Cart
-import com.example.pcmallcompose.paging.CartRemoteMediator
-import com.example.pcmallcompose.room.PCMallDatabase
-import com.example.pcmallcompose.service.CartService
+import androidx.paging.map
+import com.example.pcmallcompose.core.data.paging.CartRemoteMediator
+import com.example.pcmallcompose.core.database.PCMallDatabase
+import com.example.pcmallcompose.core.model.Cart
+import com.example.pcmallcompose.core.network.service.CartService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,6 +29,8 @@ class CartViewModel @Inject constructor(
             remoteMediator = CartRemoteMediator("000000000", database, cartService)
         ) {
             database.cartDao().pagingSource()
-        }.flow.cachedIn(viewModelScope)
+        }.flow.cachedIn(viewModelScope).map { pagingData ->
+            pagingData.map { it.toCart() }
+        }
     }
 }

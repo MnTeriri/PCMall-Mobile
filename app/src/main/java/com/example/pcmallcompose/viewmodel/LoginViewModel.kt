@@ -10,8 +10,8 @@ import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alibaba.fastjson2.JSON
-import com.example.pcmallcompose.model.response.ResponseCode
-import com.example.pcmallcompose.service.LoginRegisterService
+import com.example.pcmallcompose.core.model.response.ResponseCode
+import com.example.pcmallcompose.core.network.service.LoginRegisterService
 import com.example.pcmallcompose.utils.ImageUtils
 import com.example.pcmallcompose.utils.RetrofitUtils
 import dagger.hilt.android.lifecycle.HiltViewModel

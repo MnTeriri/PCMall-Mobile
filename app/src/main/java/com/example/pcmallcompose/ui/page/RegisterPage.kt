@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.example.pcmallcompose.ui.component.PasswordTextField
-import com.example.pcmallcompose.ui.dialog.CaptchaDialog
 import com.example.pcmallcompose.ui.dialog.MessageDialog
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import com.example.pcmallcompose.viewmodel.RegisterUiEvent
@@ -139,31 +138,31 @@ fun RegisterPageContent(
         captchaError = false
     }
 
-    CaptchaDialog(
-        enabled = openCaptchaDialog,
-        onDismissRequest = {
-            openCaptchaDialog = false
-        },
-        onConfirmation = { captcha ->
-            if (!captchaError) {
-                registerViewModel.register(uid, password, captcha)
-            }
-        },
-        onReloadCaptchaImage = {
-            captchaImage = null
-            captchaError = false
-            registerViewModel.getCaptcha()
-        },
-        captchaImage = captchaImage,
-        isError = captchaError,
-        errorMessage = captchaErrorMessage,
-        validate = {
-            captchaError = it.length != 5
-            if (captchaError) {
-                captchaErrorMessage = "验证码是五位字符！"
-            }
-        }
-    )
+//    CaptchaDialog(
+//        enabled = openCaptchaDialog,
+//        onDismissRequest = {
+//            openCaptchaDialog = false
+//        },
+//        onConfirmation = { captcha ->
+//            if (!captchaError) {
+//                registerViewModel.register(uid, password, captcha)
+//            }
+//        },
+//        onReloadCaptchaImage = {
+//            captchaImage = null
+//            captchaError = false
+//            registerViewModel.getCaptcha()
+//        },
+//        captchaImage = captchaImage,
+//        isError = captchaError,
+//        errorMessage = captchaErrorMessage,
+//        validate = {
+//            captchaError = it.length != 5
+//            if (captchaError) {
+//                captchaErrorMessage = "验证码是五位字符！"
+//            }
+//        }
+//    )
 
     Column(modifier = Modifier.padding(paddingValues)) {
         Row(

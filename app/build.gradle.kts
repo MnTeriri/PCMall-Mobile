@@ -1,12 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.devtools.ksp")
-    alias(libs.plugins.hilt)
-    alias(libs.plugins.room)
-
-    kotlin("plugin.serialization") version "2.0.21"
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -41,24 +38,19 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
-        }
-    }
-
     buildFeatures {
         compose = true
         viewBinding = true
         dataBinding = true
     }
-
-    room {
-        schemaDirectory("$projectDir/schemas")
-    }
 }
 
 dependencies {
+    implementation(project(":core:model"))
+    implementation(project(":core:network"))
+    implementation(project(":core:database"))
+    implementation(project(":core:data"))
+    implementation(project(":core:common"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -82,15 +74,16 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)//传统 View 系统 Material
-    implementation(libs.navigation.compose)
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-    implementation(libs.constraintlayout.compose)
+    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
 
     implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
+    ksp(libs.hilt.android.compiler)
     implementation(libs.hilt.navigation.compose)
+
+    implementation(libs.navigation.compose) // Jetpack Compose Integration
+    implementation(libs.navigation.fragment) // Fragments Integration
+    implementation(libs.navigation.ui) // Views Integration
+    implementation(libs.kotlinx.serialization.json)// JSON serialization library, works with the Kotlin serialization plugin
 
     implementation(libs.paging.runtime)
     implementation(libs.paging.rxjava3) // optional - RxJava3 support
@@ -102,26 +95,23 @@ dependencies {
     implementation(libs.room.rxjava3)// optional - RxJava3 support for Room
     implementation(libs.room.paging)// optional - Paging 3 Integration
 
-    // https://mvnrepository.com/artifact/com.squareup.retrofit2/retrofit
-    implementation(libs.retrofit2)
-    implementation(libs.retrofit2.converter.gson)
-    implementation(libs.retrofit2.converter.jackson)
-    implementation(libs.retrofit2.converter.scalars)
-    implementation(libs.retrofit2.adapter.rxjava3)
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.0")
-    implementation("com.github.franmontiel:PersistentCookieJar:v1.0.1")
-
-    implementation(libs.fastjson)
-    implementation(libs.hutool)
     implementation(libs.rxjava)
     implementation(libs.rxandroid)
+
+    implementation(libs.retrofit)
+    implementation(libs.okhttp.sse)
+    implementation(libs.retrofit.converter.jackson)
+    implementation(libs.jackson.module.kotlin)
+    implementation(libs.jackson.datatype.jsr310)
+    implementation(libs.retrofit.adapter.rxjava3)
+    implementation("com.github.franmontiel:PersistentCookieJar:v1.0.1")
+
     implementation(libs.glide)
     ksp(libs.glide.compiler)
     implementation(libs.glide.compose)
 
-    implementation("com.github.f0ris.sweetalert:library:1.6.2")
+    implementation(libs.fastjson)
+    implementation(libs.hutool)
 
-    implementation(libs.androidx.navigation3.ui)
-    implementation(libs.androidx.navigation3.runtime)
-    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+    implementation("com.github.f0ris.sweetalert:library:1.6.2")
 }

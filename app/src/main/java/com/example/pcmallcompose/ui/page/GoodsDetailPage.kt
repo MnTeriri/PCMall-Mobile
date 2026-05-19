@@ -51,8 +51,8 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.integration.compose.placeholder
 import com.example.pcmallcompose.R
-import com.example.pcmallcompose.model.Goods
-import com.example.pcmallcompose.module.NetworkModule
+import com.example.pcmallcompose.core.model.Goods
+import com.example.pcmallcompose.core.network.di.NetworkModule
 import com.example.pcmallcompose.ui.theme.BackgroundColor
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import com.example.pcmallcompose.ui.theme.PriceColor
@@ -342,6 +342,6 @@ fun RecommendItem() {
 @Composable
 fun GoodsDetailPreview() {
     PCMallComposeTheme {
-        GoodsDetailPage(Goods())
+
     }
 }

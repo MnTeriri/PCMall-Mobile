@@ -31,8 +31,8 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.integration.compose.placeholder
 import com.example.pcmallcompose.R
-import com.example.pcmallcompose.model.Goods
-import com.example.pcmallcompose.module.NetworkModule
+import com.example.pcmallcompose.core.model.Goods
+import com.example.pcmallcompose.core.network.di.NetworkModule
 import com.example.pcmallcompose.ui.theme.BackgroundColor
 import com.example.pcmallcompose.ui.theme.PriceColor
 
@@ -101,7 +101,7 @@ fun GoodsSheet(
 
                             Text(
                                 modifier = Modifier.padding(top = 3.dp),
-                                text = "${goods.description}",
+                                text = goods.description,
                                 fontSize = 16.sp,
                                 color = Color.Gray,
                                 overflow = TextOverflow.Ellipsis,

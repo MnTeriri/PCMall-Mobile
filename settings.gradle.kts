@@ -25,3 +25,8 @@ dependencyResolutionManagement {
 
 rootProject.name = "PCMallCompose"
 include(":app")
+include(":core:network")
+include(":core:model")
+include(":core:database")
+include(":core:common")
+include(":core:data")
