@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.pcmallcompose.core.database.PCMallDatabase
 import com.example.pcmallcompose.core.database.dao.CartDao
+import com.example.pcmallcompose.core.database.dao.ChatHistoryDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,12 +19,18 @@ object DataBaseModule {
     @Singleton
     @Provides
     fun provideAppDatabase(@ApplicationContext context: Context): PCMallDatabase {
-        return Room.databaseBuilder(context, PCMallDatabase::class.java, "pcmall_mall").build()
+        return Room.databaseBuilder(context, PCMallDatabase::class.java, "pcmall").build()
     }
 
     @Singleton
     @Provides
-    fun provideCartDao(@ApplicationContext context: Context): CartDao {
-        return provideAppDatabase(context).cartDao()
+    fun provideCartDao(database: PCMallDatabase): CartDao {
+        return database.cartDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideChatHistoryDao(database: PCMallDatabase): ChatHistoryDao {
+        return database.chatHistoryDao()
     }
 }

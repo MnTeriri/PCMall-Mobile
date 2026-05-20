@@ -18,9 +18,12 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import jakarta.inject.Singleton
 import okhttp3.OkHttpClient
+import okhttp3.sse.EventSource
+import okhttp3.sse.EventSources
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory
 import retrofit2.converter.jackson.JacksonConverterFactory
+import java.util.concurrent.TimeUnit
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -38,6 +41,15 @@ object NetworkModule {
             .cookieJar(cookieJar)
             .addInterceptor(HeaderInterceptor(context))
             .build()
+    }
+
+    @Singleton
+    @Provides
+    fun provideEventSourceFactory(): EventSource.Factory {
+        val okHttpClient = OkHttpClient.Builder()
+            .readTimeout(0, TimeUnit.MILLISECONDS) //永不超时
+            .build()
+        return EventSources.createFactory(okHttpClient)
     }
 
     @Singleton
