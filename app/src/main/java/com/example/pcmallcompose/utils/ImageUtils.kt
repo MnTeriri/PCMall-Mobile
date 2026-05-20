@@ -1,4 +1,4 @@
-package com.example.pcmallcompose.utils;
+package com.example.pcmallcompose.utils
 
 import android.annotation.SuppressLint
 import android.graphics.BitmapFactory

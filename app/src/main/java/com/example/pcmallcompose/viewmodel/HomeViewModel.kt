@@ -1,9 +1,6 @@
 package com.example.pcmallcompose.viewmodel
 
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.ExperimentalPagingApi
@@ -20,10 +17,12 @@ import com.example.pcmallcompose.core.network.service.ImageService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.time.LocalDateTime
 import javax.inject.Inject
 
 data class HomeUiState(
@@ -40,8 +39,8 @@ class HomeViewModel @Inject constructor(
         private const val TAG: String = "HomeViewModel"
     }
 
-    var uiState by mutableStateOf(HomeUiState())
-        private set
+    private val _uiState = MutableStateFlow(HomeUiState())
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     @OptIn(ExperimentalPagingApi::class)
     fun getGoodsPagingData(
@@ -68,11 +67,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val data = imageService.getADImageList().data
-                if (data != null) {
-                    uiState = uiState.copy(adImageList = data)
-                } else {
-                    uiState = uiState.copy(adImageList = emptyList())
-                }
+                _uiState.update { it.copy(adImageList = data ?: emptyList()) }
             } catch (e: Exception) {
 
             }

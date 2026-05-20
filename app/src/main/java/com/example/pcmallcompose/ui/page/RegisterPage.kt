@@ -33,18 +33,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.example.pcmallcompose.ui.component.PasswordTextField
+import com.example.pcmallcompose.ui.dialog.CaptchaDialog
 import com.example.pcmallcompose.ui.dialog.MessageDialog
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
-import com.example.pcmallcompose.viewmodel.RegisterUiEvent
+import com.example.pcmallcompose.viewmodel.ErrorMessage
 import com.example.pcmallcompose.viewmodel.RegisterViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,16 +55,60 @@ import com.example.pcmallcompose.viewmodel.RegisterViewModel
 fun RegisterPage(
     onBackClick: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     val registerViewModel: RegisterViewModel = hiltViewModel()
+    val uiState by registerViewModel.uiState.collectAsStateWithLifecycle()
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    var openCaptchaDialog by remember { mutableStateOf(false) }
+
+    // 注册成功 → 弹窗后返回登录页
+    LaunchedEffect(uiState.isUserRegistered) {
+        if (uiState.isUserRegistered) {
+            openCaptchaDialog = false
+            MessageDialog(context, SweetAlertDialog.SUCCESS_TYPE, "注册成功！") {
+                onBackClick()
+            }.show()
+        }
+    }
+
+    // 错误消息 → 弹窗 / Toast，然后消费
+    LaunchedEffect(uiState.errorMessage) {
+        when (val msg = uiState.errorMessage) {
+            is ErrorMessage.Dialog -> {
+                openCaptchaDialog = false
+                MessageDialog(context, SweetAlertDialog.WARNING_TYPE, msg.text).show()
+            }
+            is ErrorMessage.Toast -> {
+                Toast.makeText(context, msg.text, Toast.LENGTH_SHORT).show()
+            }
+            null -> {}
+        }
+        registerViewModel.userMessageShown()
+    }
+
+    // 验证码错误 → 刷新验证码
+    LaunchedEffect(uiState.shouldRefreshCaptcha) {
+        if (uiState.shouldRefreshCaptcha) {
+            registerViewModel.getCaptcha()
+        }
+    }
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            RegisterPageTopBar(scrollBehavior, onBackClick)
-        },
+        topBar = { RegisterPageTopBar(scrollBehavior, onBackClick) },
     ) { innerPadding ->
-        RegisterPageContent(registerViewModel, innerPadding, onBackClick)
+        RegisterPageContent(
+            paddingValues = innerPadding,
+            register = { uid, password, code ->
+                registerViewModel.register(uid, password, code)
+            },
+            captchaImage = uiState.captchaImage,
+            openCaptchaDialog = openCaptchaDialog,
+            onOpenValueChange = { openCaptchaDialog = it },
+            getCaptcha = { registerViewModel.getCaptcha() },
+            onBackClick = onBackClick
+        )
     }
 }
 
@@ -85,84 +132,52 @@ fun RegisterPageTopBar(scrollBehavior: TopAppBarScrollBehavior, onBackClick: () 
 
 @Composable
 fun RegisterPageContent(
-    registerViewModel: RegisterViewModel,
     paddingValues: PaddingValues,
-    onBackClick: () -> Unit
+    register: (String, String, String) -> Unit,
+    openCaptchaDialog: Boolean = false,
+    onOpenValueChange: (Boolean) -> Unit,
+    captchaImage: ImageBitmap? = null,
+    getCaptcha: () -> Unit = {},
+    onBackClick: () -> Unit = {}
 ) {
-    val context = LocalContext.current
-
-    var openCaptchaDialog by remember { mutableStateOf(false) }
-    var captchaImage by registerViewModel.captchaImage
-    var captchaError by remember { mutableStateOf(false) }
-    var captchaErrorMessage by remember { mutableStateOf("") }
-
     var uid by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var rePassword by remember { mutableStateOf("") }
-    val uidError by remember { derivedStateOf { uid.length != 9 } }
-    val twoPasswordError by remember { derivedStateOf { password != rePassword } }
+    var captchaCode by remember { mutableStateOf("") }
 
+    var isSubmitted by remember { mutableStateOf(false) }
+    var isCaptchaSubmitted by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        registerViewModel.uiEvent.collect { event ->
-            when (event) {
-                is RegisterUiEvent.Success -> {
-                    openCaptchaDialog = false
-                    MessageDialog(
-                        context = context,
-                        alertType = SweetAlertDialog.SUCCESS_TYPE,
-                        title = event.message,
-                        dismissListener = { onBackClick() }
-                    ).show()
-                }
+    val uidError by remember { derivedStateOf { isSubmitted && uid.length != 9 } }
+    val passwordLengthError by remember { derivedStateOf { isSubmitted && (password.length !in 5..16) } }
+    val twoPasswordError by remember { derivedStateOf { isSubmitted && password.isNotEmpty() && password != rePassword } }
+    val captchaError by remember { derivedStateOf { isCaptchaSubmitted && captchaCode.length != 5 } }
 
-                is RegisterUiEvent.CaptchaError -> {
-                    captchaError = true
-                    captchaErrorMessage = "验证码错误！"
-                }
+    if (!openCaptchaDialog) {
+        isCaptchaSubmitted = false
+        captchaCode = ""
+    }
 
-                is RegisterUiEvent.UserExistError -> {
-                    openCaptchaDialog = false
-                    MessageDialog(context, SweetAlertDialog.WARNING_TYPE, "账号存在").show()
-                }
-
-                is RegisterUiEvent.Error -> {
-                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
-                }
+    CaptchaDialog(
+        enabled = openCaptchaDialog,
+        value = captchaCode,
+        onValueChange = { captchaCode = it },
+        onDismissRequest = {
+            onOpenValueChange(false)
+            isCaptchaSubmitted = false
+            captchaCode = ""
+        },
+        onConfirmation = {
+            isCaptchaSubmitted = true
+            if (!captchaError) {
+                register(uid, password, captchaCode)
             }
-        }
-    }
-
-    LaunchedEffect(openCaptchaDialog) {
-        captchaImage = null
-        captchaError = false
-    }
-
-//    CaptchaDialog(
-//        enabled = openCaptchaDialog,
-//        onDismissRequest = {
-//            openCaptchaDialog = false
-//        },
-//        onConfirmation = { captcha ->
-//            if (!captchaError) {
-//                registerViewModel.register(uid, password, captcha)
-//            }
-//        },
-//        onReloadCaptchaImage = {
-//            captchaImage = null
-//            captchaError = false
-//            registerViewModel.getCaptcha()
-//        },
-//        captchaImage = captchaImage,
-//        isError = captchaError,
-//        errorMessage = captchaErrorMessage,
-//        validate = {
-//            captchaError = it.length != 5
-//            if (captchaError) {
-//                captchaErrorMessage = "验证码是五位字符！"
-//            }
-//        }
-//    )
+        },
+        reloadCaptchaImage = { getCaptcha() },
+        captchaImage = captchaImage,
+        isError = captchaError,
+        errorMessage = "验证码是五位字符！",
+    )
 
     Column(modifier = Modifier.padding(paddingValues)) {
         Row(
@@ -177,7 +192,8 @@ fun RegisterPageContent(
             )
             TextButton(
                 contentPadding = PaddingValues(start = 2.dp),
-                onClick = { onBackClick() }) {
+                onClick = onBackClick
+            ) {
                 Text(
                     modifier = Modifier.align(Alignment.CenterVertically),
                     fontSize = 15.sp,
@@ -192,21 +208,18 @@ fun RegisterPageContent(
                 .fillMaxWidth()
                 .padding(start = 20.dp, end = 20.dp)
         ) {
-
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = uid,
                 onValueChange = { uid = it },
                 label = { Text(text = "账号") },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number
-                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 supportingText = {
-                    if (uid.isNotEmpty() && uidError) {
+                    if (uidError) {
                         Text("账号必须是9位数字！")
                     }
                 },
-                isError = if (uid.isEmpty()) false else uidError,
+                isError = uidError,
                 singleLine = true
             )
 
@@ -217,6 +230,12 @@ fun RegisterPageContent(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text(text = "密码") },
+                supportingText = {
+                    if (passwordLengthError) {
+                        Text("密码必须在5~16位之间！")
+                    }
+                },
+                isError = passwordLengthError,
                 singleLine = true
             )
 
@@ -226,10 +245,10 @@ fun RegisterPageContent(
                     .padding(top = 10.dp),
                 value = rePassword,
                 onValueChange = { rePassword = it },
-                label = { Text(text = "再次输入密码") },
+                label = { Text(text = "确认密码") },
                 supportingText = {
                     if (twoPasswordError) {
-                        Text("两次密码不相同！")
+                        Text("两次密码不一致")
                     }
                 },
                 isError = twoPasswordError,
@@ -242,9 +261,10 @@ fun RegisterPageContent(
                     .padding(top = 15.dp),
                 colors = ButtonDefaults.buttonColors(),
                 onClick = {
-                    if (!uidError && !twoPasswordError) {
-                        registerViewModel.getCaptcha()
-                        openCaptchaDialog = true
+                    isSubmitted = true
+                    if (!uidError && !passwordLengthError && !twoPasswordError) {
+                        getCaptcha()
+                        onOpenValueChange(true)
                     }
                 }
             ) { Text(text = "注册") }

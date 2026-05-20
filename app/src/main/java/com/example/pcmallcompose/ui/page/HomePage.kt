@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -67,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
@@ -82,36 +82,36 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomePage(
     onDetailClick: (goods: Goods) -> Unit = {}
 ) {
     val homeViewModel: HomeViewModel = hiltViewModel()
+    val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
+
+    var searchValue by remember { mutableStateOf("") }
+    val searchBarPagingFlow = remember(searchValue) {
+        homeViewModel.getGoodsPagingData("goods_search", searchValue)
+    }
+    val pagingFlow = remember { homeViewModel.getGoodsPagingData() }
 
     LaunchedEffect(Unit) {
         homeViewModel.getADImageList()
     }
 
-    var searchBarData by remember { mutableStateOf(homeViewModel.getGoodsPagingData("goods_search", "")) }
-
     Scaffold(
         topBar = {
             SearchBarView(
-                goodsFlowData = searchBarData,
-                onSearch = { searchValue ->
-                    searchBarData = homeViewModel.getGoodsPagingData("goods_search", searchValue)
-                }
+                goodsFlowData = searchBarPagingFlow,
+                onSearch = { searchValue = it }
             )
         },
     ) { innerPadding ->
         GoodsListView(
             modifier = Modifier.padding(innerPadding),
-            goodsFlowData = homeViewModel.getGoodsPagingData() ,
-            adImageList = homeViewModel.uiState.adImageList,
-            onRefresh = {
-                homeViewModel.getADImageList()
-            },
+            goodsFlowData = pagingFlow,
+            adImageList = uiState.adImageList,
+            onADRefresh = { homeViewModel.getADImageList() },
             jumpToDetail = onDetailClick,
         )
     }
@@ -280,7 +280,7 @@ fun GoodsListView(
     modifier: Modifier = Modifier,
     goodsFlowData: Flow<PagingData<Goods>>,
     adImageList: List<String>,
-    onRefresh: () -> Unit = {},
+    onADRefresh: () -> Unit = {},
     jumpToDetail: (goods: Goods) -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -294,7 +294,7 @@ fun GoodsListView(
         coroutineScope.launch {
             isRefreshing = true//设置正在刷新
             lazyPagingItems.refresh()
-            onRefresh()
+            onADRefresh()
             delay(1000)
             isRefreshing = false //刷新业务执行完毕后修改状态
         }
@@ -384,7 +384,7 @@ fun GoodsItemView(
                         start.linkTo(parent.start)
                         top.linkTo(name.bottom)
                     },
-                    text = "${goods.description}",
+                    text = goods.description,
                     fontSize = 13.sp,
                     color = Color.Gray,
                     overflow = TextOverflow.Ellipsis,
@@ -394,7 +394,7 @@ fun GoodsItemView(
                     modifier = Modifier.constrainAs(price) {
                         bottom.linkTo(parent.bottom)
                     },
-                    text = "￥${goods.price?.setScale(2)}",
+                    text = "￥${goods.price.setScale(2)}",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = PriceColor

@@ -175,7 +175,7 @@ fun CartListView(
         ) {
             items(
                 count = lazyPagingItems.itemCount,
-                key = lazyPagingItems.itemKey { it.id!! }
+                key = lazyPagingItems.itemKey { it.id }
             ) { index ->
                 val cart = lazyPagingItems[index]!!
 
@@ -283,7 +283,7 @@ fun CartItemView(
                                 end.linkTo(parent.end)
                                 bottom.linkTo(parent.bottom)
                             },
-                            count = cart.count ?: 0,
+                            count = cart.count,
                             onAddClick = onAddClick,
                             onSubClick = onSubClick
                         )

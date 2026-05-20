@@ -1,4 +1,4 @@
-package com.example.pcmallcompose.utils
+package com.example.pcmallcompose.core.network.utils
 
 import com.alibaba.fastjson2.JSON
 import com.example.pcmallcompose.core.model.response.ResponseResult

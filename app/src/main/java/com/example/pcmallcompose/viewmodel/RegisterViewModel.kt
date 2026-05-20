@@ -1,34 +1,32 @@
 package com.example.pcmallcompose.viewmodel
 
 import android.util.Log
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pcmallcompose.core.model.response.ResponseCode
-import com.example.pcmallcompose.core.model.response.ResponseResult
 import com.example.pcmallcompose.core.network.service.LoginRegisterService
+import com.example.pcmallcompose.core.network.utils.RetrofitUtils
 import com.example.pcmallcompose.utils.ImageUtils
-import com.example.pcmallcompose.utils.RetrofitUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import retrofit2.HttpException
-import java.net.UnknownHostException
 import javax.inject.Inject
 
-sealed class RegisterUiEvent {
-    data class Success(val message: String = "") : RegisterUiEvent()//成功
-    data class Error(val message: String = "") : RegisterUiEvent()//未知错误
-    data object CaptchaError : RegisterUiEvent()//验证码错误
-    data object UserExistError : RegisterUiEvent()//用户已存在
-}
+data class RegisterUiState(
+    val isLoading: Boolean = false,              // 验证码加载中
+    val captchaImage: ImageBitmap? = null,
+    val isRegistering: Boolean = false,          // 注册请求中
+    val isUserRegistered: Boolean = false,       // 注册成功，触发导航
+    val errorMessage: ErrorMessage? = null,      // 瞬态错误，UI 展示后回调清空
+    val shouldRefreshCaptcha: Boolean = false,   // 验证码错误，需要刷新
+)
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
@@ -38,60 +36,75 @@ class RegisterViewModel @Inject constructor(
         private const val TAG: String = "RegisterViewModel"
     }
 
-    private val _uiEvent = MutableSharedFlow<RegisterUiEvent>()
-    val uiEvent: SharedFlow<RegisterUiEvent> = _uiEvent.asSharedFlow()
+    private val _uiState = MutableStateFlow(RegisterUiState())
+    val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
 
-    val captchaImage: MutableState<ImageBitmap?> = mutableStateOf(null)//验证码
+    private fun catchHttpException(e: HttpException) {
+        val response = RetrofitUtils.getErrorMessage(e) ?: return
+        Log.e(TAG, "$e: $response", e)
 
-    fun launchSafe(
-        block: suspend () -> Unit,
-        handleCustomError: suspend (errorResult: ResponseResult<String>) -> Unit = {},
-    ) {
-        viewModelScope.launch {
+        val errorMessage = when (response.code) {
+            ResponseCode.CAPTCHA_ERROR.code -> ErrorMessage.Toast("验证码错误！")
+            ResponseCode.USER_EXIST_ERROR.code -> ErrorMessage.Dialog("账号已存在！")
+            else -> ErrorMessage.Toast(response.message)
+        }
+
+        _uiState.update {
+            it.copy(
+                isRegistering = false,
+                isLoading = false,
+                errorMessage = errorMessage,
+                shouldRefreshCaptcha = response.code == ResponseCode.CAPTCHA_ERROR.code,
+            )
+        }
+    }
+
+    private fun catchException(e: Exception) {
+        Log.e(TAG, e.toString(), e)
+        _uiState.update {
+            it.copy(
+                isRegistering = false,
+                isLoading = false,
+                errorMessage = ErrorMessage.Toast("${e.message}")
+            )
+        }
+    }
+
+    // UI 展示完瞬态消息后回调，清空该字段
+    fun userMessageShown() {
+        _uiState.update { it.copy(errorMessage = null) }
+    }
+
+
+    fun getCaptcha() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update {
+                it.copy(isLoading = true, captchaImage = null, shouldRefreshCaptcha = false)
+            }
             try {
-                withContext(Dispatchers.IO) { block() }
-            } catch (e: UnknownHostException) { // 网络异常
-                Log.e(TAG, "网络异常：$e")
-            } catch (e: HttpException) {//HTTP异常
-                val errorResult = RetrofitUtils.getErrorMessage(e)
-                if (errorResult != null) {
-                    handleCustomError(errorResult)
-                } else {
-                    Log.e(TAG, "出现HTTP错误：$e")
-                    _uiEvent.emit(RegisterUiEvent.Error("错误！"))
-                }
+                delay(1000)
+                val imageBitmap = ImageUtils.decodeImageString(
+                    loginRegisterService.getCaptcha().data!!
+                )
+                _uiState.update { it.copy(isLoading = false, captchaImage = imageBitmap) }
+            } catch (e: HttpException) {
+                catchHttpException(e)
             } catch (e: Exception) {
-                Log.e(TAG, "出现错误：$e")
-                e.printStackTrace()
-                _uiEvent.emit(RegisterUiEvent.Error("错误！"))
+                catchException(e)
             }
         }
     }
 
-    fun getCaptcha() {
-        launchSafe({
-            delay(1000)
-            captchaImage.value = ImageUtils.decodeImageString(loginRegisterService.getCaptcha().data!!)
-        })
-    }
-
     fun register(uid: String, password: String, code: String) {
-        launchSafe({
-            loginRegisterService.register(uid, password, code)
-            _uiEvent.emit(RegisterUiEvent.Success("注册成功！"))
-        }) { errorResult ->
-            when (errorResult.code) {
-                ResponseCode.CAPTCHA_ERROR.code -> {
-                    _uiEvent.emit(RegisterUiEvent.CaptchaError)
-                }
-
-                ResponseCode.USER_EXIST_ERROR.code -> {
-                    _uiEvent.emit(RegisterUiEvent.UserExistError)
-                }
-
-                else -> {
-                    _uiEvent.emit(RegisterUiEvent.Error(errorResult.message!!))
-                }
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update { it.copy(isRegistering = true, errorMessage = null) }
+            try {
+                loginRegisterService.register(uid, password, code)
+                _uiState.update { it.copy(isRegistering = false, isUserRegistered = true) }
+            } catch (e: HttpException) {
+                catchHttpException(e)
+            } catch (e: Exception) {
+                catchException(e)
             }
         }
     }

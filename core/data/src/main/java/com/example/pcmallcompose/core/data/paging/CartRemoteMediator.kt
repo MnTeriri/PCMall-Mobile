@@ -72,7 +72,7 @@ class CartRemoteMediator(
             }
             return MediatorResult.Success(endOfPaginationReached = false)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, e.toString(), e)
             return MediatorResult.Error(e)
         }
     }

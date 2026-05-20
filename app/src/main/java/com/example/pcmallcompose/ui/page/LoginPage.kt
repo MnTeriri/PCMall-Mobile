@@ -42,12 +42,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cn.pedant.SweetAlert.SweetAlertDialog
-import com.example.pcmallcompose.core.model.response.ResponseCode
 import com.example.pcmallcompose.ui.component.PasswordTextField
 import com.example.pcmallcompose.ui.dialog.CaptchaDialog
 import com.example.pcmallcompose.ui.dialog.MessageDialog
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
+import com.example.pcmallcompose.viewmodel.ErrorMessage
 import com.example.pcmallcompose.viewmodel.LoginViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,62 +58,59 @@ fun LoginPage(
     onRegisterClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
-
     val loginViewModel: LoginViewModel = hiltViewModel()
+    val uiState by loginViewModel.uiState.collectAsStateWithLifecycle()
 
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     var openCaptchaDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(loginViewModel.uiState) {
-        if (loginViewModel.uiState.isLoginSuccess) {
+    // 登录成功 → 导航
+    LaunchedEffect(uiState.isUserLoggedIn) {
+        if (uiState.isUserLoggedIn) {
             openCaptchaDialog = false
-            MessageDialog(
-                context = context,
-                alertType = SweetAlertDialog.SUCCESS_TYPE,
-                title = "登录成功！",
-                dismissListener = { onBackClick() }
-            ).show()
-            return@LaunchedEffect
+            MessageDialog(context, SweetAlertDialog.SUCCESS_TYPE, "登录成功！") {
+                onBackClick()
+            }.show()
         }
-        if (!loginViewModel.uiState.isError) {
-            return@LaunchedEffect
-        }
-        when (loginViewModel.uiState.message?.code) {
-            ResponseCode.CAPTCHA_ERROR.code -> {
-                Toast.makeText(context, "验证码错误！", Toast.LENGTH_SHORT).show()
-                loginViewModel.getCaptcha()
-            }
+    }
 
-            ResponseCode.ACCOUNT_ERROR.code -> {
+    // 错误消息 → 弹窗 / Toast，然后消费
+    LaunchedEffect(uiState.errorMessage) {
+        when (val msg = uiState.errorMessage) {
+            is ErrorMessage.Dialog -> {
                 openCaptchaDialog = false
-                MessageDialog(context, SweetAlertDialog.WARNING_TYPE, "账号或密码错误").show()
+                MessageDialog(context, SweetAlertDialog.WARNING_TYPE, msg.text).show()
             }
 
-            ResponseCode.ERROR.code -> {
-                Toast.makeText(context, "错误！", Toast.LENGTH_SHORT).show()
+            is ErrorMessage.Toast -> {
+                Toast.makeText(context, msg.text, Toast.LENGTH_SHORT).show()
             }
+
+            null -> {}
+        }
+        loginViewModel.userMessageShown()
+    }
+
+    // 验证码错误 → 刷新验证码
+    LaunchedEffect(uiState.shouldRefreshCaptcha) {
+        if (uiState.shouldRefreshCaptcha) {
+            loginViewModel.getCaptcha()
         }
     }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            LoginPageTopBar(scrollBehavior, onBackClick)
-        },
+        topBar = { LoginPageTopBar(scrollBehavior, onBackClick) },
     ) { innerPadding ->
         LoginPageContent(
             paddingValues = innerPadding,
             login = { uid, password, captchaCode, isRemember ->
                 loginViewModel.login(uid, password, captchaCode, isRemember)
             },
-            captchaImage = loginViewModel.uiState.captchaUiState.captchaImage,
+            captchaImage = uiState.captchaImage,
             openCaptchaDialog = openCaptchaDialog,
             onOpenValueChange = { openCaptchaDialog = it },
-            getCaptcha = {
-                loginViewModel.getCaptcha()
-            },
+            getCaptcha = { loginViewModel.getCaptcha() },
             jumpToRegister = onRegisterClick
         )
     }

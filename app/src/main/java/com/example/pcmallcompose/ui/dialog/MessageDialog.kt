@@ -5,9 +5,11 @@ import android.content.DialogInterface
 import android.view.View
 import cn.pedant.SweetAlert.SweetAlertDialog
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MessageDialog(
     context: Context,
@@ -27,7 +29,9 @@ class MessageDialog(
         super.getButton(BUTTON_CONFIRM).visibility = View.GONE
         GlobalScope.launch {
             delay(1500)
-            super.dismissWithAnimation()
+            withContext(Dispatchers.Main) {
+                super.dismissWithAnimation()
+            }
         }
     }
 }

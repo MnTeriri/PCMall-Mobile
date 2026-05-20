@@ -32,4 +32,7 @@ dependencies {
     implementation(libs.jackson.module.kotlin)
     implementation(libs.jackson.datatype.jsr310)
     implementation("com.github.franmontiel:PersistentCookieJar:v1.0.1")
+
+    // Fastjson
+    implementation(libs.fastjson)
 }

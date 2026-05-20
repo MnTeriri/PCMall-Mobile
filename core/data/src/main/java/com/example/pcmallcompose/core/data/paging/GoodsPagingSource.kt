@@ -55,7 +55,7 @@ class GoodsPagingSource(
             val nextPage = if (totalPage > page) page + 1 else null
             return LoadResult.Page(goodsList, prevPage, nextPage)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, e.toString(), e)
             return LoadResult.Error(e)
         }
     }
