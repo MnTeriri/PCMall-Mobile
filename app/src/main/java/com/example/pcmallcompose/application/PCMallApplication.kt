@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.core.content.edit
 import dagger.hilt.android.HiltAndroidApp
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 @HiltAndroidApp
 class PCMallApplication : Application() {

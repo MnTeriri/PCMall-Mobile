@@ -17,7 +17,7 @@ import com.example.pcmallcompose.core.model.User
 import com.example.pcmallcompose.ui.page.MainActivityPage
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 val LocalUserData = compositionLocalOf<User?> { null }
 

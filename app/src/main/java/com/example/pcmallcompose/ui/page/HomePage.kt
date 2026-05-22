@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AppBarWithSearch
@@ -34,6 +35,7 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -84,7 +86,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun HomePage(
-    onDetailClick: (goods: Goods) -> Unit = {}
+    onDetailClick: (goods: Goods) -> Unit = {},
+    onAiClick: () -> Unit = {}
 ) {
     val homeViewModel: HomeViewModel = hiltViewModel()
     val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
@@ -106,6 +109,11 @@ fun HomePage(
                 onSearch = { searchValue = it }
             )
         },
+        floatingActionButton = {
+            FloatingActionButton(onClick = onAiClick) {
+                Icon(Icons.Default.Add, contentDescription = "Add")
+            }
+        }
     ) { innerPadding ->
         GoodsListView(
             modifier = Modifier.padding(innerPadding),

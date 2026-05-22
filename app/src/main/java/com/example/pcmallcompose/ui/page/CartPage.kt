@@ -3,7 +3,6 @@ package com.example.pcmallcompose.ui.page
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -87,7 +86,7 @@ fun CartPage() {
         topBar = { CartPageTopBar(scrollBehavior) },
         bottomBar = { CartPageBottomBar() }
     ) { innerPadding ->
-        CartListView(innerPadding, lazyPagingItems)
+        CartListView(Modifier.padding(innerPadding), lazyPagingItems)
     }
 }
 
@@ -141,7 +140,7 @@ fun CartPageBottomBar() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartListView(
-    innerPadding: PaddingValues,
+    modifier: Modifier = Modifier,
     lazyPagingItems: LazyPagingItems<Cart>,
     onClick: (cart: Cart) -> Unit = {},
     onSelectClick: (cart: Cart) -> Unit = {},
@@ -163,7 +162,7 @@ fun CartListView(
     }
 
     PullToRefreshBox(
-        modifier = Modifier.padding(innerPadding),
+        modifier = modifier,
         state = state,
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,

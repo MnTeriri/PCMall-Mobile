@@ -99,7 +99,7 @@ fun RegisterPage(
         topBar = { RegisterPageTopBar(scrollBehavior, onBackClick) },
     ) { innerPadding ->
         RegisterPageContent(
-            paddingValues = innerPadding,
+            modifier = Modifier.padding(innerPadding),
             register = { uid, password, code ->
                 registerViewModel.register(uid, password, code)
             },
@@ -132,7 +132,7 @@ fun RegisterPageTopBar(scrollBehavior: TopAppBarScrollBehavior, onBackClick: () 
 
 @Composable
 fun RegisterPageContent(
-    paddingValues: PaddingValues,
+    modifier: Modifier = Modifier,
     register: (String, String, String) -> Unit,
     openCaptchaDialog: Boolean = false,
     onOpenValueChange: (Boolean) -> Unit,
@@ -179,7 +179,7 @@ fun RegisterPageContent(
         errorMessage = "验证码是五位字符！",
     )
 
-    Column(modifier = Modifier.padding(paddingValues)) {
+    Column(modifier = modifier) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

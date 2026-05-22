@@ -13,9 +13,9 @@ import com.example.pcmallcompose.core.database.PCMallDatabase
 import com.example.pcmallcompose.core.model.Cart
 import com.example.pcmallcompose.core.network.service.CartService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
 
 @HiltViewModel
 class CartViewModel @Inject constructor(

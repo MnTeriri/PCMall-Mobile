@@ -103,7 +103,7 @@ fun LoginPage(
         topBar = { LoginPageTopBar(scrollBehavior, onBackClick) },
     ) { innerPadding ->
         LoginPageContent(
-            paddingValues = innerPadding,
+            modifier = Modifier.padding(innerPadding),
             login = { uid, password, captchaCode, isRemember ->
                 loginViewModel.login(uid, password, captchaCode, isRemember)
             },
@@ -139,7 +139,7 @@ fun LoginPageTopBar(scrollBehavior: TopAppBarScrollBehavior, onBackClick: () -> 
 
 @Composable
 fun LoginPageContent(
-    paddingValues: PaddingValues,
+    modifier: Modifier = Modifier,
     login: (String, String, String, Boolean) -> Unit,
     openCaptchaDialog: Boolean = false,
     onOpenValueChange: (Boolean) -> Unit,
@@ -188,7 +188,7 @@ fun LoginPageContent(
     )
 
 
-    Column(modifier = Modifier.padding(paddingValues)) {
+    Column(modifier = modifier) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

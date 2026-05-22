@@ -12,3 +12,6 @@ val Pink40 = Color(0xFF7D5260)
 
 val BackgroundColor = Color(0xFFF5F5F6)
 val PriceColor=Color(0xFFFF4A26)
+
+val AssistantMessageColor = Color(0xFFE5E3E3)
+val UserMessageColor = Color(0xFF0265FE)

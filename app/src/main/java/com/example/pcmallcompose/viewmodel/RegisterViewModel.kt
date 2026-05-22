@@ -9,6 +9,7 @@ import com.example.pcmallcompose.core.network.service.LoginRegisterService
 import com.example.pcmallcompose.core.network.utils.RetrofitUtils
 import com.example.pcmallcompose.utils.ImageUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
-import javax.inject.Inject
 
 data class RegisterUiState(
     val isLoading: Boolean = false,              // 验证码加载中

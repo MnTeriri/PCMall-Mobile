@@ -70,6 +70,10 @@ fun MainActivityPage() {
             }
             GoodsDetailPage(goods)
         }
+
+        composable<Screen.AiChat> {
+            AiChatPage()
+        }
     }
 }
 
@@ -90,9 +94,14 @@ fun IndexPage(
             modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
         ) {
             composable<Screen.Home> {
-                HomePage(onDetailClick = { goods ->
-                    mainNavController.navigate(Screen.GoodsDetail(JSON.toJSONString(goods)))
-                })
+                HomePage(
+                    onDetailClick = { goods ->
+                        mainNavController.navigate(Screen.GoodsDetail(JSON.toJSONString(goods)))
+                    },
+                    onAiClick = {
+                        mainNavController.navigate(Screen.AiChat)
+                    }
+                )
             }
             composable<Screen.Category> {
                 CategoryPage()
