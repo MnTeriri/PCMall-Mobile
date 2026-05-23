@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 
 @Entity(tableName = "chat_history")
 data class ChatHistoryEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
     @ColumnInfo(name = "type") val type: ChatHistoryType,
     @ColumnInfo(name = "content") val content: String,
     @ColumnInfo(name = "create_time") val createTime: LocalDateTime

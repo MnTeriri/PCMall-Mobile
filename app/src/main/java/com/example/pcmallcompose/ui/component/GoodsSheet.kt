@@ -110,7 +110,7 @@ fun GoodsSheet(
 
                             Text(
                                 modifier = Modifier.padding(top = 3.dp),
-                                text = "￥${goods.price?.setScale(2)}",
+                                text = "￥${goods.price.setScale(2)}",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = PriceColor

@@ -1,16 +1,24 @@
 package com.example.pcmallcompose.ui.page
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -35,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -52,6 +61,7 @@ import com.example.pcmallcompose.ui.theme.AssistantMessageColor
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import com.example.pcmallcompose.ui.theme.UserMessageColor
 import com.example.pcmallcompose.viewmodel.AiChatViewModel
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.flow.Flow
 
 @Composable
@@ -73,6 +83,7 @@ fun AiChatPage() {
     ) { innerPadding ->
         AiChatHistoryListView(
             modifier = Modifier.padding(innerPadding),
+            streamingContent = uiState.streamingContent,
             pagingFlow = pagingFlow
         )
     }
@@ -171,7 +182,8 @@ fun AiChatInputBar(
 @Composable
 fun AiChatHistoryListView(
     modifier: Modifier = Modifier,
-    pagingFlow: Flow<PagingData<ChatHistory>>
+    streamingContent: String,
+    pagingFlow: Flow<PagingData<ChatHistory>>,
 ) {
     val lazyPagingItems = pagingFlow.collectAsLazyPagingItems()
 
@@ -183,8 +195,11 @@ fun AiChatHistoryListView(
         items(
             count = lazyPagingItems.itemCount
         ) {
-            val history = lazyPagingItems[it]
-            history?.let {
+            val history = lazyPagingItems[it]!!
+            if (history.type == AI && history.content.isEmpty()) {
+                // 占位行：读取 streamingContent 显示
+                AiChatStreamingItemView(streamingContent)
+            } else {
                 AiChatHistoryItemView(history)
             }
         }
@@ -230,18 +245,80 @@ fun AiChatHistoryItemView(history: ChatHistory) {
             color = Color.Black,
             text = LocalDateTimeUtil.format(history.createTime, DatePattern.NORM_DATETIME_FORMATTER)
         )
-        Text(
+        if (history.type == AI) {
+            MarkdownText(
+                modifier = Modifier
+                    .background(
+                        color = backgroundColor,
+                        shape = RoundedCornerShape(15.dp)
+                    )
+                    .padding(horizontal = 15.dp, vertical = 10.dp),
+                markdown = history.content.trimIndent(),
+            )
+        } else {
+            Text(
+                modifier = Modifier
+                    .background(
+                        color = backgroundColor,
+                        shape = RoundedCornerShape(15.dp)
+                    )
+                    .padding(horizontal = 15.dp, vertical = 10.dp),
+                fontSize = 16.sp,
+                lineHeight = 21.sp,
+                color = contentTextColor,
+                text = history.content
+            )
+        }
+    }
+}
+
+@Composable
+fun AiChatStreamingItemView(content: String) {
+    val infiniteTransition = rememberInfiniteTransition()
+    val cursorAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(600, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse,
+        )
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(end = 20.dp, bottom = 20.dp),
+        horizontalAlignment = Alignment.Start
+    ) {
+        MarkdownText(
             modifier = Modifier
                 .background(
-                    color = backgroundColor,
+                    color = AssistantMessageColor,
                     shape = RoundedCornerShape(15.dp)
                 )
                 .padding(horizontal = 15.dp, vertical = 10.dp),
-            fontSize = 16.sp,
-            lineHeight = 21.sp,
-            color = contentTextColor,
-            text = history.content
+            markdown = content.trimIndent(),
         )
+        Row(
+            modifier = Modifier.padding(start = 10.dp, top = 2.dp)
+        ) {
+            // 右下角闪烁光标提示
+            Text(
+                modifier = Modifier
+                    .alpha(cursorAlpha),
+                fontSize = 12.sp,
+                color = Color.Gray,
+                text = "●"  // 可以用 AnimatedVisibility 做闪烁动画
+            )
+
+            Spacer(modifier = Modifier.width(5.dp))
+
+            Text(
+                fontSize = 12.sp,
+                color = Color.Gray,
+                text = "正在输出..."
+            )
+        }
     }
 }
 

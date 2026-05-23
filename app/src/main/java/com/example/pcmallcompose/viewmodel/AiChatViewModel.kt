@@ -10,10 +10,13 @@ import androidx.paging.map
 import com.example.pcmallcompose.core.database.dao.ChatHistoryDao
 import com.example.pcmallcompose.core.database.entity.ChatHistoryEntity
 import com.example.pcmallcompose.core.model.ChatHistory
+import com.example.pcmallcompose.core.model.ChatHistory.ChatHistoryType
+import com.example.pcmallcompose.core.model.ai.AiChatEvent.AiChatEventType.GOODS
+import com.example.pcmallcompose.core.model.ai.AiChatEvent.AiChatEventType.TEXT
+import com.example.pcmallcompose.core.network.sse.AiChatSseClient
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,11 +28,14 @@ import java.time.LocalDateTime
 
 data class AiChatUiState(
     val isChatting: Boolean = false,//是否正在聊天
+    val streamingContent: String = "",
+    val errorMessage: ErrorMessage? = null,
 )
 
 @HiltViewModel
 class AiChatViewModel @Inject constructor(
-    val chatHistoryDao: ChatHistoryDao
+    private val chatHistoryDao: ChatHistoryDao,
+    private val aiChatSseClient: AiChatSseClient
 ) : ViewModel() {
     companion object {
         const val TAG = "AiChatViewModel"
@@ -50,16 +56,43 @@ class AiChatViewModel @Inject constructor(
 
     fun chat(message: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            _uiState.update { it.copy(isChatting = true) }
+            _uiState.update { it.copy(isChatting = true, streamingContent = "", errorMessage = null) }
 
-            var chatHistory = ChatHistory(ChatHistory.ChatHistoryType.USER, message, LocalDateTime.now())
-            chatHistoryDao.insertOrReplace(ChatHistoryEntity.fromChatHistory(chatHistory))
+            // 1. 插入用户消息
+            val userHistory = ChatHistory(ChatHistoryType.USER, message, LocalDateTime.now())
+            chatHistoryDao.insertOrReplace(ChatHistoryEntity.fromChatHistory(userHistory))
 
-            delay(3000)
+            // 2. 插入空占位行，拿到自增 ID
+            val placeholder = ChatHistory(ChatHistoryType.AI, "", LocalDateTime.now())
+            val placeholderEntity = ChatHistoryEntity.fromChatHistory(placeholder)
+            val placeholderId = chatHistoryDao.insertOrReplace(placeholderEntity)
 
-            chatHistory =
-                ChatHistory(ChatHistory.ChatHistoryType.AI, "${message}${LocalDateTime.now()}", LocalDateTime.now())
-            chatHistoryDao.insertOrReplace(ChatHistoryEntity.fromChatHistory(chatHistory))
+            val builder = StringBuilder()
+            aiChatSseClient.chat("000000000", "123123", message).collect { result ->
+                when (result.type) {
+                    GOODS -> {
+                    }
+                    TEXT -> {
+                        builder.append(result.data)
+                        _uiState.update { it.copy(streamingContent = builder.toString()) }
+                    }
+                    else -> {
+
+                    }
+                }
+            }
+
+            // 3. 流结束，保存完整 AI 回复到 Room
+            val content = builder.toString()
+            if (content.isNotBlank()) {
+                chatHistoryDao.insertOrReplace(
+                    placeholderEntity.copy(
+                        id = placeholderId,
+                        content = builder.toString(),
+                        createTime = LocalDateTime.now()
+                    )
+                )
+            }
 
             _uiState.update { it.copy(isChatting = false) }
         }
