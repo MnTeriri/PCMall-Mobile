@@ -1,13 +1,17 @@
 package com.example.pcmallcompose.ui.page
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,22 +19,32 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.Recommend
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -54,9 +68,13 @@ import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import cn.hutool.core.date.DatePattern
 import cn.hutool.core.date.LocalDateTimeUtil
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.example.pcmallcompose.core.model.ChatHistory
-import com.example.pcmallcompose.core.model.ChatHistory.ChatHistoryType.AI
-import com.example.pcmallcompose.core.model.ChatHistory.ChatHistoryType.USER
+import com.example.pcmallcompose.core.model.ChatHistory.ChatHistoryType
+import com.example.pcmallcompose.core.model.ChatHistory.ChatStatus
+import com.example.pcmallcompose.core.model.Goods
+import com.example.pcmallcompose.core.network.di.NetworkModule
 import com.example.pcmallcompose.ui.theme.AssistantMessageColor
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import com.example.pcmallcompose.ui.theme.UserMessageColor
@@ -65,7 +83,10 @@ import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.flow.Flow
 
 @Composable
-fun AiChatPage() {
+fun AiChatPage(
+    onBackClick: () -> Unit = {},
+    onCloseClick: () -> Unit = {}
+) {
     val aiChatViewModel: AiChatViewModel = hiltViewModel()
     val uiState by aiChatViewModel.uiState.collectAsStateWithLifecycle()
 
@@ -73,7 +94,12 @@ fun AiChatPage() {
 
     Scaffold(
         modifier = Modifier.imePadding(),
-        topBar = { AiChatTopBar() },
+        topBar = {
+            AiChatTopBar(
+                onBackClick = onBackClick,
+                onCloseClick = onCloseClick
+            )
+        },
         bottomBar = {
             AiChatInputBar(
                 isChatting = uiState.isChatting,
@@ -196,7 +222,7 @@ fun AiChatHistoryListView(
             count = lazyPagingItems.itemCount
         ) {
             val history = lazyPagingItems[it]!!
-            if (history.type == AI && history.content.isEmpty()) {
+            if (history.type == ChatHistoryType.AI && history.chatStatus == ChatStatus.CHATTING) {
                 // 占位行：读取 streamingContent 显示
                 AiChatStreamingItemView(streamingContent)
             } else {
@@ -209,28 +235,28 @@ fun AiChatHistoryListView(
 @Composable
 fun AiChatHistoryItemView(history: ChatHistory) {
     val columnPaddingValues = when (history.type) {
-        AI -> PaddingValues(end = 20.dp, bottom = 20.dp)
-        USER -> PaddingValues(start = 20.dp, bottom = 20.dp)
+        ChatHistoryType.AI -> PaddingValues(end = 20.dp, bottom = 20.dp)
+        ChatHistoryType.USER -> PaddingValues(start = 20.dp, bottom = 20.dp)
     }
 
     val horizontalAlignment = when (history.type) {
-        AI -> Alignment.Start
-        USER -> Alignment.End
+        ChatHistoryType.AI -> Alignment.Start
+        ChatHistoryType.USER -> Alignment.End
     }
 
     val backgroundColor = when (history.type) {
-        AI -> AssistantMessageColor
-        USER -> UserMessageColor
+        ChatHistoryType.AI -> AssistantMessageColor
+        ChatHistoryType.USER -> UserMessageColor
     }
 
     val timeTextPaddingValues = when (history.type) {
-        AI -> PaddingValues(start = 5.dp, bottom = 3.dp)
-        USER -> PaddingValues(end = 5.dp, bottom = 3.dp)
+        ChatHistoryType.AI -> PaddingValues(start = 5.dp, bottom = 3.dp)
+        ChatHistoryType.USER -> PaddingValues(end = 5.dp, bottom = 3.dp)
     }
 
     val contentTextColor = when (history.type) {
-        AI -> Color.Black
-        USER -> Color.White
+        ChatHistoryType.AI -> Color.Black
+        ChatHistoryType.USER -> Color.White
     }
 
     Column(
@@ -245,16 +271,48 @@ fun AiChatHistoryItemView(history: ChatHistory) {
             color = Color.Black,
             text = LocalDateTimeUtil.format(history.createTime, DatePattern.NORM_DATETIME_FORMATTER)
         )
-        if (history.type == AI) {
-            MarkdownText(
-                modifier = Modifier
-                    .background(
-                        color = backgroundColor,
-                        shape = RoundedCornerShape(15.dp)
+        if (history.type == ChatHistoryType.AI) {
+            if (history.chatStatus == ChatStatus.ERROR) {
+                // 错误气泡：红色退底，图标 + 文案
+                Row(
+                    modifier = Modifier
+                        .background(
+                            color = Color(0xFFFCE4EC),   // 浅红
+                            shape = RoundedCornerShape(15.dp)
+                        )
+                        .padding(horizontal = 15.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ErrorOutline,
+                        contentDescription = null,
+                        tint = Color(0xFFD32F2F),
+                        modifier = Modifier.size(18.dp)
                     )
-                    .padding(horizontal = 15.dp, vertical = 10.dp),
-                markdown = history.content.trimIndent(),
-            )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = "生成失败，请稍后重试",
+                        fontSize = 14.sp,
+                        color = Color(0xFFD32F2F)
+                    )
+                }
+            } else {
+                MarkdownText(
+                    modifier = Modifier
+                        .background(
+                            color = backgroundColor,
+                            shape = RoundedCornerShape(15.dp)
+                        )
+                        .padding(horizontal = 15.dp, vertical = 10.dp),
+                    markdown = history.content.trimIndent(),
+                )
+
+                // ── 推荐商品（仅 AI 消息有内容时显示）──
+                if (history.recommends.isNotEmpty()) {
+                    Spacer(Modifier.height(4.dp))
+                    RecommendGoodsStrip(history.recommends)
+                }
+            }
         } else {
             Text(
                 modifier = Modifier
@@ -304,11 +362,10 @@ fun AiChatStreamingItemView(content: String) {
         ) {
             // 右下角闪烁光标提示
             Text(
-                modifier = Modifier
-                    .alpha(cursorAlpha),
+                modifier = Modifier.alpha(cursorAlpha),
                 fontSize = 12.sp,
                 color = Color.Gray,
-                text = "●"  // 可以用 AnimatedVisibility 做闪烁动画
+                text = "●"
             )
 
             Spacer(modifier = Modifier.width(5.dp))
@@ -317,6 +374,111 @@ fun AiChatStreamingItemView(content: String) {
                 fontSize = 12.sp,
                 color = Color.Gray,
                 text = "正在输出..."
+            )
+        }
+    }
+}
+
+@Composable
+private fun RecommendGoodsStrip(goodsList: List<Goods>) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.Start
+    ) {
+        // 折叠/展开按钮
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = AssistantMessageColor,
+                    shape = RoundedCornerShape(15.dp)
+                )
+                .clickable { expanded = !expanded }
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Outlined.Recommend,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    text = "为您推荐 ${goodsList.size} 件商品",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            Icon(
+                imageVector = if (expanded) Icons.Outlined.KeyboardArrowUp
+                else Icons.Outlined.KeyboardArrowDown,
+                contentDescription = null,
+                tint = Color.Gray,
+                modifier = Modifier.size(16.dp)
+            )
+        }
+
+        // 展开内容：水平滚动的商品卡片
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            Column {
+                Spacer(Modifier.height(6.dp))
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(
+                        items = goodsList,
+                        key = { it.id }
+                    ) { goods ->
+                        RecommendGoodsItem(goods)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
+private fun RecommendGoodsItem(goods: Goods) {
+    ElevatedCard(
+        modifier = Modifier.width(120.dp),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = Color.White
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(8.dp)
+        ) {
+            GlideImage(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp),
+                model = "${NetworkModule.IMAGE_URL}${goods.image}",
+                contentDescription = null
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = goods.gname,
+                fontSize = 12.sp,
+                lineHeight = 16.sp,
+                maxLines = 2,
+                color = Color.Black
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "¥${goods.price}",
+                fontSize = 14.sp,
+                color = Color(0xFFE53935),
             )
         }
     }

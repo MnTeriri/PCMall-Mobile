@@ -6,7 +6,7 @@ import com.example.pcmallcompose.core.network.service.CartService
 import com.example.pcmallcompose.core.network.service.GoodsService
 import com.example.pcmallcompose.core.network.service.ImageService
 import com.example.pcmallcompose.core.network.service.LoginRegisterService
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.franmontiel.persistentcookiejar.ClearableCookieJar
 import com.franmontiel.persistentcookiejar.PersistentCookieJar
 import com.franmontiel.persistentcookiejar.cache.SetCookieCache
@@ -54,11 +54,11 @@ object NetworkModule {
 
     @Singleton
     @Provides
-    fun provideLoginService(okHttpClient: OkHttpClient): LoginRegisterService {
+    fun provideLoginService(okHttpClient: OkHttpClient, objectMapper: ObjectMapper): LoginRegisterService {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(JacksonConverterFactory.create(jacksonObjectMapper()))
+            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
             .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
             .build()
             .create(LoginRegisterService::class.java)
@@ -66,11 +66,11 @@ object NetworkModule {
 
     @Singleton
     @Provides
-    fun provideCartService(okHttpClient: OkHttpClient): CartService {
+    fun provideCartService(okHttpClient: OkHttpClient, objectMapper: ObjectMapper): CartService {
         return Retrofit.Builder()
             .baseUrl(BASE_URL + "mobile/cart/")
             .client(okHttpClient)
-            .addConverterFactory(JacksonConverterFactory.create(jacksonObjectMapper()))
+            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
             .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
             .build()
             .create(CartService::class.java)
@@ -78,11 +78,11 @@ object NetworkModule {
 
     @Singleton
     @Provides
-    fun provideGoodsService(okHttpClient: OkHttpClient): GoodsService {
+    fun provideGoodsService(okHttpClient: OkHttpClient, objectMapper: ObjectMapper): GoodsService {
         return Retrofit.Builder()
             .baseUrl(BASE_URL + "mobile/goods/")
             .client(okHttpClient)
-            .addConverterFactory(JacksonConverterFactory.create(jacksonObjectMapper()))
+            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
             .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
             .build()
             .create(GoodsService::class.java)
@@ -90,11 +90,11 @@ object NetworkModule {
 
     @Singleton
     @Provides
-    fun provideImageService(okHttpClient: OkHttpClient): ImageService {
+    fun provideImageService(okHttpClient: OkHttpClient, objectMapper: ObjectMapper): ImageService {
         return Retrofit.Builder()
             .baseUrl(IMAGE_URL)
             .client(okHttpClient)
-            .addConverterFactory(JacksonConverterFactory.create(jacksonObjectMapper()))
+            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
             .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
             .build()
             .create(ImageService::class.java)

@@ -4,7 +4,7 @@ import android.util.Log
 import com.example.pcmallcompose.core.model.ai.AiChatEvent
 import com.example.pcmallcompose.core.model.ai.AiChatRequest
 import com.example.pcmallcompose.core.network.di.NetworkModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.channels.awaitClose
@@ -19,15 +19,14 @@ import okhttp3.sse.EventSourceListener
 
 @Singleton
 class AiChatSseClient @Inject constructor(
-    private val eventSourceFactory: EventSource.Factory
+    private val eventSourceFactory: EventSource.Factory,
+    private val objectMapper: ObjectMapper
 ) {
     companion object {
         private const val TAG = "AiChatSseClient"
         private const val CHAT_PATH = "ai/assistant/chat"
         private val JSON_MEDIA_TYPE = "application/json".toMediaType()
     }
-
-    private val objectMapper = jacksonObjectMapper()
 
     fun chat(
         uid: String,

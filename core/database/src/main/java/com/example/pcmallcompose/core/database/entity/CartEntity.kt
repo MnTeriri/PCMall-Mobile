@@ -28,6 +28,7 @@ data class CartEntity(
     )
 
     companion object {
+        @JvmStatic
         fun fromCart(cart: Cart): CartEntity = CartEntity(
             id = cart.id,
             uid = cart.uid,

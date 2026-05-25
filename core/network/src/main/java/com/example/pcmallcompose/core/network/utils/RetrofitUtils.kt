@@ -9,10 +9,10 @@ object RetrofitUtils {
     fun getErrorMessage(exception: HttpException): ResponseResult<String>? {
         val errorMessage = exception.response()?.errorBody()?.string()
         if (errorMessage != null) {
-            return JSON.parseObject(
+            return JSON.parseObject<ResponseResult<String>>(
                 errorMessage,
                 ResponseResult::class.java
-            ) as ResponseResult<String>?
+            )
         }
         return null
     }

@@ -10,7 +10,7 @@ import com.example.pcmallcompose.core.database.entity.ChatHistoryEntity
 @Dao
 interface ChatHistoryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertOrReplace(chatHistory: ChatHistoryEntity): Long
+    suspend fun insertOrReplace(chatHistoryEntity: ChatHistoryEntity): Long
 
     @Query("SELECT * FROM chat_history ORDER BY id DESC")
     fun pagingSource(): PagingSource<Int, ChatHistoryEntity>

@@ -6,6 +6,7 @@ import androidx.room.TypeConverters
 import com.example.pcmallcompose.core.database.converter.BigDecimalConverter
 import com.example.pcmallcompose.core.database.converter.GoodsConverter
 import com.example.pcmallcompose.core.database.converter.LocalDateTimeConverter
+import com.example.pcmallcompose.core.database.converter.RecommendsConverter
 import com.example.pcmallcompose.core.database.dao.CartDao
 import com.example.pcmallcompose.core.database.dao.ChatHistoryDao
 import com.example.pcmallcompose.core.database.dao.GoodsDao
@@ -20,7 +21,7 @@ import com.example.pcmallcompose.core.database.entity.RemoteKey
     version = 1,
     exportSchema = false
 )
-@TypeConverters(value = [BigDecimalConverter::class, LocalDateTimeConverter::class, GoodsConverter::class])
+@TypeConverters(value = [BigDecimalConverter::class, LocalDateTimeConverter::class, GoodsConverter::class, RecommendsConverter::class])
 abstract class PCMallDatabase : RoomDatabase() {
     abstract fun goodsDao(): GoodsDao
     abstract fun cartDao(): CartDao

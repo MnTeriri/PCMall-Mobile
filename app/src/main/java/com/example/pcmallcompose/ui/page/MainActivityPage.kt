@@ -72,7 +72,10 @@ fun MainActivityPage() {
         }
 
         composable<Screen.AiChat> {
-            AiChatPage()
+            AiChatPage(
+                onBackClick = { navController.popBackStack() },
+                onCloseClick = { navController.popBackStack() }
+            )
         }
     }
 }
