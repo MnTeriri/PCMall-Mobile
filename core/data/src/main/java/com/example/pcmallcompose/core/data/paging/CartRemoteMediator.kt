@@ -21,7 +21,7 @@ class CartRemoteMediator(
     private val cartService: CartService
 ) : RemoteMediator<Int, CartEntity>() {
     companion object {
-        private const val TAG = "BaseRemoteMediator"
+        private const val TAG = "CartRemoteMediator"
         private const val TABLE_NAME = "cart"
     }
 

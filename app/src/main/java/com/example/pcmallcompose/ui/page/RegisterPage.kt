@@ -84,7 +84,7 @@ fun RegisterPage(
             }
             null -> {}
         }
-        registerViewModel.userMessageShown()
+        registerViewModel.errorMessageShown()
     }
 
     // 验证码错误 → 刷新验证码

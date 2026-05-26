@@ -60,7 +60,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
 //    implementation(libs.androidx.material3)
-    implementation("androidx.compose.material3:material3:1.5.0-alpha07")
+    implementation("androidx.compose.material3:material3:1.5.0-alpha10")
     implementation(libs.androidx.material3.window.size)
     implementation(libs.androidx.material3.adaptive)
     implementation(libs.androidx.material3.adaptive.layout)
@@ -113,7 +113,8 @@ dependencies {
     implementation(libs.fastjson)
     implementation(libs.hutool)
 
-    implementation("com.github.f0ris.sweetalert:library:1.6.2")
+    implementation(libs.markdown.renderer.android)
+    implementation(libs.markdown.renderer.m3)
 
-    implementation("com.github.jeziellago:compose-markdown:0.7.2")
+    implementation("com.github.f0ris.sweetalert:library:1.6.2")
 }

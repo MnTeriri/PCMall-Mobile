@@ -12,7 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.edit
-import com.alibaba.fastjson2.JSON
+import com.alibaba.fastjson2.parseObject
 import com.example.pcmallcompose.core.model.User
 import com.example.pcmallcompose.ui.page.MainActivityPage
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
@@ -47,10 +47,8 @@ class MainActivity : ComponentActivity() {
         val data = sharedPreferences.getString("data", null)
         if (data == null) {
             Log.w(TAG, "用户没登陆")
-            userData = null
-            return
         }
-        userData = JSON.parseObject(data, User::class.java)
+        userData = data.parseObject<User>()
     }
 
     fun logout() {

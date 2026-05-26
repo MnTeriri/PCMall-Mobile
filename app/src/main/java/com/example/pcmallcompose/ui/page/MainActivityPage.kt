@@ -23,7 +23,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.alibaba.fastjson2.JSON
+import com.alibaba.fastjson2.parseObject
+import com.alibaba.fastjson2.toJSONString
 import com.example.pcmallcompose.R
 import com.example.pcmallcompose.activity.MainActivity
 import com.example.pcmallcompose.core.model.Goods
@@ -66,7 +67,7 @@ fun MainActivityPage() {
         composable<Screen.GoodsDetail> { backStackEntry ->
             val goodsDetail: Screen.GoodsDetail = backStackEntry.toRoute()
             val goods = remember(goodsDetail.goods) {
-                JSON.parseObject(goodsDetail.goods, Goods::class.java)
+                goodsDetail.goods.parseObject<Goods>()
             }
             GoodsDetailPage(goods)
         }
@@ -99,7 +100,7 @@ fun IndexPage(
             composable<Screen.Home> {
                 HomePage(
                     onDetailClick = { goods ->
-                        mainNavController.navigate(Screen.GoodsDetail(JSON.toJSONString(goods)))
+                        mainNavController.navigate(Screen.GoodsDetail(goods.toJSONString()))
                     },
                     onAiClick = {
                         mainNavController.navigate(Screen.AiChat)

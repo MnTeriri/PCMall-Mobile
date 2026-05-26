@@ -40,9 +40,13 @@ class RegisterViewModel @Inject constructor(
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
 
     private fun catchHttpException(e: HttpException) {
-        val response = RetrofitUtils.getErrorMessage(e) ?: return
-        Log.e(TAG, "$e: $response", e)
+        val response = RetrofitUtils.getErrorMessage(e)
+        if (response == null) {
+            catchException(e)
+            return
+        }
 
+        Log.e(TAG, "$e: $response", e)
         val errorMessage = when (response.code) {
             ResponseCode.CAPTCHA_ERROR.code -> ErrorMessage.Toast("验证码错误！")
             ResponseCode.USER_EXIST_ERROR.code -> ErrorMessage.Dialog("账号已存在！")
@@ -71,10 +75,9 @@ class RegisterViewModel @Inject constructor(
     }
 
     // UI 展示完瞬态消息后回调，清空该字段
-    fun userMessageShown() {
+    fun errorMessageShown() {
         _uiState.update { it.copy(errorMessage = null) }
     }
-
 
     fun getCaptcha() {
         viewModelScope.launch(Dispatchers.IO) {

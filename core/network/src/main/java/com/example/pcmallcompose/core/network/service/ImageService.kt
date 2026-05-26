@@ -1,9 +1,9 @@
 package com.example.pcmallcompose.core.network.service
 
 import com.example.pcmallcompose.core.model.response.ResponseResult
-import retrofit2.http.POST
+import retrofit2.http.GET
 
 interface ImageService {
-    @POST("getADImageList")
+    @GET("getADImageList")
     suspend fun getADImageList(): ResponseResult<List<String>>
 }

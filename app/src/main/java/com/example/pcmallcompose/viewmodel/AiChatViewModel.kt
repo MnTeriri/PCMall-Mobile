@@ -18,6 +18,7 @@ import com.example.pcmallcompose.core.model.ai.AiChatEvent
 import com.example.pcmallcompose.core.model.ai.AiChatEvent.AiChatEventType.GOODS
 import com.example.pcmallcompose.core.model.ai.AiChatEvent.AiChatEventType.TEXT
 import com.example.pcmallcompose.core.network.sse.AiChatSseClient
+import com.example.pcmallcompose.core.network.utils.RetrofitUtils
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,6 +31,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.time.LocalDateTime
 
 data class AiChatUiState(
@@ -50,6 +52,26 @@ class AiChatViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(AiChatUiState())
     val uiState: StateFlow<AiChatUiState> = _uiState.asStateFlow()
+
+    private fun catchHttpException(e: HttpException) {
+        val response = RetrofitUtils.getErrorMessage(e)
+        if (response == null) {
+            catchException(e)
+            return
+        }
+        Log.e(TAG, "$e: $response", e)
+        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast(response.message)) }
+    }
+
+    private fun catchException(e: Exception) {
+        Log.e(TAG, e.toString(), e)
+        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast("${e.message}")) }
+    }
+
+    // UI 展示完瞬态消息后回调，清空该字段
+    fun errorMessageShown() {
+        _uiState.update { it.copy(errorMessage = null) }
+    }
 
     fun getChatHistoryPagingData(): Flow<PagingData<ChatHistory>> {
         return Pager(
@@ -124,6 +146,8 @@ class AiChatViewModel @Inject constructor(
                         )
                     )
                 }
+            } catch (e: HttpException) {
+                catchHttpException(e)
             } catch (e: Exception) {
                 Log.e(TAG, "$e: ${e.message}", e)
                 chatHistoryDao.insertOrReplace(
@@ -133,6 +157,7 @@ class AiChatViewModel @Inject constructor(
                         createTime = LocalDateTime.now()
                     )
                 )
+                catchException(e)
             }
 
             _uiState.update { it.copy(isChatting = false) }

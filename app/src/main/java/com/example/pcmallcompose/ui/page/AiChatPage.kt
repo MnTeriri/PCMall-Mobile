@@ -49,7 +49,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -79,7 +79,10 @@ import com.example.pcmallcompose.ui.theme.AssistantMessageColor
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import com.example.pcmallcompose.ui.theme.UserMessageColor
 import com.example.pcmallcompose.viewmodel.AiChatViewModel
-import dev.jeziellago.compose.markdowntext.MarkdownText
+import com.mikepenz.markdown.m3.Markdown
+import com.mikepenz.markdown.m3.markdownColor
+import com.mikepenz.markdown.m3.markdownTypography
+import com.mikepenz.markdown.model.rememberMarkdownState
 import kotlinx.coroutines.flow.Flow
 
 @Composable
@@ -95,13 +98,13 @@ fun AiChatPage(
     Scaffold(
         modifier = Modifier.imePadding(),
         topBar = {
-            AiChatTopBar(
+            AiChatPageTopBar(
                 onBackClick = onBackClick,
                 onCloseClick = onCloseClick
             )
         },
         bottomBar = {
-            AiChatInputBar(
+            AiChatPageInputBar(
                 isChatting = uiState.isChatting,
                 onChatClick = { aiChatViewModel.chat(it) }
             )
@@ -117,14 +120,14 @@ fun AiChatPage(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AiChatTopBar(
+fun AiChatPageTopBar(
     onBackClick: () -> Unit = {},
     onCloseClick: () -> Unit = {}
 ) {
     TopAppBar(
-        colors = topAppBarColors(
-            containerColor = Color.White,
-            titleContentColor = Color.Black,
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.primary
         ),
         navigationIcon = {
             IconButton(onClick = onBackClick) {
@@ -142,21 +145,18 @@ fun AiChatTopBar(
                 )
             }
         },
-        title = { Text("AI助手") }
+        title = { Text("AI导购") }
     )
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun AiChatInputBar(
+fun AiChatPageInputBar(
     isChatting: Boolean,
     onChatClick: (String) -> Unit = {},
     onDismissClick: () -> Unit = {}
 ) {
-    BottomAppBar(
-        containerColor = Color.White,
-        contentColor = Color.Black,
-    ) {
+    BottomAppBar {
         var text by remember { mutableStateOf("") }
         Row(
             modifier = Modifier
@@ -297,14 +297,28 @@ fun AiChatHistoryItemView(history: ChatHistory) {
                     )
                 }
             } else {
-                MarkdownText(
+                val markdownState = rememberMarkdownState(
+                    content = history.content.trimIndent(),
+                    immediate = true
+                )
+
+                Markdown(
+                    markdownState = markdownState,
                     modifier = Modifier
                         .background(
                             color = backgroundColor,
                             shape = RoundedCornerShape(15.dp)
                         )
                         .padding(horizontal = 15.dp, vertical = 10.dp),
-                    markdown = history.content.trimIndent(),
+                    colors = markdownColor(),
+                    typography = markdownTypography(
+                        h1 = MaterialTheme.typography.displaySmall,
+                        h2 = MaterialTheme.typography.headlineMedium,
+                        h3 = MaterialTheme.typography.headlineSmall,
+                        h4 = MaterialTheme.typography.titleLarge,
+                        h5 = MaterialTheme.typography.titleMedium,
+                        h6 = MaterialTheme.typography.titleSmall,
+                    )
                 )
 
                 // ── 推荐商品（仅 AI 消息有内容时显示）──
@@ -348,14 +362,27 @@ fun AiChatStreamingItemView(content: String) {
             .padding(end = 20.dp, bottom = 20.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        MarkdownText(
+        val markdownState = rememberMarkdownState(
+            content = content,
+            retainState = true,
+        )
+        Markdown(
+            markdownState = markdownState,
             modifier = Modifier
                 .background(
                     color = AssistantMessageColor,
                     shape = RoundedCornerShape(15.dp)
                 )
                 .padding(horizontal = 15.dp, vertical = 10.dp),
-            markdown = content.trimIndent(),
+            colors = markdownColor(),
+            typography = markdownTypography(
+                h1 = MaterialTheme.typography.displaySmall,
+                h2 = MaterialTheme.typography.headlineMedium,
+                h3 = MaterialTheme.typography.headlineSmall,
+                h4 = MaterialTheme.typography.titleLarge,
+                h5 = MaterialTheme.typography.titleMedium,
+                h6 = MaterialTheme.typography.titleSmall,
+            )
         )
         Row(
             modifier = Modifier.padding(start = 10.dp, top = 2.dp)
@@ -450,7 +477,7 @@ private fun RecommendGoodsStrip(goodsList: List<Goods>) {
 @Composable
 private fun RecommendGoodsItem(goods: Goods) {
     ElevatedCard(
-        modifier = Modifier.width(120.dp),
+        modifier = Modifier.size(width = 120.dp, height = 140.dp),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.elevatedCardColors(
             containerColor = Color.White
@@ -471,7 +498,7 @@ private fun RecommendGoodsItem(goods: Goods) {
                 text = goods.gname,
                 fontSize = 12.sp,
                 lineHeight = 16.sp,
-                maxLines = 2,
+                maxLines = 1,
                 color = Color.Black
             )
             Spacer(Modifier.height(4.dp))

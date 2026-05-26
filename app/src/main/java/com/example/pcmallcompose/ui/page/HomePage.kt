@@ -20,22 +20,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -79,9 +79,11 @@ import com.example.pcmallcompose.R
 import com.example.pcmallcompose.core.model.Goods
 import com.example.pcmallcompose.core.network.di.NetworkModule
 import com.example.pcmallcompose.ui.theme.PriceColor
+import com.example.pcmallcompose.viewmodel.ErrorMessage
 import com.example.pcmallcompose.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 @Composable
@@ -89,12 +91,17 @@ fun HomePage(
     onDetailClick: (goods: Goods) -> Unit = {},
     onAiClick: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     val homeViewModel: HomeViewModel = hiltViewModel()
     val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
 
     var searchValue by remember { mutableStateOf("") }
     val searchBarPagingFlow = remember(searchValue) {
-        homeViewModel.getGoodsPagingData("goods_search", searchValue)
+        if (searchValue.isNotEmpty()) {
+            homeViewModel.getGoodsPagingData("goods_search", searchValue)
+        } else {
+            flowOf(PagingData.empty())   // 没有搜索词时返回空流，展开后展示空列表
+        }
     }
     val pagingFlow = remember { homeViewModel.getGoodsPagingData() }
 
@@ -102,17 +109,29 @@ fun HomePage(
         homeViewModel.getADImageList()
     }
 
+    LaunchedEffect(uiState.errorMessage) {
+        when (val msg = uiState.errorMessage) {
+            is ErrorMessage.Toast -> {
+                Toast.makeText(context, msg.text, Toast.LENGTH_SHORT).show()
+            }
+
+            is ErrorMessage.Dialog -> {
+
+            }
+
+            null -> {}
+        }
+        homeViewModel.errorMessageShown()
+    }
+
     Scaffold(
         topBar = {
             SearchBarView(
                 goodsFlowData = searchBarPagingFlow,
-                onSearch = { searchValue = it }
+                searchValue = searchValue,
+                onSearch = { searchValue = it },
+                onAiClick = onAiClick
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onAiClick) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
-            }
         }
     ) { innerPadding ->
         GoodsListView(
@@ -129,13 +148,23 @@ fun HomePage(
 @Composable
 fun SearchBarView(
     goodsFlowData: Flow<PagingData<Goods>>,
+    searchValue: String,
     onSearch: (searchValue: String) -> Unit = {},
+    onAiClick: () -> Unit = {}
 ) {
     val textFieldState = rememberTextFieldState()
     val searchBarState = rememberSearchBarState()
     val scope = rememberCoroutineScope()
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
     val appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors()
+
+    // 搜索框收起时 → 清空输入框内容和搜索词，下次打开时是干净的空状态
+    LaunchedEffect(searchBarState.currentValue) {
+        if (searchBarState.currentValue == SearchBarValue.Collapsed) {
+            textFieldState.clearText()
+            onSearch("")
+        }
+    }
 
     val inputField =
         @Composable {
@@ -169,8 +198,8 @@ fun SearchBarView(
                     }
                 },
                 trailingIcon = {
-                    IconButton(onClick = { /* doSomething() */ }) {
-                        Icon(imageVector = Icons.Default.Mic, contentDescription = null)
+                    IconButton(onClick = onAiClick) {
+                        Icon(imageVector = Icons.Default.SupportAgent, contentDescription = null)
                     }
                 },
             )
@@ -187,20 +216,34 @@ fun SearchBarView(
         state = searchBarState,
         inputField = inputField
     ) {
-        val lazyPagingItems = goodsFlowData.collectAsLazyPagingItems()
+        // 展开但尚未搜索时 → 空列表，不触发任何数据加载
+        if (searchValue.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 100.dp),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Text(
+                    text = "输入关键词搜索商品",
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+            }
+        } else {
+            val lazyPagingItems = goodsFlowData.collectAsLazyPagingItems()
 
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxSize()
-                .semantics { isTraversalGroup = true }
-        ) {
-            items(
-                count = lazyPagingItems.itemCount,
-                key = lazyPagingItems.itemKey { it.id }
-            ) { index ->
-                lazyPagingItems[index]?.let {
-                    GoodsItemView(it)
+            LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Fixed(2),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(
+                    count = lazyPagingItems.itemCount,
+                    key = lazyPagingItems.itemKey { it.id }
+                ) { index ->
+                    lazyPagingItems[index]?.let {
+                        GoodsItemView(it)
+                    }
                 }
             }
         }
@@ -225,6 +268,7 @@ fun GoodsCarouselContent(adImageList: List<String>) {
 
         if (autoAdvance) {
             LaunchedEffect(pagerState, pageInteractionSource) {
+                if (pagerState.pageCount == 0) return@LaunchedEffect
                 while (true) {
                     delay(5000)
                     val nextPage = (pagerState.currentPage + 1) % pagerState.pageCount
@@ -247,12 +291,6 @@ fun GoodsCarouselContent(adImageList: List<String>) {
                 failure = placeholder(R.drawable.test_image),
                 contentScale = ContentScale.Crop
             )
-//            Image(
-//                modifier = Modifier.fillMaxWidth(),
-//                painter = painterResource(R.drawable.test_image),
-//                contentDescription = null,
-//                contentScale = ContentScale.Crop
-//            )
         }
 
         Box(
@@ -327,9 +365,9 @@ fun GoodsListView(
                 .fillMaxSize()
                 .semantics { isTraversalGroup = true }
         ) {
-//            item(span = StaggeredGridItemSpan.FullLine) {
-//                GoodsCarouselContent(adImageList)
-//            }
+            item(span = StaggeredGridItemSpan.FullLine) {
+                GoodsCarouselContent(adImageList)
+            }
 
             items(
                 lazyPagingItems.itemCount,

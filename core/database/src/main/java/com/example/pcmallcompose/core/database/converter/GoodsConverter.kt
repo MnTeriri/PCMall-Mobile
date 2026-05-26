@@ -1,23 +1,18 @@
 package com.example.pcmallcompose.core.database.converter
 
 import androidx.room.TypeConverter
-import com.alibaba.fastjson2.JSON
+import com.alibaba.fastjson2.parseObject
+import com.alibaba.fastjson2.toJSONString
 import com.example.pcmallcompose.core.model.Goods
 
 class GoodsConverter {
     @TypeConverter
     fun fromString(value: String?): Goods? {
-        if (value == null) {
-            return null
-        }
-        return JSON.parseObject(value, Goods::class.java)
+        return value.parseObject<Goods>()
     }
 
     @TypeConverter
     fun goodsToString(goods: Goods?): String? {
-        if (goods == null) {
-            return null
-        }
-        return JSON.toJSONString(goods)
+        return goods.toJSONString()
     }
 }

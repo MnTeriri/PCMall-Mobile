@@ -88,7 +88,7 @@ fun LoginPage(
 
             null -> {}
         }
-        loginViewModel.userMessageShown()
+        loginViewModel.errorMessageShown()
     }
 
     // 验证码错误 → 刷新验证码
