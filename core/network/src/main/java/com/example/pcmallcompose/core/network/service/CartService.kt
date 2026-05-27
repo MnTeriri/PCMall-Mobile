@@ -56,7 +56,7 @@ interface CartService {
 
     @FormUrlEncoded
     @POST("addCart")
-    suspend fun addCart(@Field("mid") mid: Int, @Field("uid") uid: String): ResponseResult<String>
+    suspend fun addCart(@Field("gid") goodsId: Int, @Field("uid") uid: String): ResponseResult<String>
 
     @FormUrlEncoded
     @POST("deleteCart")

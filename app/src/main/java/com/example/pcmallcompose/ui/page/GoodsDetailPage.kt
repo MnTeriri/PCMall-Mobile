@@ -1,5 +1,6 @@
 package com.example.pcmallcompose.ui.page
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -41,30 +43,89 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import cn.pedant.SweetAlert.SweetAlertDialog
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.integration.compose.placeholder
 import com.example.pcmallcompose.R
+import com.example.pcmallcompose.application.LocalUserData
 import com.example.pcmallcompose.core.model.Goods
 import com.example.pcmallcompose.core.network.di.NetworkModule
+import com.example.pcmallcompose.ui.dialog.MessageDialog
 import com.example.pcmallcompose.ui.theme.BackgroundColor
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import com.example.pcmallcompose.ui.theme.PriceColor
+import com.example.pcmallcompose.ui.ErrorMessage
+import com.example.pcmallcompose.viewmodel.GoodsDetailViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun GoodsDetailPage(goods: Goods) {
+fun GoodsDetailPage(
+    goods: Goods,
+    onBackClick: () -> Unit = {},
+) {
+    val context = LocalContext.current
+    val userData = LocalUserData.current
+    val viewModel: GoodsDetailViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     val listState = rememberLazyListState()
 
+    // 加入购物车成功 → 弹窗
+    LaunchedEffect(uiState.isAddedToCart) {
+        if (uiState.isAddedToCart) {
+            MessageDialog(context, SweetAlertDialog.SUCCESS_TYPE, "已加入购物车！").show()
+            viewModel.errorMessageShown()
+        }
+    }
+
+    // 错误消息
+    LaunchedEffect(uiState.errorMessage) {
+        when (val msg = uiState.errorMessage) {
+            is ErrorMessage.Dialog -> {
+                MessageDialog(context, SweetAlertDialog.WARNING_TYPE, msg.text).show()
+            }
+
+            is ErrorMessage.Toast -> {
+                Toast.makeText(context, msg.text, Toast.LENGTH_SHORT).show()
+            }
+
+            null -> {}
+        }
+        viewModel.errorMessageShown()
+    }
+
     Scaffold(
-        topBar = { GoodsDetailTopBar(listState) },
-        bottomBar = { GoodsDetailBottomBar() }
+        topBar = {
+            GoodsDetailTopBar(
+                listState = listState,
+                onBackClick = onBackClick
+            )
+        },
+        bottomBar = {
+            GoodsDetailBottomBar(
+                isAddingToCart = uiState.isAddingToCart,
+                onAddToCartClick = {
+                    if (userData == null) {
+                        MessageDialog(context, SweetAlertDialog.WARNING_TYPE, "请先登录").show()
+                    } else {
+                        viewModel.addToCart(goods.id, userData.uid)
+                    }
+                },
+                onBuyNowClick = {
+
+                }
+            )
+        }
     ) { paddingValues ->
         GoodsDetailContent(
             modifier = Modifier.padding(paddingValues),
@@ -76,7 +137,10 @@ fun GoodsDetailPage(goods: Goods) {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun GoodsDetailTopBar(listState: LazyListState) {
+fun GoodsDetailTopBar(
+    listState: LazyListState,
+    onBackClick: () -> Unit = {}
+) {
     val coroutineScope = rememberCoroutineScope()
     val state by remember {
         derivedStateOf {
@@ -110,7 +174,7 @@ fun GoodsDetailTopBar(listState: LazyListState) {
             }
         },
         navigationIcon = {
-            IconButton(onClick = { }) {
+            IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null
@@ -129,7 +193,11 @@ fun GoodsDetailTopBar(listState: LazyListState) {
 }
 
 @Composable
-fun GoodsDetailBottomBar() {
+fun GoodsDetailBottomBar(
+    isAddingToCart: Boolean = false,
+    onAddToCartClick: () -> Unit = {},
+    onBuyNowClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -171,7 +239,8 @@ fun GoodsDetailBottomBar() {
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.DarkGray
             ),
-            onClick = {}
+            enabled = !isAddingToCart,
+            onClick = onAddToCartClick
         ) {
             Text("加入购物车")
         }
@@ -180,7 +249,7 @@ fun GoodsDetailBottomBar() {
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Red
             ),
-            onClick = {}
+            onClick = onBuyNowClick
         ) {
             Text("立即购买")
         }

@@ -15,6 +15,7 @@ import com.example.pcmallcompose.core.model.Goods
 import com.example.pcmallcompose.core.network.service.GoodsService
 import com.example.pcmallcompose.core.network.service.ImageService
 import com.example.pcmallcompose.core.network.utils.RetrofitUtils
+import com.example.pcmallcompose.ui.ErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -44,25 +45,6 @@ class HomeViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
-
-    private fun catchHttpException(e: HttpException) {
-        val response = RetrofitUtils.getErrorMessage(e)
-        if (response == null) {
-            catchException(e)
-            return
-        }
-        Log.e(TAG, "$e: $response", e)
-        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast(response.message)) }
-    }
-
-    private fun catchException(e: Exception) {
-        Log.e(TAG, e.toString(), e)
-        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast("${e.message}")) }
-    }
-
-    fun errorMessageShown() {
-        _uiState.update { it.copy(errorMessage = null) }
-    }
 
     @OptIn(ExperimentalPagingApi::class)
     fun getGoodsPagingData(
@@ -95,5 +77,24 @@ class HomeViewModel @Inject constructor(
                 catchException(e)
             }
         }
+    }
+
+    private fun catchHttpException(e: HttpException) {
+        val response = RetrofitUtils.getErrorMessage(e)
+        if (response == null) {
+            catchException(e)
+            return
+        }
+        Log.e(TAG, "$e: $response", e)
+        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast(response.message)) }
+    }
+
+    private fun catchException(e: Exception) {
+        Log.e(TAG, e.toString(), e)
+        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast("${e.message}")) }
+    }
+
+    fun errorMessageShown() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 }

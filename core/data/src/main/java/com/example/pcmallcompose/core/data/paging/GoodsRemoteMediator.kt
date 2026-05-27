@@ -38,31 +38,29 @@ class GoodsRemoteMediator(
                     val remoteKey = database.withTransaction {
                         remoteKeyDao.remoteKeyByQuery(TABLE_NAME, "${label}_${searchValue}")
                     }
-                    if (remoteKey.currentPage == null) {
-                        return MediatorResult.Success(endOfPaginationReached = true)
-                    }
-                    remoteKey.currentPage!! + 1
+                    remoteKey.currentPage + 1
                 }
             }
-            val response = goodsService.searchGoodsList(searchValue, loadKey, state.config.pageSize)
+            val data = goodsService.searchGoodsList(searchValue, loadKey, state.config.pageSize).data
+            Log.d(TAG, "loadType : $loadType, loadPage : $loadKey, data : $data")
 
-            Log.d(TAG, "loadType:$loadType,loadPage:$loadKey,response:$response")
-
-            if (response.data.isNullOrEmpty()) {
-                return MediatorResult.Success(endOfPaginationReached = true)
-            }
-
+            // 无论数据是否为空，都要更新 RemoteKey，标记"这一页已经查过了"
             database.withTransaction {
                 if (loadType == REFRESH) {
                     remoteKeyDao.deleteByQuery(TABLE_NAME, "${label}_${searchValue}")
                     goodsDao.clearAll(label, searchValue)
                 }
+
+                if (data.isNullOrEmpty()) {
+                    return@withTransaction
+                }
+
                 remoteKeyDao.insertOrReplace(RemoteKey(TABLE_NAME, "${label}_${searchValue}", loadKey))
-                goodsDao.insertAll(response.data!!.map { goods ->
+                goodsDao.insertAll(data.map { goods ->
                     GoodsEntity(label = label, searchValue = searchValue, goods = goods)
                 })
             }
-            return MediatorResult.Success(endOfPaginationReached = false)
+            return MediatorResult.Success(endOfPaginationReached = data.isNullOrEmpty())
         } catch (e: Exception) {
             Log.e(TAG, e.toString(), e)
             return MediatorResult.Error(e)

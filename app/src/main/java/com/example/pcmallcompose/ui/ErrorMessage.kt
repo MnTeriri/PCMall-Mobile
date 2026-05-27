@@ -1,4 +1,4 @@
-package com.example.pcmallcompose.viewmodel
+package com.example.pcmallcompose.ui
 
 //UI错误信息
 sealed class ErrorMessage {

@@ -90,10 +90,10 @@ fun AiChatPage(
     onBackClick: () -> Unit = {},
     onCloseClick: () -> Unit = {}
 ) {
-    val aiChatViewModel: AiChatViewModel = hiltViewModel()
-    val uiState by aiChatViewModel.uiState.collectAsStateWithLifecycle()
+    val viewModel: AiChatViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val pagingFlow = remember { aiChatViewModel.getChatHistoryPagingData() }
+    val pagingFlow = remember { viewModel.getChatHistoryPagingData() }
 
     Scaffold(
         modifier = Modifier.imePadding(),
@@ -106,7 +106,7 @@ fun AiChatPage(
         bottomBar = {
             AiChatPageInputBar(
                 isChatting = uiState.isChatting,
-                onChatClick = { aiChatViewModel.chat(it) }
+                onChatClick = { viewModel.chat(it) }
             )
         }
     ) { innerPadding ->

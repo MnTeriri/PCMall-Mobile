@@ -48,7 +48,7 @@ import com.example.pcmallcompose.ui.component.PasswordTextField
 import com.example.pcmallcompose.ui.dialog.CaptchaDialog
 import com.example.pcmallcompose.ui.dialog.MessageDialog
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
-import com.example.pcmallcompose.viewmodel.ErrorMessage
+import com.example.pcmallcompose.ui.ErrorMessage
 import com.example.pcmallcompose.viewmodel.LoginViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,8 +58,8 @@ fun LoginPage(
     onRegisterClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val loginViewModel: LoginViewModel = hiltViewModel()
-    val uiState by loginViewModel.uiState.collectAsStateWithLifecycle()
+    val viewModel: LoginViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     var openCaptchaDialog by remember { mutableStateOf(false) }
@@ -88,13 +88,13 @@ fun LoginPage(
 
             null -> {}
         }
-        loginViewModel.errorMessageShown()
+        viewModel.errorMessageShown()
     }
 
     // 验证码错误 → 刷新验证码
     LaunchedEffect(uiState.shouldRefreshCaptcha) {
         if (uiState.shouldRefreshCaptcha) {
-            loginViewModel.getCaptcha()
+            viewModel.getCaptcha()
         }
     }
 
@@ -105,12 +105,12 @@ fun LoginPage(
         LoginPageContent(
             modifier = Modifier.padding(innerPadding),
             login = { uid, password, captchaCode, isRemember ->
-                loginViewModel.login(uid, password, captchaCode, isRemember)
+                viewModel.login(uid, password, captchaCode, isRemember)
             },
             captchaImage = uiState.captchaImage,
             openCaptchaDialog = openCaptchaDialog,
             onOpenValueChange = { openCaptchaDialog = it },
-            getCaptcha = { loginViewModel.getCaptcha() },
+            getCaptcha = { viewModel.getCaptcha() },
             jumpToRegister = onRegisterClick
         )
     }

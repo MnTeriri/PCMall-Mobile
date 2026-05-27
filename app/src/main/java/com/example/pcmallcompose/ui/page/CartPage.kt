@@ -1,9 +1,12 @@
 package com.example.pcmallcompose.ui.page
 
-import androidx.compose.foundation.ExperimentalFoundationApi
+import android.widget.Toast
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -11,33 +14,37 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.PersonOutline
+import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MultiChoiceSegmentedButtonRow
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,52 +54,140 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.semantics.isTraversalGroup
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import cn.hutool.core.util.NumberUtil
+import cn.pedant.SweetAlert.SweetAlertDialog
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.integration.compose.placeholder
 import com.example.pcmallcompose.R
+import com.example.pcmallcompose.application.LocalUserData
 import com.example.pcmallcompose.core.model.Cart
+import com.example.pcmallcompose.core.model.Goods
 import com.example.pcmallcompose.core.network.di.NetworkModule
+import com.example.pcmallcompose.ui.dialog.MessageDialog
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import com.example.pcmallcompose.ui.theme.PriceColor
 import com.example.pcmallcompose.viewmodel.CartViewModel
+import com.example.pcmallcompose.ui.ErrorMessage
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CartPage() {
+fun CartPage(
+    isIndexPage: Boolean = true,
+    onBackClick: () -> Unit = {},
+    onAiClick: () -> Unit = {},
+    onLoginClick: () -> Unit = {},
+    onDetailClick: (goods: Goods) -> Unit = {},
+) {
+    val context = LocalContext.current
+    val userData = LocalUserData.current
+    val viewModel: CartViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val pagingFlow = remember(userData) {
+        if (userData != null) {
+            viewModel.getCartPagingData(userData.uid)
+        } else {
+            flowOf(PagingData.empty())
+        }
+    }
+    val lazyPagingItems = pagingFlow.collectAsLazyPagingItems()
+
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
-    val cartViewModel: CartViewModel = hiltViewModel()
+    // 操作成功 → 刷新分页数据
+    LaunchedEffect(uiState.shouldRefresh) {
+        if (uiState.shouldRefresh) {
+            lazyPagingItems.refresh()
+            viewModel.refreshConsumed()
+        }
+    }
 
-    val lazyPagingItems = cartViewModel.getCartPagingData("").collectAsLazyPagingItems()
+    // 操作错误 → Toast / Dialog
+    LaunchedEffect(uiState.errorMessage) {
+        when (val msg = uiState.errorMessage) {
+            is ErrorMessage.Dialog -> {
+                MessageDialog(context, SweetAlertDialog.WARNING_TYPE, msg.text).show()
+            }
+
+            is ErrorMessage.Toast -> {
+                Toast.makeText(context, msg.text, Toast.LENGTH_SHORT).show()
+            }
+
+            null -> {}
+        }
+        viewModel.errorMessageShown()
+    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = { CartPageTopBar(scrollBehavior) },
-        bottomBar = { CartPageBottomBar() }
+        topBar = {
+            CartPageTopBar(
+                scrollBehavior = scrollBehavior,
+                isIndexPage = isIndexPage,
+                onBackClick = onBackClick,
+                onAiClick = onAiClick
+            )
+        },
+        bottomBar = {
+            if (userData != null) {
+                CartPageBottomBar(
+                    isAllSelected = true,
+                    selectedCount = 0,
+                    totalPrice = BigDecimal("1000.00"),
+                    onSelectAllClick = {},
+                    onCreateOrderClick = {}
+                )
+            }
+        }
     ) { innerPadding ->
-        CartListView(Modifier.padding(innerPadding), lazyPagingItems)
+        if (userData == null) {
+            EmptyCartLoginView(
+                modifier = Modifier.padding(innerPadding),
+                onLoginClick = onLoginClick
+            )
+        } else {
+            CartListView(
+                modifier = Modifier.padding(innerPadding),
+                lazyPagingItems = lazyPagingItems,
+                onClick = { onDetailClick(it.goods!!) },
+                onSelectClick = {
+                    val newState = if (it.isSelect == 1) 0 else 1
+                    viewModel.selectCart(it.id, newState)
+                },
+                onAddClick = { viewModel.addCartCount(it.id) },
+                onSubClick = { viewModel.subCartCount(it.id) },
+                onDeleteClick = { viewModel.deleteCart(it.id) },
+            )
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CartPageTopBar(scrollBehavior: TopAppBarScrollBehavior) {
+fun CartPageTopBar(
+    scrollBehavior: TopAppBarScrollBehavior,
+    isIndexPage: Boolean,
+    onBackClick: () -> Unit,
+    onAiClick: () -> Unit,
+) {
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -100,18 +195,20 @@ fun CartPageTopBar(scrollBehavior: TopAppBarScrollBehavior) {
         ),
         title = { Text(text = "购物车") },
         navigationIcon = {
-            IconButton(onClick = { /* do something */ }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Localized description"
-                )
+            if (!isIndexPage) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = null
+                    )
+                }
             }
         },
         actions = {
-            IconButton(onClick = { /* do something */ }) {
+            IconButton(onClick = onAiClick) {
                 Icon(
-                    imageVector = Icons.Filled.Menu,
-                    contentDescription = "Localized description"
+                    imageVector = Icons.Default.SupportAgent,
+                    contentDescription = null
                 )
             }
         },
@@ -120,33 +217,113 @@ fun CartPageTopBar(scrollBehavior: TopAppBarScrollBehavior) {
 }
 
 @Composable
-fun CartPageBottomBar() {
-    BottomAppBar(
-        actions = {
-            IconButton(onClick = { /* do something */ }) {
-                Icon(Icons.Filled.Check, contentDescription = "Localized description")
-            }
-            IconButton(onClick = { /* do something */ }) {
-                Icon(
-                    Icons.Filled.Edit,
-                    contentDescription = "Localized description",
+fun CartPageBottomBar(
+    isAllSelected: Boolean,
+    selectedCount: Int,
+    totalPrice: BigDecimal,
+    onSelectAllClick: () -> Unit,
+    onCreateOrderClick: () -> Unit
+) {
+    BottomAppBar {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 左侧：全选
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                RadioButton(
+                    selected = isAllSelected,
+                    onClick = onSelectAllClick
                 )
+                Text(text = "全选", fontSize = 14.sp)
             }
 
+            // 右侧：合计价格 + 结算按钮
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                Column {
+                    Row {
+                        Text(
+                            text = "合计: ",
+                            fontSize = 15.sp,
+                            color = Color.Black
+                        )
+                        Text(
+                            text = "¥${totalPrice.setScale(2)}",
+                            fontSize = 15.sp,
+                            color = PriceColor
+                        )
+                    }
+                    Text(
+                        text = "已选 $selectedCount 件",
+                        fontSize = 11.sp,
+                        color = Color.Gray
+                    )
+                }
+                Spacer(Modifier.width(10.dp))
+                Button(
+                    onClick = onCreateOrderClick,
+                    enabled = selectedCount > 0,
+                    colors = ButtonDefaults.buttonColors(containerColor = PriceColor)
+                ) {
+                    Text(if (selectedCount > 0) "结算($selectedCount)" else "结算")
+                }
+            }
         }
-    )
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EmptyCartLoginView(
+    modifier: Modifier = Modifier,
+    onLoginClick: () -> Unit
+) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Filled.PersonOutline,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = Color.Gray
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "登录后查看购物车",
+                fontSize = 15.sp,
+                color = Color.Gray
+            )
+            Spacer(Modifier.height(12.dp))
+            Button(onClick = onLoginClick) {
+                Text("去登录")
+            }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CartListView(
     modifier: Modifier = Modifier,
     lazyPagingItems: LazyPagingItems<Cart>,
-    onClick: (cart: Cart) -> Unit = {},
-    onSelectClick: (cart: Cart) -> Unit = {},
-    onAddClick: (cart: Cart) -> Unit = {},
-    onSubClick: (cart: Cart) -> Unit = {},
-    onDeleteClick: (cart: Cart) -> Unit = {}
+    onClick: (cart: Cart) -> Unit,
+    onSelectClick: (cart: Cart) -> Unit,
+    onAddClick: (cart: Cart) -> Unit,
+    onSubClick: (cart: Cart) -> Unit,
+    onDeleteClick: (cart: Cart) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     var isRefreshing by remember { mutableStateOf(false) }//是否在刷新
@@ -166,11 +343,16 @@ fun CartListView(
         state = state,
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
+        indicator = {
+            PullToRefreshDefaults.LoadingIndicator(
+                modifier = Modifier.align(Alignment.TopCenter),
+                isRefreshing = isRefreshing,
+                state = state,
+            )
+        }
     ) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .semantics { isTraversalGroup = true }
+            modifier = Modifier.fillMaxSize()
         ) {
             items(
                 count = lazyPagingItems.itemCount,
@@ -191,7 +373,7 @@ fun CartListView(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalGlideComposeApi::class)
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun CartItemView(
     cart: Cart,
@@ -246,7 +428,7 @@ fun CartItemView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp)
-                    .padding(start = 5.dp, end = 15.dp)
+                    .padding(horizontal = 10.dp)
             ) {
                 Text(
                     text = "${cart.goods?.brand?.bname}${cart.goods?.gname}",
@@ -264,29 +446,28 @@ fun CartItemView(
                     maxLines = 1
                 )
 
-                if (enabled) {
-                    ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-                        val (price, count) = createRefs()
-                        Text(
-                            modifier = Modifier.constrainAs(price) {
-                                start.linkTo(parent.start)
-                                bottom.linkTo(parent.bottom)
-                            },
-                            text = "￥${NumberUtil.mul(cart.goods?.price, cart.count).setScale(2)}",
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = PriceColor
-                        )
-                        CartCountButton(
-                            modifier = Modifier.constrainAs(count) {
-                                end.linkTo(parent.end)
-                                bottom.linkTo(parent.bottom)
-                            },
-                            count = cart.count,
-                            onAddClick = onAddClick,
-                            onSubClick = onSubClick
-                        )
-                    }
+                if (!enabled) {
+                    return@Column
+                }
+
+                Spacer(Modifier.weight(1f))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Text(
+                        text = "¥${NumberUtil.mul(cart.goods?.price, cart.count).setScale(2)}",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PriceColor
+                    )
+                    CartCountButton(
+                        count = cart.count,
+                        onAddClick = onAddClick,
+                        onSubClick = onSubClick
+                    )
                 }
             }
 
@@ -302,40 +483,45 @@ fun CartCountButton(
     onAddClick: () -> Unit,
     onSubClick: () -> Unit
 ) {
-    val colors = SegmentedButtonDefaults.colors(
-        activeContainerColor = Color.White,
-        inactiveContainerColor = Color.White,
-        disabledInactiveContainerColor = Color.White
-    )
-    MultiChoiceSegmentedButtonRow(
-        modifier = modifier
-            .height(35.dp)
-            .width(120.dp)
+    Surface(
+        modifier = modifier.height(32.dp),
+        shape = RoundedCornerShape(8.dp),
+        color = Color(0xFFF5F5F5),
     ) {
-        SegmentedButton(
-            checked = false,
-            shape = SegmentedButtonDefaults.itemShape(0, 3),
-            colors = colors,
-            onCheckedChange = { onSubClick() }
-        ) {
-            Icon(Icons.Outlined.Remove, null)
-        }
-        SegmentedButton(
-            checked = false,
-            enabled = false,
-            shape = SegmentedButtonDefaults.itemShape(1, 3),
-            colors = colors,
-            onCheckedChange = {}
-        ) {
-            Text("$count")
-        }
-        SegmentedButton(
-            checked = false,
-            shape = SegmentedButtonDefaults.itemShape(2, 3),
-            colors = colors,
-            onCheckedChange = { onAddClick() }
-        ) {
-            Icon(Icons.Outlined.Add, null)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // 减号
+            IconButton(
+                modifier = Modifier.size(32.dp),
+                onClick = onSubClick,
+                colors = IconButtonDefaults.iconButtonColors(contentColor = Color.Black)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Remove,
+                    contentDescription = "减少",
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            // 数量
+            Text(
+                text = "$count",
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.width(32.dp)
+            )
+
+            // 加号
+            IconButton(
+                modifier = Modifier.size(32.dp),
+                onClick = onAddClick,
+                colors = IconButtonDefaults.iconButtonColors(contentColor = Color.Black)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Add,
+                    contentDescription = "增加",
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
     }
 }
