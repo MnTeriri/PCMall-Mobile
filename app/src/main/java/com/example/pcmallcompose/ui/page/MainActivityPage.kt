@@ -14,7 +14,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -26,13 +25,11 @@ import androidx.navigation.toRoute
 import com.alibaba.fastjson2.parseObject
 import com.alibaba.fastjson2.toJSONString
 import com.example.pcmallcompose.R
-import com.example.pcmallcompose.activity.MainActivity
 import com.example.pcmallcompose.core.model.Goods
 import com.example.pcmallcompose.ui.Screen
 
 @Composable
 fun MainActivityPage() {
-    val context = LocalContext.current
     val navController = rememberNavController()
 
     NavHost(
@@ -45,10 +42,7 @@ fun MainActivityPage() {
 
         composable<Screen.Login> {
             LoginPage(
-                onBackClick = {
-                    (context as MainActivity).getUserData()
-                    navController.popBackStack()
-                },
+                onBackClick = { navController.popBackStack() },
                 onRegisterClick = {
                     navController.navigate(Screen.Register) {
                         launchSingleTop = true
@@ -69,7 +63,10 @@ fun MainActivityPage() {
             val goods = remember(goodsDetail.goods) {
                 goodsDetail.goods.parseObject<Goods>()
             }
-            GoodsDetailPage(goods)
+            GoodsDetailPage(
+                goods = goods,
+                onBackClick = { navController.popBackStack() }
+            )
         }
 
         composable<Screen.AiChat> {
@@ -99,19 +96,25 @@ fun IndexPage(
         ) {
             composable<Screen.Home> {
                 HomePage(
-                    onDetailClick = { goods ->
-                        mainNavController.navigate(Screen.GoodsDetail(goods.toJSONString()))
-                    },
-                    onAiClick = {
-                        mainNavController.navigate(Screen.AiChat)
-                    }
+                    onDetailClick = { mainNavController.navigate(Screen.GoodsDetail(it.toJSONString())) },
+                    onAiClick = { mainNavController.navigate(Screen.AiChat) }
                 )
             }
             composable<Screen.Category> {
                 CategoryPage()
             }
             composable<Screen.Cart> {
-                CartPage()
+                CartPage(
+                    onBackClick = { mainNavController.popBackStack() },
+                    onAiClick = { mainNavController.navigate(Screen.AiChat) },
+                    onLoginClick = {
+                        mainNavController.navigate(Screen.Login) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onDetailClick = { mainNavController.navigate(Screen.GoodsDetail(it.toJSONString())) }
+                )
             }
             composable<Screen.Myself> {
                 MySelfPage(onLoginClick = {

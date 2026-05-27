@@ -53,26 +53,6 @@ class AiChatViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AiChatUiState())
     val uiState: StateFlow<AiChatUiState> = _uiState.asStateFlow()
 
-    private fun catchHttpException(e: HttpException) {
-        val response = RetrofitUtils.getErrorMessage(e)
-        if (response == null) {
-            catchException(e)
-            return
-        }
-        Log.e(TAG, "$e: $response", e)
-        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast(response.message)) }
-    }
-
-    private fun catchException(e: Exception) {
-        Log.e(TAG, e.toString(), e)
-        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast("${e.message}")) }
-    }
-
-    // UI 展示完瞬态消息后回调，清空该字段
-    fun errorMessageShown() {
-        _uiState.update { it.copy(errorMessage = null) }
-    }
-
     fun getChatHistoryPagingData(): Flow<PagingData<ChatHistory>> {
         return Pager(
             config = PagingConfig(pageSize = 10),
@@ -162,5 +142,25 @@ class AiChatViewModel @Inject constructor(
 
             _uiState.update { it.copy(isChatting = false) }
         }
+    }
+
+    private fun catchHttpException(e: HttpException) {
+        val response = RetrofitUtils.getErrorMessage(e)
+        if (response == null) {
+            catchException(e)
+            return
+        }
+        Log.e(TAG, "$e: $response", e)
+        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast(response.message)) }
+    }
+
+    private fun catchException(e: Exception) {
+        Log.e(TAG, e.toString(), e)
+        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast("${e.message}")) }
+    }
+
+    // UI 展示完瞬态消息后回调，清空该字段
+    fun errorMessageShown() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 }

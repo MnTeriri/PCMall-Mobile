@@ -39,6 +39,39 @@ class RegisterViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
 
+    fun getCaptcha() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update {
+                it.copy(isLoading = true, captchaImage = null, shouldRefreshCaptcha = false)
+            }
+            try {
+                delay(1000)
+                val imageBitmap = ImageUtils.decodeImageString(
+                    loginRegisterService.getCaptcha().data!!
+                )
+                _uiState.update { it.copy(isLoading = false, captchaImage = imageBitmap) }
+            } catch (e: HttpException) {
+                catchHttpException(e)
+            } catch (e: Exception) {
+                catchException(e)
+            }
+        }
+    }
+
+    fun register(uid: String, password: String, code: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update { it.copy(isRegistering = true, errorMessage = null) }
+            try {
+                loginRegisterService.register(uid, password, code)
+                _uiState.update { it.copy(isRegistering = false, isUserRegistered = true) }
+            } catch (e: HttpException) {
+                catchHttpException(e)
+            } catch (e: Exception) {
+                catchException(e)
+            }
+        }
+    }
+
     private fun catchHttpException(e: HttpException) {
         val response = RetrofitUtils.getErrorMessage(e)
         if (response == null) {
@@ -77,38 +110,5 @@ class RegisterViewModel @Inject constructor(
     // UI 展示完瞬态消息后回调，清空该字段
     fun errorMessageShown() {
         _uiState.update { it.copy(errorMessage = null) }
-    }
-
-    fun getCaptcha() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _uiState.update {
-                it.copy(isLoading = true, captchaImage = null, shouldRefreshCaptcha = false)
-            }
-            try {
-                delay(1000)
-                val imageBitmap = ImageUtils.decodeImageString(
-                    loginRegisterService.getCaptcha().data!!
-                )
-                _uiState.update { it.copy(isLoading = false, captchaImage = imageBitmap) }
-            } catch (e: HttpException) {
-                catchHttpException(e)
-            } catch (e: Exception) {
-                catchException(e)
-            }
-        }
-    }
-
-    fun register(uid: String, password: String, code: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _uiState.update { it.copy(isRegistering = true, errorMessage = null) }
-            try {
-                loginRegisterService.register(uid, password, code)
-                _uiState.update { it.copy(isRegistering = false, isUserRegistered = true) }
-            } catch (e: HttpException) {
-                catchHttpException(e)
-            } catch (e: Exception) {
-                catchException(e)
-            }
-        }
     }
 }

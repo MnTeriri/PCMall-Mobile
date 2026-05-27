@@ -16,7 +16,7 @@ import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.pcmallcompose.activity.LocalUserData
+import com.example.pcmallcompose.application.LocalUserData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

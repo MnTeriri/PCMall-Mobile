@@ -7,5 +7,5 @@ import androidx.room.Entity
 data class RemoteKey(
     @ColumnInfo(name = "table_name") val tableName: String,
     @ColumnInfo(name = "label") val label: String,
-    @ColumnInfo(name = "current_page") val currentPage: Int?
+    @ColumnInfo(name = "current_page") val currentPage: Int
 )

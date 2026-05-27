@@ -92,21 +92,21 @@ fun HomePage(
     onAiClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val homeViewModel: HomeViewModel = hiltViewModel()
-    val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
+    val viewModel: HomeViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     var searchValue by remember { mutableStateOf("") }
     val searchBarPagingFlow = remember(searchValue) {
         if (searchValue.isNotEmpty()) {
-            homeViewModel.getGoodsPagingData("goods_search", searchValue)
+            viewModel.getGoodsPagingData("goods_search", searchValue)
         } else {
             flowOf(PagingData.empty())   // 没有搜索词时返回空流，展开后展示空列表
         }
     }
-    val pagingFlow = remember { homeViewModel.getGoodsPagingData() }
+    val pagingFlow = remember { viewModel.getGoodsPagingData() }
 
     LaunchedEffect(Unit) {
-        homeViewModel.getADImageList()
+        viewModel.getADImageList()
     }
 
     LaunchedEffect(uiState.errorMessage) {
@@ -121,7 +121,7 @@ fun HomePage(
 
             null -> {}
         }
-        homeViewModel.errorMessageShown()
+        viewModel.errorMessageShown()
     }
 
     Scaffold(
@@ -138,7 +138,7 @@ fun HomePage(
             modifier = Modifier.padding(innerPadding),
             goodsFlowData = pagingFlow,
             adImageList = uiState.adImageList,
-            onADRefresh = { homeViewModel.getADImageList() },
+            onADRefresh = { viewModel.getADImageList() },
             jumpToDetail = onDetailClick,
         )
     }

@@ -16,7 +16,7 @@ import com.example.pcmallcompose.core.network.service.CartService
 
 @OptIn(ExperimentalPagingApi::class)
 class CartRemoteMediator(
-    private val uid: String = "000000000",
+    private val uid: String,
     private val database: PCMallDatabase,
     private val cartService: CartService
 ) : RemoteMediator<Int, CartEntity>() {
@@ -42,20 +42,11 @@ class CartRemoteMediator(
                     val remoteKey = database.withTransaction {
                         remoteKeyDao.remoteKeyByQuery(TABLE_NAME, uid)
                     }
-                    if (remoteKey.currentPage == null) {
-                        return MediatorResult.Success(endOfPaginationReached = true)
-                    }
-                    remoteKey.currentPage!! + 1
+                    remoteKey.currentPage + 1
                 }
             }
-            val response = cartService.searchAllCart(uid, loadKey, state.config.pageSize)
-
-            Log.d(TAG, "loadType:$loadType,loadPage:$loadKey,response:$response")
-
-            //当列表为空时，代表没有新数据了
-            if (response.data.isNullOrEmpty()) {
-                return MediatorResult.Success(endOfPaginationReached = true)
-            }
+            val data = cartService.searchAllCart(uid, loadKey, state.config.pageSize).data
+            Log.d(TAG, "loadType : $loadType, loadPage : $loadKey, data : $data")
 
             // 在事务中存储加载的数据和下一个 key，确保它们始终保持一致。
             database.withTransaction {
@@ -63,14 +54,19 @@ class CartRemoteMediator(
                     remoteKeyDao.deleteByQuery(TABLE_NAME, uid)
                     cartDao.clearAll()
                 }
+
+                // 当列表为空时，代表没有新数据了
+                if (data.isNullOrEmpty()) {
+                    return@withTransaction
+                }
+
                 // 更新该查询的 RemoteKey。
                 remoteKeyDao.insertOrReplace(RemoteKey(TABLE_NAME, uid, loadKey))
-                // 将新用户插入到数据库中，这会使当前的 PagingData 无效，
+                // 将新数据插入到数据库中，这会使当前的 PagingData 无效，
                 // 让 Paging 可以呈现数据库中的更新。
-
-                cartDao.insertAll(response.data!!.map { CartEntity.fromCart(it) })
+                cartDao.insertAll(data.map { CartEntity.fromCart(it) })
             }
-            return MediatorResult.Success(endOfPaginationReached = false)
+            return MediatorResult.Success(endOfPaginationReached = data.isNullOrEmpty())
         } catch (e: Exception) {
             Log.e(TAG, e.toString(), e)
             return MediatorResult.Error(e)

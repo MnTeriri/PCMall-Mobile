@@ -56,8 +56,8 @@ fun RegisterPage(
     onBackClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val registerViewModel: RegisterViewModel = hiltViewModel()
-    val uiState by registerViewModel.uiState.collectAsStateWithLifecycle()
+    val viewModel: RegisterViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     var openCaptchaDialog by remember { mutableStateOf(false) }
@@ -84,13 +84,13 @@ fun RegisterPage(
             }
             null -> {}
         }
-        registerViewModel.errorMessageShown()
+        viewModel.errorMessageShown()
     }
 
     // 验证码错误 → 刷新验证码
     LaunchedEffect(uiState.shouldRefreshCaptcha) {
         if (uiState.shouldRefreshCaptcha) {
-            registerViewModel.getCaptcha()
+            viewModel.getCaptcha()
         }
     }
 
@@ -101,12 +101,12 @@ fun RegisterPage(
         RegisterPageContent(
             modifier = Modifier.padding(innerPadding),
             register = { uid, password, code ->
-                registerViewModel.register(uid, password, code)
+                viewModel.register(uid, password, code)
             },
             captchaImage = uiState.captchaImage,
             openCaptchaDialog = openCaptchaDialog,
             onOpenValueChange = { openCaptchaDialog = it },
-            getCaptcha = { registerViewModel.getCaptcha() },
+            getCaptcha = { viewModel.getCaptcha() },
             onBackClick = onBackClick
         )
     }

@@ -1,25 +1,19 @@
 package com.example.pcmallcompose.activity
 
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.core.content.edit
-import com.alibaba.fastjson2.parseObject
-import com.example.pcmallcompose.core.model.User
+import com.example.pcmallcompose.application.LocalUserData
+import com.example.pcmallcompose.application.UserSession
 import com.example.pcmallcompose.ui.page.MainActivityPage
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
-
-val LocalUserData = compositionLocalOf<User?> { null }
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -28,14 +22,14 @@ class MainActivity : ComponentActivity() {
     }
 
     @Inject
-    lateinit var sharedPreferences: SharedPreferences
-    private var userData by mutableStateOf<User?>(null)
+    lateinit var userSession: UserSession
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             PCMallComposeTheme {
+                val userData by userSession.user.collectAsState()
                 CompositionLocalProvider(LocalUserData provides userData) {
                     MainActivityPage()
                 }
@@ -43,28 +37,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    fun getUserData() {
-        val data = sharedPreferences.getString("data", null)
-        if (data == null) {
-            Log.w(TAG, "用户没登陆")
-        }
-        userData = data.parseObject<User>()
-    }
-
-    fun logout() {
-        sharedPreferences.edit {
-            putString("data", null)
-            putString("token", null)
-            putBoolean("remember", false)
-        }
-        userData = null
-    }
-
     override fun onStart() {
         super.onStart()
         Log.d(TAG, "onStart")
-        getUserData()
-        Log.d(TAG, "登录用户：$userData")
+        userSession.refreshFromDisk()
+        Log.d(TAG, "登录用户：${userSession.user.value}")
     }
 
     override fun onResume() {

@@ -45,25 +45,6 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    private fun catchHttpException(e: HttpException) {
-        val response = RetrofitUtils.getErrorMessage(e)
-        if (response == null) {
-            catchException(e)
-            return
-        }
-        Log.e(TAG, "$e: $response", e)
-        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast(response.message)) }
-    }
-
-    private fun catchException(e: Exception) {
-        Log.e(TAG, e.toString(), e)
-        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast("${e.message}")) }
-    }
-
-    fun errorMessageShown() {
-        _uiState.update { it.copy(errorMessage = null) }
-    }
-
     @OptIn(ExperimentalPagingApi::class)
     fun getGoodsPagingData(
         label: String = "goods_home",
@@ -95,5 +76,24 @@ class HomeViewModel @Inject constructor(
                 catchException(e)
             }
         }
+    }
+
+    private fun catchHttpException(e: HttpException) {
+        val response = RetrofitUtils.getErrorMessage(e)
+        if (response == null) {
+            catchException(e)
+            return
+        }
+        Log.e(TAG, "$e: $response", e)
+        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast(response.message)) }
+    }
+
+    private fun catchException(e: Exception) {
+        Log.e(TAG, e.toString(), e)
+        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast("${e.message}")) }
+    }
+
+    fun errorMessageShown() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 }
