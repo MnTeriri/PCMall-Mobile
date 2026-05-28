@@ -52,7 +52,6 @@ class CartRemoteMediator(
             database.withTransaction {
                 if (loadType == REFRESH) {
                     remoteKeyDao.deleteByQuery(TABLE_NAME, uid)
-                    cartDao.clearAll()
                 }
 
                 // 当列表为空时，代表没有新数据了

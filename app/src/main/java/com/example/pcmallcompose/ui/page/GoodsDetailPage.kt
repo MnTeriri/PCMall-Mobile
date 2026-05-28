@@ -60,11 +60,11 @@ import com.example.pcmallcompose.R
 import com.example.pcmallcompose.application.LocalUserData
 import com.example.pcmallcompose.core.model.Goods
 import com.example.pcmallcompose.core.network.di.NetworkModule
+import com.example.pcmallcompose.ui.ErrorMessage
 import com.example.pcmallcompose.ui.dialog.MessageDialog
 import com.example.pcmallcompose.ui.theme.BackgroundColor
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import com.example.pcmallcompose.ui.theme.PriceColor
-import com.example.pcmallcompose.ui.ErrorMessage
 import com.example.pcmallcompose.viewmodel.GoodsDetailViewModel
 import kotlinx.coroutines.launch
 

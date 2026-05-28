@@ -44,11 +44,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cn.pedant.SweetAlert.SweetAlertDialog
+import com.example.pcmallcompose.ui.ErrorMessage
 import com.example.pcmallcompose.ui.component.PasswordTextField
 import com.example.pcmallcompose.ui.dialog.CaptchaDialog
 import com.example.pcmallcompose.ui.dialog.MessageDialog
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
-import com.example.pcmallcompose.ui.ErrorMessage
 import com.example.pcmallcompose.viewmodel.LoginViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

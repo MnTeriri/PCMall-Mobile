@@ -46,6 +46,22 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    // 首页商品：固定参数，ViewModel 生命周期内唯一实例
+    @OptIn(ExperimentalPagingApi::class)
+    val goodsPagingFlow: Flow<PagingData<Goods>> = Pager(
+        config = PagingConfig(pageSize = 10, initialLoadSize = 30),
+        remoteMediator = GoodsRemoteMediator(
+            label = "goods_home",
+            searchValue = "",
+            database = database,
+            goodsService = goodsService
+        )
+    ) {
+        database.goodsDao().pagingSource("goods_home", "")
+    }.flow.cachedIn(viewModelScope).map { pagingData ->
+        pagingData.map { it.goods }
+    }
+
     @OptIn(ExperimentalPagingApi::class)
     fun getGoodsPagingData(
         label: String = "goods_home",

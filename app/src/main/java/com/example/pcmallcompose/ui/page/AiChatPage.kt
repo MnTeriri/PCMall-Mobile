@@ -93,8 +93,6 @@ fun AiChatPage(
     val viewModel: AiChatViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val pagingFlow = remember { viewModel.getChatHistoryPagingData() }
-
     Scaffold(
         modifier = Modifier.imePadding(),
         topBar = {
@@ -113,7 +111,7 @@ fun AiChatPage(
         AiChatHistoryListView(
             modifier = Modifier.padding(innerPadding),
             streamingContent = uiState.streamingContent,
-            pagingFlow = pagingFlow
+            pagingFlow = viewModel.chatHistoryPagingFlow
         )
     }
 }

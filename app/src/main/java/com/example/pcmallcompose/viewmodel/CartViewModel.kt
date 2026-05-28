@@ -9,6 +9,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import com.example.pcmallcompose.application.UserSession
 import com.example.pcmallcompose.core.data.paging.CartRemoteMediator
 import com.example.pcmallcompose.core.database.PCMallDatabase
 import com.example.pcmallcompose.core.model.Cart
@@ -19,10 +20,13 @@ import com.example.pcmallcompose.ui.ErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -36,7 +40,8 @@ data class CartUiState(
 @HiltViewModel
 class CartViewModel @Inject constructor(
     private val database: PCMallDatabase,
-    private val cartService: CartService
+    private val cartService: CartService,
+    private val userSession: UserSession
 ) : ViewModel() {
     companion object {
         const val TAG = "CartViewModel"
@@ -45,15 +50,19 @@ class CartViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(CartUiState())
     val uiState: StateFlow<CartUiState> = _uiState.asStateFlow()
 
-    @OptIn(ExperimentalPagingApi::class)
-    fun getCartPagingData(uid: String): Flow<PagingData<Cart>> {
-        return Pager(
-            config = PagingConfig(pageSize = 10, initialLoadSize = 30),
-            remoteMediator = CartRemoteMediator(uid, database, cartService)
-        ) {
-            database.cartDao().pagingSource()
-        }.flow.cachedIn(viewModelScope).map { pagingData ->
-            pagingData.map { it.toCart() }
+    @OptIn(ExperimentalPagingApi::class, ExperimentalCoroutinesApi::class)
+    val cartPagingFlow: Flow<PagingData<Cart>> = userSession.user.flatMapLatest { user ->
+        if (user == null) {
+            flowOf(PagingData.empty())
+        } else {
+            Pager(
+                config = PagingConfig(pageSize = 10, initialLoadSize = 30),
+                remoteMediator = CartRemoteMediator(user.uid, database, cartService)
+            ) {
+                database.cartDao().pagingSource(user.uid)
+            }.flow.cachedIn(viewModelScope).map { pagingData ->
+                pagingData.map { it.toCart() }
+            }
         }
     }
 

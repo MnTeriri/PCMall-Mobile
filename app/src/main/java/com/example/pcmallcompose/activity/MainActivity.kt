@@ -6,8 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.pcmallcompose.application.LocalUserData
 import com.example.pcmallcompose.application.UserSession
 import com.example.pcmallcompose.ui.page.MainActivityPage
@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PCMallComposeTheme {
-                val userData by userSession.user.collectAsState()
+                val userData by userSession.user.collectAsStateWithLifecycle()
                 CompositionLocalProvider(LocalUserData provides userData) {
                     MainActivityPage()
                 }

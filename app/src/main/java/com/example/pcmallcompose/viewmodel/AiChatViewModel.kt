@@ -54,14 +54,12 @@ class AiChatViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AiChatUiState())
     val uiState: StateFlow<AiChatUiState> = _uiState.asStateFlow()
 
-    fun getChatHistoryPagingData(): Flow<PagingData<ChatHistory>> {
-        return Pager(
-            config = PagingConfig(pageSize = 10),
-        ) {
-            chatHistoryDao.pagingSource()
-        }.flow.cachedIn(viewModelScope).map { pagingData ->
-            pagingData.map { it.toChatHistory() }
-        }
+    val chatHistoryPagingFlow: Flow<PagingData<ChatHistory>> = Pager(
+        config = PagingConfig(pageSize = 10),
+    ) {
+        chatHistoryDao.pagingSource()
+    }.flow.cachedIn(viewModelScope).map { pagingData ->
+        pagingData.map { it.toChatHistory() }
     }
 
     private fun handleAiChatEvent(

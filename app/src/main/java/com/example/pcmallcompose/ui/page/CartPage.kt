@@ -45,6 +45,7 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,7 +64,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
@@ -77,13 +77,12 @@ import com.example.pcmallcompose.application.LocalUserData
 import com.example.pcmallcompose.core.model.Cart
 import com.example.pcmallcompose.core.model.Goods
 import com.example.pcmallcompose.core.network.di.NetworkModule
+import com.example.pcmallcompose.ui.ErrorMessage
 import com.example.pcmallcompose.ui.dialog.MessageDialog
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import com.example.pcmallcompose.ui.theme.PriceColor
 import com.example.pcmallcompose.viewmodel.CartViewModel
-import com.example.pcmallcompose.ui.ErrorMessage
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
@@ -101,16 +100,26 @@ fun CartPage(
     val viewModel: CartViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val pagingFlow = remember(userData) {
-        if (userData != null) {
-            viewModel.getCartPagingData(userData.uid)
-        } else {
-            flowOf(PagingData.empty())
-        }
-    }
-    val lazyPagingItems = pagingFlow.collectAsLazyPagingItems()
+    val lazyPagingItems = viewModel.cartPagingFlow.collectAsLazyPagingItems()
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+
+    val selectedInfo by remember {
+        derivedStateOf {
+            var count = 0
+            var total = BigDecimal.ZERO
+
+            for (i in 0 until lazyPagingItems.itemCount) {
+                val cart = lazyPagingItems[i] ?: continue
+                if (cart.isSelect == 1) {
+                    val price = cart.goods?.price ?: BigDecimal.ZERO
+                    total += price.multiply(BigDecimal(cart.count))
+                    count++
+                }
+            }
+            Pair(count, total)
+        }
+    }
 
     // 操作成功 → 刷新分页数据
     LaunchedEffect(uiState.shouldRefresh) {
@@ -150,8 +159,8 @@ fun CartPage(
             if (userData != null) {
                 CartPageBottomBar(
                     isAllSelected = true,
-                    selectedCount = 0,
-                    totalPrice = BigDecimal("1000.00"),
+                    selectedCount = selectedInfo.first,
+                    totalPrice = selectedInfo.second,
                     onSelectAllClick = {},
                     onCreateOrderClick = {}
                 )
@@ -269,6 +278,7 @@ fun CartPageBottomBar(
                 }
                 Spacer(Modifier.width(10.dp))
                 Button(
+                    modifier = Modifier.size(height = 45.dp, width = 110.dp),
                     onClick = onCreateOrderClick,
                     enabled = selectedCount > 0,
                     colors = ButtonDefaults.buttonColors(containerColor = PriceColor)

@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -60,8 +59,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.isTraversalGroup
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -78,8 +75,8 @@ import com.bumptech.glide.integration.compose.placeholder
 import com.example.pcmallcompose.R
 import com.example.pcmallcompose.core.model.Goods
 import com.example.pcmallcompose.core.network.di.NetworkModule
-import com.example.pcmallcompose.ui.theme.PriceColor
 import com.example.pcmallcompose.ui.ErrorMessage
+import com.example.pcmallcompose.ui.theme.PriceColor
 import com.example.pcmallcompose.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -103,7 +100,6 @@ fun HomePage(
             flowOf(PagingData.empty())   // 没有搜索词时返回空流，展开后展示空列表
         }
     }
-    val pagingFlow = remember { viewModel.getGoodsPagingData() }
 
     LaunchedEffect(Unit) {
         viewModel.getADImageList()
@@ -136,7 +132,7 @@ fun HomePage(
     ) { innerPadding ->
         GoodsListView(
             modifier = Modifier.padding(innerPadding),
-            goodsFlowData = pagingFlow,
+            goodsFlowData = viewModel.goodsPagingFlow,
             adImageList = uiState.adImageList,
             onADRefresh = { viewModel.getADImageList() },
             jumpToDetail = onDetailClick,
@@ -361,13 +357,11 @@ fun GoodsListView(
     ) {
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxSize()
-                .semantics { isTraversalGroup = true }
+            modifier = Modifier.fillMaxSize()
         ) {
-            item(span = StaggeredGridItemSpan.FullLine) {
-                GoodsCarouselContent(adImageList)
-            }
+//            item(span = StaggeredGridItemSpan.FullLine) {
+//                GoodsCarouselContent(adImageList)
+//            }
 
             items(
                 lazyPagingItems.itemCount,

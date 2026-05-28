@@ -12,9 +12,9 @@ interface CartDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(users: List<CartEntity>)
 
-    @Query("SELECT * FROM cart ORDER BY id DESC")
-    fun pagingSource(): PagingSource<Int, CartEntity>
+    @Query("SELECT * FROM cart WHERE uid=:uid ORDER BY id DESC")
+    fun pagingSource(uid: String): PagingSource<Int, CartEntity>
 
-    @Query("DELETE FROM cart")
-    suspend fun clearAll()
+    @Query("DELETE FROM cart WHERE uid=:uid")
+    suspend fun clearAll(uid: String)
 }
