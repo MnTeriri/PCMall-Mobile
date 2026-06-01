@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
 data class CartUiState(
-    val errorMessage: ErrorMessage? = null,     // 加减选操作的瞬态反馈
+    val errorMessage: ErrorMessage? = null,      // 加减选操作的瞬态反馈
     val shouldRefresh: Boolean = false,          // 操作成功后触发 Paging 刷新
 )
 

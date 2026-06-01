@@ -28,5 +28,11 @@ sealed class Screen {
     data object AiChat : Screen()
 
     @Serializable
+    data object Address : Screen()
+
+    @Serializable
+    data object AddressEdit : Screen()
+
+    @Serializable
     data class GoodsDetail(val goods: String) : Screen()
 }

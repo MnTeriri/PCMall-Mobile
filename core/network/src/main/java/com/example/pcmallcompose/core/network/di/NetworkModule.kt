@@ -2,6 +2,7 @@ package com.example.pcmallcompose.core.network.di
 
 import android.content.Context
 import com.example.pcmallcompose.core.network.interceptor.HeaderInterceptor
+import com.example.pcmallcompose.core.network.service.AddressService
 import com.example.pcmallcompose.core.network.service.CartService
 import com.example.pcmallcompose.core.network.service.GoodsService
 import com.example.pcmallcompose.core.network.service.ImageService
@@ -24,6 +25,7 @@ import retrofit2.Retrofit
 import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory
 import retrofit2.converter.jackson.JacksonConverterFactory
 import java.util.concurrent.TimeUnit
+
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -86,6 +88,18 @@ object NetworkModule {
             .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
             .build()
             .create(GoodsService::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun provideAddressService(okHttpClient: OkHttpClient, objectMapper: ObjectMapper): AddressService {
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL + "mobile/address/")
+            .client(okHttpClient)
+            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+            .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+            .build()
+            .create(AddressService::class.java)
     }
 
     @Singleton

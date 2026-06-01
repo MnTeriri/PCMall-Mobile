@@ -117,4 +117,5 @@ dependencies {
     implementation(libs.markdown.renderer.m3)
 
     implementation("com.github.f0ris.sweetalert:library:1.6.2")
+    implementation("com.github.gzu-liyujiang.AndroidPicker:AddressPicker:4.1.15")
 }

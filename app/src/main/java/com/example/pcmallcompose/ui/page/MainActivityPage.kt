@@ -75,6 +75,19 @@ fun MainActivityPage() {
                 onCloseClick = { navController.popBackStack() }
             )
         }
+
+        composable<Screen.Address> {
+            AddressPage(
+                onBackClick = { navController.popBackStack() },
+                onAddAddressClick = { navController.navigate(Screen.AddressEdit) }
+            )
+        }
+
+        composable<Screen.AddressEdit> {
+            AddressEditPage(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
     }
 }
 
@@ -117,12 +130,17 @@ fun IndexPage(
                 )
             }
             composable<Screen.Myself> {
-                MySelfPage(onLoginClick = {
-                    mainNavController.navigate(Screen.Login) {
-                        launchSingleTop = true
-                        restoreState = true
+                MySelfPage(
+                    onLoginClick = {
+                        mainNavController.navigate(Screen.Login) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onAddressClick = {
+                        mainNavController.navigate(Screen.Address)
                     }
-                })
+                )
             }
         }
     }

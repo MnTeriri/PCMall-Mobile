@@ -114,7 +114,7 @@ fun GoodsDetailPage(
         bottomBar = {
             GoodsDetailBottomBar(
                 isAddingToCart = uiState.isAddingToCart,
-                onAddToCartClick = {
+                onAddCartClick = {
                     if (userData == null) {
                         MessageDialog(context, SweetAlertDialog.WARNING_TYPE, "请先登录").show()
                     } else {
@@ -195,7 +195,7 @@ fun GoodsDetailTopBar(
 @Composable
 fun GoodsDetailBottomBar(
     isAddingToCart: Boolean = false,
-    onAddToCartClick: () -> Unit = {},
+    onAddCartClick: () -> Unit = {},
     onBuyNowClick: () -> Unit = {}
 ) {
     Row(
@@ -240,7 +240,7 @@ fun GoodsDetailBottomBar(
                 containerColor = Color.DarkGray
             ),
             enabled = !isAddingToCart,
-            onClick = onAddToCartClick
+            onClick = onAddCartClick
         ) {
             Text("加入购物车")
         }
