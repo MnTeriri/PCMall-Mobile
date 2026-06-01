@@ -37,11 +37,9 @@ class CartRemoteMediator(
                 // 在此示例中无需前置加载，因为 REFRESH 总是加载第一页。
                 // 因此直接返回，表示没有更多数据需要加载。
                 PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
-                // 后置加载（在列表底部加载更多）
                 APPEND -> {
-                    val remoteKey = database.withTransaction {
-                        remoteKeyDao.remoteKeyByQuery(TABLE_NAME, uid)
-                    }
+                    // 后置加载（在列表底部加载更多）
+                    val remoteKey = remoteKeyDao.remoteKeyByQuery(TABLE_NAME, uid)
                     remoteKey.currentPage + 1
                 }
             }
@@ -52,6 +50,7 @@ class CartRemoteMediator(
             database.withTransaction {
                 if (loadType == REFRESH) {
                     remoteKeyDao.deleteByQuery(TABLE_NAME, uid)
+                    cartDao.clearAll(uid)
                 }
 
                 // 当列表为空时，代表没有新数据了

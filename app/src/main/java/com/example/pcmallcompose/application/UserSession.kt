@@ -65,4 +65,11 @@ class UserSession @Inject constructor(
         val data = sharedPreferences.getString("data", null)
         return data.parseObject<User>()
     }
+
+    fun onCartChanged() {
+        val current = sharedPreferences.getInt("cart_version", 0)
+        sharedPreferences.edit { putInt("cart_version", current + 1) }
+    }
+
+    fun cartVersion(): Int = sharedPreferences.getInt("cart_version", 0)
 }

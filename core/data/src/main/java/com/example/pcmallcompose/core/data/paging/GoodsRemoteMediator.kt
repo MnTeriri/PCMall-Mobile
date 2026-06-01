@@ -35,16 +35,13 @@ class GoodsRemoteMediator(
                 REFRESH -> 1
                 PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 APPEND -> {
-                    val remoteKey = database.withTransaction {
-                        remoteKeyDao.remoteKeyByQuery(TABLE_NAME, "${label}_${searchValue}")
-                    }
+                    val remoteKey = remoteKeyDao.remoteKeyByQuery(TABLE_NAME, "${label}_${searchValue}")
                     remoteKey.currentPage + 1
                 }
             }
             val data = goodsService.searchGoodsList(searchValue, loadKey, state.config.pageSize).data
             Log.d(TAG, "loadType : $loadType, loadPage : $loadKey, data : $data")
 
-            // 无论数据是否为空，都要更新 RemoteKey，标记"这一页已经查过了"
             database.withTransaction {
                 if (loadType == REFRESH) {
                     remoteKeyDao.deleteByQuery(TABLE_NAME, "${label}_${searchValue}")

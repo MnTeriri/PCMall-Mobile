@@ -85,7 +85,7 @@ class LoginViewModel @Inject constructor(
             return
         }
 
-        Log.e(TAG, "$e: $response", e)
+        Log.w(TAG, "$e: $response", e)
 
         val errorMessage = when (response.code) {
             ResponseCode.CAPTCHA_ERROR.code -> ErrorMessage.Toast("验证码错误！")

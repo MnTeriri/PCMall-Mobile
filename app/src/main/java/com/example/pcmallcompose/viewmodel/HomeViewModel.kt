@@ -63,10 +63,7 @@ class HomeViewModel @Inject constructor(
     }
 
     @OptIn(ExperimentalPagingApi::class)
-    fun getGoodsPagingData(
-        label: String = "goods_home",
-        searchValue: String = "",
-    ): Flow<PagingData<Goods>> {
+    fun getGoodsPagingData(label: String, searchValue: String): Flow<PagingData<Goods>> {
         return Pager(
             config = PagingConfig(pageSize = 10, initialLoadSize = 30),
             remoteMediator = GoodsRemoteMediator(
@@ -101,7 +98,7 @@ class HomeViewModel @Inject constructor(
             catchException(e)
             return
         }
-        Log.e(TAG, "$e: $response", e)
+        Log.w(TAG, "$e: $response", e)
         _uiState.update { it.copy(errorMessage = ErrorMessage.Toast(response.message)) }
     }
 

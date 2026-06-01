@@ -3,6 +3,7 @@ package com.example.pcmallcompose.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.pcmallcompose.application.UserSession
 import com.example.pcmallcompose.core.model.response.ResponseCode
 import com.example.pcmallcompose.core.network.service.CartService
 import com.example.pcmallcompose.core.network.utils.RetrofitUtils
@@ -26,6 +27,7 @@ data class GoodsDetailUiState(
 @HiltViewModel
 class GoodsDetailViewModel @Inject constructor(
     private val cartService: CartService,
+    private val userSession: UserSession
 ) : ViewModel() {
     companion object {
         const val TAG = "GoodsDetailViewModel"
@@ -37,9 +39,9 @@ class GoodsDetailViewModel @Inject constructor(
     fun addToCart(goodsId: Int, uid: String) {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isAddingToCart = true, isAddedToCart = false, errorMessage = null) }
-
             try {
                 cartService.addCart(goodsId, uid)
+                userSession.onCartChanged()
                 _uiState.update { it.copy(isAddingToCart = false, isAddedToCart = true, errorMessage = null) }
             } catch (e: HttpException) {
                 catchHttpException(e)
@@ -56,7 +58,7 @@ class GoodsDetailViewModel @Inject constructor(
             return
         }
 
-        Log.e(TAG, "$e: $response", e)
+        Log.w(TAG, "$e: $response", e)
 
         val errorMessage = when (response.code) {
             ResponseCode.CART_GOODS_ERROR.code -> ErrorMessage.Dialog("购物车商品状态异常")

@@ -100,8 +100,7 @@ fun CartPage(
     val viewModel: CartViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val lazyPagingItems = viewModel.cartPagingFlow.collectAsLazyPagingItems()
-
+    val lazyPagingItems = viewModel.getCartPagingData().collectAsLazyPagingItems()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     val selectedInfo by remember {
@@ -118,6 +117,19 @@ fun CartPage(
                 }
             }
             Pair(count, total)
+        }
+    }
+
+    val isAllSelected by remember {
+        derivedStateOf {
+            var count = 0
+            for (i in 0 until lazyPagingItems.itemCount) {
+                val cart = lazyPagingItems[i] ?: continue
+                if (cart.isSelect == 1) {
+                    count++
+                }
+            }
+            count == lazyPagingItems.itemCount
         }
     }
 
@@ -158,10 +170,13 @@ fun CartPage(
         bottomBar = {
             if (userData != null) {
                 CartPageBottomBar(
-                    isAllSelected = true,
+                    isAllSelected = isAllSelected,
                     selectedCount = selectedInfo.first,
                     totalPrice = selectedInfo.second,
-                    onSelectAllClick = {},
+                    onSelectAllClick = {
+                        val newState = if (isAllSelected) 0 else 1
+                        viewModel.selectAllCart(userData.uid, newState)
+                    },
                     onCreateOrderClick = {}
                 )
             }

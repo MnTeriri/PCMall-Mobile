@@ -149,7 +149,7 @@ class AiChatViewModel @Inject constructor(
             catchException(e)
             return
         }
-        Log.e(TAG, "$e: $response", e)
+        Log.w(TAG, "$e: $response", e)
         _uiState.update { it.copy(errorMessage = ErrorMessage.Toast(response.message)) }
     }
 
