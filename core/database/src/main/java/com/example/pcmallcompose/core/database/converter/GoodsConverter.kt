@@ -7,12 +7,12 @@ import com.example.pcmallcompose.core.model.Goods
 
 class GoodsConverter {
     @TypeConverter
-    fun fromString(value: String?): Goods? {
+    fun fromString(value: String): Goods {
         return value.parseObject<Goods>()
     }
 
     @TypeConverter
-    fun goodsToString(goods: Goods?): String? {
+    fun goodsToString(goods: Goods): String {
         return goods.toJSONString()
     }
 }

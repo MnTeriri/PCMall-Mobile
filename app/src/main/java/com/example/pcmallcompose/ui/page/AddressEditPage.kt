@@ -83,7 +83,9 @@ fun AddressEditPage(
 
     LaunchedEffect(uiState.isEditSuccess) {
         if (uiState.isEditSuccess) {
-            MessageDialog(context, SweetAlertDialog.SUCCESS_TYPE, "操作成功！").show()
+            MessageDialog(context, SweetAlertDialog.SUCCESS_TYPE, "操作成功！") {
+                onBackClick()
+            }.show()
         }
     }
 

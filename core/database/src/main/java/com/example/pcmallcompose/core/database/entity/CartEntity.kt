@@ -12,9 +12,9 @@ data class CartEntity(
     @PrimaryKey val id: Int, //购物车信息编号
     @ColumnInfo(name = "uid") val uid: String, //用户编号
     @ColumnInfo(name = "gid") val gid: Int,//商品编号
-    @ColumnInfo(name = "goods") val goods: Goods? = null,
+    @ColumnInfo(name = "goods") val goods: Goods,
     @ColumnInfo(name = "count") val count: Int, //选购数量
-    @ColumnInfo(name = "created_time") val createdTime: LocalDateTime, //创建时间
+    @ColumnInfo(name = "create_time") val createTime: LocalDateTime, //创建时间
     @ColumnInfo(name = "is_select") val isSelect: Int,//0为未选购，1为选购
 ) {
     fun toCart(): Cart = Cart(
@@ -23,7 +23,7 @@ data class CartEntity(
         gid = gid,
         goods = goods,
         count = count,
-        createdTime = createdTime,
+        createTime = createTime,
         isSelect = isSelect,
     )
 
@@ -35,7 +35,7 @@ data class CartEntity(
             gid = cart.gid,
             goods = cart.goods,
             count = cart.count,
-            createdTime = cart.createdTime,
+            createTime = cart.createTime,
             isSelect = cart.isSelect,
         )
     }

@@ -10,7 +10,7 @@ import com.example.pcmallcompose.core.database.entity.CartEntity
 @Dao
 interface CartDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(users: List<CartEntity>)
+    suspend fun insertAll(carts: List<CartEntity>)
 
     @Query("SELECT * FROM cart WHERE uid=:uid ORDER BY id DESC")
     fun pagingSource(uid: String): PagingSource<Int, CartEntity>

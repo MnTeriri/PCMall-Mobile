@@ -413,7 +413,7 @@ fun GoodsItemView(
                     modifier = Modifier.constrainAs(name) {
                         top.linkTo(parent.top)
                     },
-                    text = "${goods.brand?.bname} ${goods.gname}",
+                    text = "${goods.brand.bname} ${goods.gname}",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     overflow = TextOverflow.Ellipsis,

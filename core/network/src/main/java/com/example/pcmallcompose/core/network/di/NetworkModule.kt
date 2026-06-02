@@ -7,6 +7,7 @@ import com.example.pcmallcompose.core.network.service.CartService
 import com.example.pcmallcompose.core.network.service.GoodsService
 import com.example.pcmallcompose.core.network.service.ImageService
 import com.example.pcmallcompose.core.network.service.LoginRegisterService
+import com.example.pcmallcompose.core.network.service.OrderService
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.franmontiel.persistentcookiejar.ClearableCookieJar
 import com.franmontiel.persistentcookiejar.PersistentCookieJar
@@ -100,6 +101,18 @@ object NetworkModule {
             .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
             .build()
             .create(AddressService::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun provideOrderService(okHttpClient: OkHttpClient, objectMapper: ObjectMapper): OrderService {
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL + "mobile/order/")
+            .client(okHttpClient)
+            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+            .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+            .build()
+            .create(OrderService::class.java)
     }
 
     @Singleton

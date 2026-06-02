@@ -76,6 +76,7 @@ import com.example.pcmallcompose.R
 import com.example.pcmallcompose.application.LocalUserData
 import com.example.pcmallcompose.core.model.Cart
 import com.example.pcmallcompose.core.model.Goods
+import com.example.pcmallcompose.core.model.Goods.GoodsState
 import com.example.pcmallcompose.core.network.di.NetworkModule
 import com.example.pcmallcompose.ui.ErrorMessage
 import com.example.pcmallcompose.ui.dialog.MessageDialog
@@ -111,7 +112,7 @@ fun CartPage(
             for (i in 0 until lazyPagingItems.itemCount) {
                 val cart = lazyPagingItems[i] ?: continue
                 if (cart.isSelect == 1) {
-                    val price = cart.goods?.price ?: BigDecimal.ZERO
+                    val price = cart.goods.price
                     total += price.multiply(BigDecimal(cart.count))
                     count++
                 }
@@ -191,7 +192,7 @@ fun CartPage(
             CartListView(
                 modifier = Modifier.padding(innerPadding),
                 lazyPagingItems = lazyPagingItems,
-                onClick = { onDetailClick(it.goods!!) },
+                onClick = { onDetailClick(it.goods) },
                 onSelectClick = {
                     val newState = if (it.isSelect == 1) 0 else 1
                     viewModel.selectCart(it.id, newState)
@@ -382,8 +383,8 @@ fun CartListView(
             items(
                 count = lazyPagingItems.itemCount,
                 key = lazyPagingItems.itemKey { it.id }
-            ) { index ->
-                val cart = lazyPagingItems[index]!!
+            ) {
+                val cart = lazyPagingItems[it]!!
 
                 CartItemView(
                     cart = cart,
@@ -408,14 +409,14 @@ fun CartItemView(
     onSubClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
-    val enabled = (cart.goods?.status == 0 && cart.goods?.isDelete == 0)
-    var message = cart.goods?.description
+    val enabled = (cart.goods.status == GoodsState.NORMAL && cart.goods.isDelete == 0)
+    var message = cart.goods.description
 
-    if (cart.goods?.status == 1) {
+    if (cart.goods.status == GoodsState.OUT_OF_STOCK) {
         message = "该商品缺货！"
-    } else if (cart.goods?.status == 2) {
+    } else if (cart.goods.status == GoodsState.OFF_SHELF) {
         message = "该商品已下架！"
-    } else if (cart.goods?.isDelete == 1) {
+    } else if (cart.goods.isDelete == 1) {
         message = "该商品已删除！"
     }
 
@@ -443,7 +444,7 @@ fun CartItemView(
             )
 
             GlideImage(
-                model = NetworkModule.IMAGE_URL + cart.goods?.image,
+                model = NetworkModule.IMAGE_URL + cart.goods.image,
                 modifier = Modifier.size(100.dp),
                 contentDescription = null,
                 failure = placeholder(R.drawable.test_image)
@@ -456,7 +457,7 @@ fun CartItemView(
                     .padding(horizontal = 10.dp)
             ) {
                 Text(
-                    text = "${cart.goods?.brand?.bname}${cart.goods?.gname}",
+                    text = "${cart.goods.brand.bname}${cart.goods.gname}",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     overflow = TextOverflow.Ellipsis,
@@ -464,7 +465,7 @@ fun CartItemView(
                 )
 
                 Text(
-                    text = "$message",
+                    text = message,
                     fontSize = 12.sp,
                     color = Color.Gray,
                     overflow = TextOverflow.Ellipsis,
@@ -483,7 +484,7 @@ fun CartItemView(
                     verticalAlignment = Alignment.Bottom
                 ) {
                     Text(
-                        text = "¥${NumberUtil.mul(cart.goods?.price, cart.count).setScale(2)}",
+                        text = "¥${NumberUtil.mul(cart.goods.price, cart.count).setScale(2)}",
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
                         color = PriceColor

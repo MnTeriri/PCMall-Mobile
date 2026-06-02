@@ -5,7 +5,7 @@ import com.alibaba.fastjson2.parseArray
 import com.alibaba.fastjson2.toJSONString
 import com.example.pcmallcompose.core.model.Goods
 
-class RecommendsConverter {
+class GoodsListConverter {
     @TypeConverter
     fun fromString(value: String): List<Goods> {
         return value.parseArray<Goods>()

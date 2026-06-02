@@ -25,6 +25,7 @@ import androidx.navigation.toRoute
 import com.alibaba.fastjson2.parseObject
 import com.alibaba.fastjson2.toJSONString
 import com.example.pcmallcompose.R
+import com.example.pcmallcompose.core.model.Address
 import com.example.pcmallcompose.core.model.Goods
 import com.example.pcmallcompose.ui.Screen
 
@@ -79,14 +80,30 @@ fun MainActivityPage() {
         composable<Screen.Address> {
             AddressPage(
                 onBackClick = { navController.popBackStack() },
-                onAddAddressClick = { navController.navigate(Screen.AddressEdit) }
+                onAddAddressClick = { navController.navigate(Screen.AddressEdit(true, "")) },
+                onUpdateAddressClick = { navController.navigate(Screen.AddressEdit(false, it.toJSONString())) },
             )
         }
 
-        composable<Screen.AddressEdit> {
+        composable<Screen.AddressEdit> { backStackEntry ->
+            val addressEdit: Screen.AddressEdit = backStackEntry.toRoute()
+            val address = remember(addressEdit.address) {
+                if (addressEdit.address.isEmpty()) {
+                    null
+                } else {
+                    addressEdit.address.parseObject<Address>()
+                }
+            }
+
             AddressEditPage(
+                isNewAddress = addressEdit.isNewAddress,
+                address = address,
                 onBackClick = { navController.popBackStack() }
             )
+        }
+
+        composable<Screen.Order> {
+            OrderPage()
         }
     }
 }

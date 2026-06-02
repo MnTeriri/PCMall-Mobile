@@ -15,7 +15,7 @@ data class User(
     @field:JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @field:JsonDeserialize(using = LocalDateTimeDeserializer::class)
     @field:JsonSerialize(using = LocalDateTimeSerializer::class)
-    val createdTime: LocalDateTime,//创建时间
+    val createTime: LocalDateTime,//创建时间
     @field:JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @field:JsonDeserialize(using = LocalDateTimeDeserializer::class)
     @field:JsonSerialize(using = LocalDateTimeSerializer::class)

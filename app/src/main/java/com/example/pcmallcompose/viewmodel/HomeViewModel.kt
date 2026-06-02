@@ -11,6 +11,7 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import com.example.pcmallcompose.core.data.paging.GoodsRemoteMediator
 import com.example.pcmallcompose.core.database.PCMallDatabase
+import com.example.pcmallcompose.core.database.dao.GoodsDao
 import com.example.pcmallcompose.core.model.Goods
 import com.example.pcmallcompose.core.network.service.GoodsService
 import com.example.pcmallcompose.core.network.service.ImageService
@@ -37,6 +38,7 @@ data class HomeUiState(
 class HomeViewModel @Inject constructor(
     private val database: PCMallDatabase,
     private val goodsService: GoodsService,
+    private val goodsDao: GoodsDao,
     private val imageService: ImageService
 ) : ViewModel() {
     companion object {
@@ -57,7 +59,7 @@ class HomeViewModel @Inject constructor(
             goodsService = goodsService
         )
     ) {
-        database.goodsDao().pagingSource("goods_home", "")
+        goodsDao.pagingSource("goods_home", "")
     }.flow.cachedIn(viewModelScope).map { pagingData ->
         pagingData.map { it.goods }
     }

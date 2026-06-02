@@ -92,7 +92,7 @@ fun GoodsSheet(
                             modifier = Modifier.padding(10.dp)
                         ) {
                             Text(
-                                text = "${goods.brand?.bname} ${goods.gname}",
+                                text = "${goods.brand.bname} ${goods.gname}",
                                 fontSize = 19.sp,
                                 fontWeight = FontWeight.Bold,
                                 overflow = TextOverflow.Ellipsis,

@@ -31,7 +31,10 @@ sealed class Screen {
     data object Address : Screen()
 
     @Serializable
-    data object AddressEdit : Screen()
+    data class AddressEdit(val isNewAddress: Boolean, val address: String) : Screen()
+
+    @Serializable
+    data object Order : Screen()
 
     @Serializable
     data class GoodsDetail(val goods: String) : Screen()

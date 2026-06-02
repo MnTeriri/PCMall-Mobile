@@ -71,7 +71,7 @@ class CartViewModel @Inject constructor(
             config = PagingConfig(pageSize = 10, initialLoadSize = 30),
             remoteMediator = CartRemoteMediator(uid, database, cartService)
         ) {
-            database.cartDao().pagingSource(uid)
+            cartDao.pagingSource(uid)
         }.flow.cachedIn(viewModelScope).map { pagingData ->
             pagingData.map { it.toCart() }
         }
