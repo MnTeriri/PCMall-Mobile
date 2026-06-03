@@ -6,7 +6,7 @@ plugins {
 android {
     namespace = "com.example.pcmallcompose.core.data"
     compileSdk {
-        version = release(36)
+        version = release(37)
     }
 }
 

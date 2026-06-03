@@ -60,9 +60,9 @@ fun MainActivityPage() {
         }
 
         composable<Screen.GoodsDetail> { backStackEntry ->
-            val goodsDetail: Screen.GoodsDetail = backStackEntry.toRoute()
-            val goods = remember(goodsDetail.goods) {
-                goodsDetail.goods.parseObject<Goods>()
+            val goodsDetailRoute: Screen.GoodsDetail = backStackEntry.toRoute()
+            val goods = remember(goodsDetailRoute.goods) {
+                goodsDetailRoute.goods.parseObject<Goods>()
             }
             GoodsDetailPage(
                 goods = goods,
@@ -86,24 +86,29 @@ fun MainActivityPage() {
         }
 
         composable<Screen.AddressEdit> { backStackEntry ->
-            val addressEdit: Screen.AddressEdit = backStackEntry.toRoute()
-            val address = remember(addressEdit.address) {
-                if (addressEdit.address.isEmpty()) {
+            val addressEditRoute: Screen.AddressEdit = backStackEntry.toRoute()
+            val address = remember(addressEditRoute.address) {
+                if (addressEditRoute.address.isEmpty()) {
                     null
                 } else {
-                    addressEdit.address.parseObject<Address>()
+                    addressEditRoute.address.parseObject<Address>()
                 }
             }
 
             AddressEditPage(
-                isNewAddress = addressEdit.isNewAddress,
+                isNewAddress = addressEditRoute.isNewAddress,
                 address = address,
                 onBackClick = { navController.popBackStack() }
             )
         }
 
-        composable<Screen.Order> {
-            OrderPage()
+        composable<Screen.Order> { backStackEntry ->
+            val orderRoute: Screen.Order = backStackEntry.toRoute()
+            OrderPage(
+                selectTab = orderRoute.tab,
+                onBackClick = { navController.popBackStack() },
+                onAiClick = { navController.navigate(Screen.AiChat) }
+            )
         }
     }
 }
@@ -154,9 +159,8 @@ fun IndexPage(
                             restoreState = true
                         }
                     },
-                    onAddressClick = {
-                        mainNavController.navigate(Screen.Address)
-                    }
+                    onOrderClick = { mainNavController.navigate(Screen.Order(it)) },
+                    onAddressClick = { mainNavController.navigate(Screen.Address) }
                 )
             }
         }

@@ -34,7 +34,21 @@ sealed class Screen {
     data class AddressEdit(val isNewAddress: Boolean, val address: String) : Screen()
 
     @Serializable
-    data object Order : Screen()
+    data class Order(val tab: OrderTab) : Screen() {
+        enum class OrderTab(
+            val code: Int,
+            val label: String
+        ) {
+            ALL(-1, "全部"),
+            PENDING_PAYMENT(0, "待付款"),
+            PENDING_SHIPMENT(1, "待发货"),
+            PENDING_RECEIPT(2, "待收货"),
+            SUCCESS(3, "交易成功"),
+            CANCELED(4, "交易取消"),
+            RETURNING(5, "退货中"),
+            RETURNED(6, "退货成功");
+        }
+    }
 
     @Serializable
     data class GoodsDetail(val goods: String) : Screen()

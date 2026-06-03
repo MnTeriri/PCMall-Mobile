@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
@@ -36,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -49,11 +47,13 @@ import com.example.pcmallcompose.R
 import com.example.pcmallcompose.application.LocalUserData
 import com.example.pcmallcompose.core.model.User
 import com.example.pcmallcompose.core.network.di.NetworkModule
+import com.example.pcmallcompose.ui.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MySelfPage(
     onLoginClick: () -> Unit = {},
+    onOrderClick: (Screen.Order.OrderTab) -> Unit = {},
     onAddressClick: () -> Unit = {},
 ) {
     Scaffold(
@@ -63,26 +63,21 @@ fun MySelfPage(
             }
         }
     ) { innerPadding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
             // 用户信息
-            item(key = "user_info") {
-                UserInformationCard(onLoginClick)
-            }
+            UserInformationCard(onLoginClick)
 
-            item(key = "order") {
-                OrderInformationCard()
-            }
+            //订单卡片
+            OrderInformationCard(onOrderClick)
 
-            // 服务
-            item(key = "service") {
-                ServiceCard(
-                    onAddressClick = onAddressClick
-                )
-            }
+            // 服务卡片
+            ServiceCard(
+                onAddressClick = onAddressClick
+            )
         }
     }
 }
@@ -111,7 +106,7 @@ private fun UserInformationCard(
 
 @Composable
 private fun LoginButton(
-    onLoginClick: () -> Unit={}
+    onLoginClick: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -177,16 +172,20 @@ private fun UserInformation(user: User) {
 }
 
 @Composable
-private fun OrderInformationCard() {
-    val context = LocalContext.current
-    val user = LocalUserData.current
+private fun OrderInformationCard(
+    onOrderClick: (Screen.Order.OrderTab) -> Unit
+) {
+    data class OrderNavBarItem(
+        val tab: Screen.Order.OrderTab,
+        val iconRes: Int,
+    )
 
     val items = listOf(
-        mapOf("label" to "待付款", "icon" to R.drawable.ic_order_pay),
-        mapOf("label" to "待发货", "icon" to R.drawable.ic_order_send),
-        mapOf("label" to "待收货", "icon" to R.drawable.ic_order_deliver),
-        mapOf("label" to "已完成", "icon" to R.drawable.ic_order_finish),
-        mapOf("label" to "售后服务", "icon" to R.drawable.ic_order_refund),
+        OrderNavBarItem(Screen.Order.OrderTab.PENDING_PAYMENT, R.drawable.ic_order_pay),
+        OrderNavBarItem(Screen.Order.OrderTab.PENDING_SHIPMENT, R.drawable.ic_order_send),
+        OrderNavBarItem(Screen.Order.OrderTab.PENDING_RECEIPT, R.drawable.ic_order_deliver),
+        OrderNavBarItem(Screen.Order.OrderTab.SUCCESS, R.drawable.ic_order_finish),
+        OrderNavBarItem(Screen.Order.OrderTab.RETURNING, R.drawable.ic_order_refund),
     )
 
     Card(
@@ -196,18 +195,25 @@ private fun OrderInformationCard() {
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(
+            modifier = Modifier.padding(12.dp)
+        ) {
             // 标题行
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("我的订单", fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("全部", fontSize = 13.sp, color = Color.Gray)
+                Text(text = "我的订单", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                Row(
+                    modifier = Modifier.clickable {
+                        onOrderClick(Screen.Order.OrderTab.ALL)
+                    },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "全部", fontSize = 13.sp, color = Color.Gray)
                     Icon(
-                        Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                        imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                         contentDescription = null,
                         tint = Color.Gray,
                         modifier = Modifier.size(18.dp)
@@ -219,17 +225,17 @@ private fun OrderInformationCard() {
 
             // 订单入口
             NavigationBar(containerColor = Color.White) {
-                items.forEachIndexed { index, item ->
+                items.forEach { item ->
                     NavigationBarItem(
                         selected = false,
-                        onClick = {},
+                        onClick = { onOrderClick(item.tab) },
                         icon = {
                             Icon(
-                                imageVector = ImageVector.vectorResource(item["icon"] as Int),
+                                imageVector = ImageVector.vectorResource(item.iconRes),
                                 contentDescription = null
                             )
                         },
-                        label = { Text(text = "${item["label"]}", fontSize = 12.sp) },
+                        label = { Text(text = item.tab.label, fontSize = 12.sp) },
                         colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
                     )
                 }
@@ -247,19 +253,19 @@ private fun ServiceCard(
     onServiceClick: () -> Unit = {},
     onLogoutClick: () -> Unit = {},
 ) {
-    data class ServiceItem(
+    data class ServiceNavBarItem(
         val label: String,
         val iconRes: Int,
         val onClick: () -> Unit,
     )
 
     val items = listOf(
-        ServiceItem("AI导购", R.drawable.ic_order_pay, onAiClick),
-        ServiceItem("地址管理", R.drawable.ic_order_pay, onAddressClick),
-        ServiceItem("购物车", R.drawable.ic_order_pay, onCartClick),
-        ServiceItem("修改密码", R.drawable.ic_order_pay, onPasswordClick),
-        ServiceItem("售后服务", R.drawable.ic_order_pay, onServiceClick),
-        ServiceItem("退出登录", R.drawable.ic_order_pay, onLogoutClick)
+        ServiceNavBarItem("AI导购", R.drawable.ic_order_pay, onAiClick),
+        ServiceNavBarItem("地址管理", R.drawable.ic_order_pay, onAddressClick),
+        ServiceNavBarItem("购物车", R.drawable.ic_order_pay, onCartClick),
+        ServiceNavBarItem("修改密码", R.drawable.ic_order_pay, onPasswordClick),
+        ServiceNavBarItem("售后服务", R.drawable.ic_order_pay, onServiceClick),
+        ServiceNavBarItem("退出登录", R.drawable.ic_order_pay, onLogoutClick)
     )
 
     Card(

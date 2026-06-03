@@ -20,8 +20,8 @@ data class Order(
 ) {
     enum class OrderState(
         @field:JsonValue
-        private val code: Int,
-        private val label: String
+        val code: Int,
+        val label: String
     ) {
         PENDING_PAYMENT(0, "待付款"),
         PENDING_SHIPMENT(1, "待发货"),

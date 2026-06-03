@@ -35,8 +35,8 @@ data class Goods(
 ) {
     enum class GoodsState(
         @field:JsonValue
-        private val code: Int,
-        private val label: String
+        val code: Int,
+        val label: String
     ) {
         NORMAL(0, "正常"),
         OUT_OF_STOCK(1, "缺货"),

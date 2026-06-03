@@ -9,13 +9,13 @@ plugins {
 android {
     namespace = "com.example.pcmallcompose"
     compileSdk {
-        version = release(36)
+        version = release(37)
     }
 
     defaultConfig {
         applicationId = "com.example.pcmallcompose"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
@@ -60,7 +60,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
 //    implementation(libs.androidx.material3)
-    implementation("androidx.compose.material3:material3:1.5.0-alpha10")
+    implementation("androidx.compose.material3:material3:1.5.0-alpha20")
     implementation(libs.androidx.material3.window.size)
     implementation(libs.androidx.material3.adaptive)
     implementation(libs.androidx.material3.adaptive.layout)

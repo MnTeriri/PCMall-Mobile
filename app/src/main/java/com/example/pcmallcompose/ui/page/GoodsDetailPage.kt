@@ -142,11 +142,7 @@ fun GoodsDetailTopBar(
     onBackClick: () -> Unit = {}
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val state by remember {
-        derivedStateOf {
-            listState.firstVisibleItemIndex
-        }
-    }
+    val selectedTabIndex by remember { derivedStateOf { listState.firstVisibleItemIndex } }
 
     TopAppBar(
         colors = topAppBarColors(containerColor = Color.White),
@@ -155,20 +151,14 @@ fun GoodsDetailTopBar(
             PrimaryTabRow(
                 containerColor = Color.White,
                 contentColor = Color.Black,
-                selectedTabIndex = state,
+                selectedTabIndex = selectedTabIndex,
                 divider = {}
             ) {
                 titles.forEachIndexed { index, title ->
                     Tab(
-                        selected = state == index,
+                        selected = selectedTabIndex == index,
                         onClick = { coroutineScope.launch { listState.animateScrollToItem(index) } },
-                        text = {
-                            Text(
-                                text = title,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        },
+                        text = { Text(text = title) },
                     )
                 }
             }

@@ -151,7 +151,7 @@ fun SearchBarView(
     val textFieldState = rememberTextFieldState()
     val searchBarState = rememberSearchBarState()
     val scope = rememberCoroutineScope()
-    val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+    val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior(canScroll = { false })
     val appBarWithSearchColors = SearchBarDefaults.appBarWithSearchColors()
 
     // 搜索框收起时 → 清空输入框内容和搜索词，下次打开时是干净的空状态
