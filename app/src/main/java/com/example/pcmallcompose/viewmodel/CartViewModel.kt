@@ -39,8 +39,8 @@ data class CartUiState(
 @HiltViewModel
 class CartViewModel @Inject constructor(
     private val database: PCMallDatabase,
-    private val cartService: CartService,
     private val cartDao: CartDao,
+    private val cartService: CartService,
     private val userSession: UserSession
 ) : ViewModel() {
     companion object {

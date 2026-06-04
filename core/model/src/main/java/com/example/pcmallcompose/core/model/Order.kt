@@ -1,7 +1,12 @@
 package com.example.pcmallcompose.core.model
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonValue
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -9,13 +14,25 @@ data class Order(
     val id: Int,
     val oid: String,//订单编号
     val uid: String,//用户编号
-    val goodsList: List<Goods>,//订单商品信息
-    val address: Address,//地址信息
+    val goodsList: List<OrderGoods>,//订单商品信息
+    val address: OrderAddress,//地址信息
     val price: BigDecimal,//总金额
     val status: OrderState, //状态（0待付款、1待发货、2待收货、3交易成功、4交易取消、5退货中、6退货成功）
+    @field:JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @field:JsonDeserialize(using = LocalDateTimeDeserializer::class)
+    @field:JsonSerialize(using = LocalDateTimeSerializer::class)
     val createTime: LocalDateTime,//创建时间
+    @field:JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @field:JsonDeserialize(using = LocalDateTimeDeserializer::class)
+    @field:JsonSerialize(using = LocalDateTimeSerializer::class)
     val payTime: LocalDateTime? = null,//付款时间
+    @field:JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @field:JsonDeserialize(using = LocalDateTimeDeserializer::class)
+    @field:JsonSerialize(using = LocalDateTimeSerializer::class)
     val sendTime: LocalDateTime? = null,//发货时间
+    @field:JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @field:JsonDeserialize(using = LocalDateTimeDeserializer::class)
+    @field:JsonSerialize(using = LocalDateTimeSerializer::class)
     val finishTime: LocalDateTime? = null,//完成时间
 ) {
     enum class OrderState(
@@ -33,13 +50,13 @@ data class Order(
 
         companion object {
             @JsonCreator
-            fun fromCode(code: Int): OrderState? {
+            fun fromCode(code: Int): OrderState {
                 for (state in entries) {
                     if (state.code == code) {
                         return state
                     }
                 }
-                return null
+                return PENDING_PAYMENT
             }
         }
     }

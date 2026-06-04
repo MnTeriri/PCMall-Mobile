@@ -23,8 +23,8 @@ import kotlinx.coroutines.flow.map
 @HiltViewModel
 class AddressViewModel @Inject constructor(
     private val database: PCMallDatabase,
-    private val addressService: AddressService,
     private val addressDao: AddressDao,
+    private val addressService: AddressService,
     private val userSession: UserSession
 ) : ViewModel() {
     companion object {

@@ -3,10 +3,10 @@ package com.example.pcmallcompose.core.database.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.pcmallcompose.core.model.Address
-import com.example.pcmallcompose.core.model.Goods
 import com.example.pcmallcompose.core.model.Order
 import com.example.pcmallcompose.core.model.Order.OrderState
+import com.example.pcmallcompose.core.model.OrderAddress
+import com.example.pcmallcompose.core.model.OrderGoods
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -15,8 +15,8 @@ data class OrderEntity(
     @PrimaryKey val id: Int,
     @ColumnInfo(name = "oid") val oid: String,
     @ColumnInfo(name = "uid") val uid: String,
-    @ColumnInfo(name = "goods_list") val goodsList: List<Goods>,
-    @ColumnInfo(name = "address") val address: Address,
+    @ColumnInfo(name = "goods_list") val goodsList: List<OrderGoods>,
+    @ColumnInfo(name = "address") val address: OrderAddress,
     @ColumnInfo(name = "price") val price: BigDecimal,
     @ColumnInfo(name = "status") val status: OrderState,
     @ColumnInfo(name = "create_time") val createTime: LocalDateTime,

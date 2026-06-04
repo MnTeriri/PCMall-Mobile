@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -54,12 +55,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import cn.hutool.core.date.DatePattern
 import cn.hutool.core.date.LocalDateTimeUtil
-import com.example.pcmallcompose.core.model.Address
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
+import com.bumptech.glide.integration.compose.placeholder
+import com.example.pcmallcompose.R
 import com.example.pcmallcompose.core.model.Order
 import com.example.pcmallcompose.core.model.Order.OrderState.CANCELED
 import com.example.pcmallcompose.core.model.Order.OrderState.PENDING_PAYMENT
@@ -68,13 +78,14 @@ import com.example.pcmallcompose.core.model.Order.OrderState.PENDING_SHIPMENT
 import com.example.pcmallcompose.core.model.Order.OrderState.RETURNED
 import com.example.pcmallcompose.core.model.Order.OrderState.RETURNING
 import com.example.pcmallcompose.core.model.Order.OrderState.SUCCESS
+import com.example.pcmallcompose.core.model.OrderGoods
+import com.example.pcmallcompose.core.network.di.NetworkModule
 import com.example.pcmallcompose.ui.Screen
-import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import com.example.pcmallcompose.ui.theme.PriceColor
+import com.example.pcmallcompose.viewmodel.OrderViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.time.LocalDateTime
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
@@ -83,6 +94,9 @@ fun OrderPage(
     onBackClick: () -> Unit = {},
     onAiClick: () -> Unit = {},
 ) {
+    val viewModel: OrderViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     Scaffold(
         topBar = {
             OrderPageSearchBar(
@@ -93,7 +107,8 @@ fun OrderPage(
     ) { innerPadding ->
         OrderPageContent(
             modifier = Modifier.padding(innerPadding),
-            selectTab = selectTab
+            selectTab = selectTab,
+            pagingDataFactory = { viewModel.getOrderPagingData(it) }
         )
     }
 }
@@ -166,9 +181,10 @@ private fun OrderPageSearchBar(
 
 @Composable
 private fun OrderPageContent(
-    modifier: Modifier= Modifier,
-    selectTab: Screen.Order.OrderTab
-){
+    modifier: Modifier = Modifier,
+    selectTab: Screen.Order.OrderTab,
+    pagingDataFactory: (Int) -> Flow<PagingData<Order>>,
+) {
     val coroutineScope = rememberCoroutineScope()
 
     val tabs = listOf(
@@ -210,14 +226,11 @@ private fun OrderPageContent(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
-            OrderTabContent(
-//                    statusFilter = statusFilters[page],
-//                    searchQuery = searchQuery,
-//                    onPayClick = onPayClick,
-//                    onCancelClick = onCancelClick,
-//                    onConfirmClick = onConfirmClick,
-//                    onRefundClick = onRefundClick,
-//                    onOrderClick = onOrderClick,
+            val tab = tabs[page]
+            val lazyPagingItems = pagingDataFactory(tab.code).collectAsLazyPagingItems()
+
+            OrderListView(
+                lazyPagingItems = lazyPagingItems
             )
         }
     }
@@ -225,8 +238,13 @@ private fun OrderPageContent(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun OrderTabContent(
-
+private fun OrderListView(
+    lazyPagingItems: LazyPagingItems<Order>,
+    onOrderClick: () -> Unit = {},
+    onPayClick: () -> Unit = {},
+    onConfirmClick: () -> Unit = {},
+    onCancelClick: () -> Unit = {},
+    onRefundClick: () -> Unit = {},
 ) {
     val coroutineScope = rememberCoroutineScope()
     var isRefreshing by remember { mutableStateOf(false) }//是否在刷新
@@ -236,7 +254,7 @@ private fun OrderTabContent(
         coroutineScope.launch {
             isRefreshing = true
             delay(1000.milliseconds)
-            // todo: 触发 ViewModel refresh
+            lazyPagingItems.refresh()
             isRefreshing = false
         }
     }
@@ -257,7 +275,20 @@ private fun OrderTabContent(
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
         ) {
-
+            items(
+                count = lazyPagingItems.itemCount,
+                key = lazyPagingItems.itemKey { it.id }
+            ) {
+                val order = lazyPagingItems[it]!!
+                OrderItemView(
+                    order = order,
+                    onOrderClick = onOrderClick,
+                    onPayClick = onPayClick,
+                    onConfirmClick = onConfirmClick,
+                    onCancelClick = onCancelClick,
+                    onRefundClick = onRefundClick,
+                )
+            }
         }
     }
 }
@@ -265,19 +296,17 @@ private fun OrderTabContent(
 @Composable
 private fun OrderItemView(
     order: Order,
-    onPayClick: () -> Unit = {},
-    onCancelClick: () -> Unit = {},
-    onConfirmClick: () -> Unit = {},
-    onRefundClick: () -> Unit = {},
-    onOrderClick: () -> Unit = {},
+    onOrderClick: () -> Unit,
+    onPayClick: () -> Unit,
+    onConfirmClick: () -> Unit,
+    onCancelClick: () -> Unit,
+    onRefundClick: () -> Unit,
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 5.dp, horizontal = 10.dp)
-            .clickable {
-                onOrderClick()
-            },
+            .clickable { onOrderClick() },
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -310,9 +339,9 @@ private fun OrderItemView(
             )
 
             // ── 商品列表 ──
-//            order.goodsList.forEach { goods ->
-//                OrderGoodsItemView(goods = goods)
-//            }
+            order.goodsList.forEach { goods ->
+                OrderGoodsItemView(goods = goods)
+            }
 
             HorizontalDivider(
                 modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
@@ -353,6 +382,63 @@ private fun OrderItemView(
                 onCancelClick = onCancelClick,
                 onConfirmClick = onConfirmClick,
                 onRefundClick = onRefundClick,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalGlideComposeApi::class)
+@Composable
+fun OrderGoodsItemView(goods: OrderGoods) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(90.dp)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        GlideImage(
+            model = "${NetworkModule.IMAGE_URL}${goods.image}",
+            modifier = Modifier.size(90.dp),
+            contentDescription = null,
+            failure = placeholder(R.drawable.test_image)
+        )
+
+        Spacer(Modifier.width(6.dp))
+
+        // 中间信息 — weight(1f) 吃掉图片和价格之间的所有剩余空间，不设固定宽度
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "${goods.brand.bname} ${goods.gname}",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = goods.description,
+                fontSize = 13.sp,
+                color = Color.Gray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
+
+        Spacer(Modifier.width(6.dp))
+
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                text = "¥${goods.price.setScale(2)}",
+                fontSize = 13.sp,
+                color = PriceColor,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "×${goods.count}",
+                fontSize = 11.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(top = 4.dp)
             )
         }
     }
@@ -439,30 +525,5 @@ private fun OrderActionButtons(
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingOrderPagePreview() {
-    PCMallComposeTheme {
-//        OrderPage()
-        val order = Order(
-            1,
-            "asdasdasdasdasd",
-            "00000000",
-            emptyList(),
-            Address(
-                1, "1231231", "aasd", "awsda", "asdasd", "asdasd", "asdas", "adsasd",
-                LocalDateTime.now(), null, 1
-            ),
-            BigDecimal("112312"),
-            Order.OrderState.PENDING_RECEIPT,
-            LocalDateTime.now(),
-            null, null, null
-        )
-        OrderItemView(
-            order
-        )
     }
 }

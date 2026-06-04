@@ -37,8 +37,8 @@ data class HomeUiState(
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val database: PCMallDatabase,
-    private val goodsService: GoodsService,
     private val goodsDao: GoodsDao,
+    private val goodsService: GoodsService,
     private val imageService: ImageService
 ) : ViewModel() {
     companion object {

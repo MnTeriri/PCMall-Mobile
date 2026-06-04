@@ -3,11 +3,12 @@ package com.example.pcmallcompose.core.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.example.pcmallcompose.core.database.converter.AddressConverter
 import com.example.pcmallcompose.core.database.converter.BigDecimalConverter
 import com.example.pcmallcompose.core.database.converter.GoodsConverter
 import com.example.pcmallcompose.core.database.converter.GoodsListConverter
 import com.example.pcmallcompose.core.database.converter.LocalDateTimeConverter
+import com.example.pcmallcompose.core.database.converter.OrderAddressConverter
+import com.example.pcmallcompose.core.database.converter.OrderGoodsListConverter
 import com.example.pcmallcompose.core.database.dao.AddressDao
 import com.example.pcmallcompose.core.database.dao.CartDao
 import com.example.pcmallcompose.core.database.dao.ChatHistoryDao
@@ -39,7 +40,8 @@ import com.example.pcmallcompose.core.database.entity.RemoteKey
         LocalDateTimeConverter::class,
         GoodsConverter::class,
         GoodsListConverter::class,
-        AddressConverter::class
+        OrderAddressConverter::class,
+        OrderGoodsListConverter::class
     ]
 )
 abstract class PCMallDatabase : RoomDatabase() {
