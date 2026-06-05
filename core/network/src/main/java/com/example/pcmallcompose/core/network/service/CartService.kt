@@ -2,7 +2,6 @@ package com.example.pcmallcompose.core.network.service
 
 import com.example.pcmallcompose.core.model.Cart
 import com.example.pcmallcompose.core.model.response.ResponseResult
-import io.reactivex.rxjava3.core.Observable
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
@@ -18,7 +17,7 @@ interface CartService {
 
     @FormUrlEncoded
     @POST("searchSelectCart")
-    fun searchSelectCart(@Field("uid") uid: String): Observable<ResponseResult<List<Cart>>>
+    suspend fun searchSelectCart(@Field("uid") uid: String): ResponseResult<List<Cart>>
 
     @FormUrlEncoded
     @POST("getTotalCount")

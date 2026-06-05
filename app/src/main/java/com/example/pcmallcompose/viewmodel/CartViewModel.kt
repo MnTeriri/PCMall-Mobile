@@ -44,7 +44,7 @@ class CartViewModel @Inject constructor(
     private val userSession: UserSession
 ) : ViewModel() {
     companion object {
-        const val TAG = "CartViewModel"
+        private const val TAG = "CartViewModel"
     }
 
     private val _uiState = MutableStateFlow(CartUiState())

@@ -61,6 +61,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun AddressPage(
+    isEmbedded: Boolean = false,
     onBackClick: () -> Unit = {},
     onAddAddressClick: () -> Unit = {},
     onUpdateAddressClick: (Address) -> Unit = {},
@@ -72,15 +73,31 @@ fun AddressPage(
         lazyPagingItems.refresh()//每次都刷新
     }
 
-    Scaffold(
-        topBar = { AddressPageTopBar(onBackClick) },
-        bottomBar = { AddressPageBottomBar(onAddAddressClick) }
-    ) { innerPadding ->
-        AddressListView(
-            modifier = Modifier.padding(innerPadding),
-            lazyPagingItems = lazyPagingItems,
-            onEditClick = onUpdateAddressClick
-        )
+    if (isEmbedded) {
+        // ModalBottomSheet 模式 — 无 TopAppBar，底部栏用 weight 推到底
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(600.dp)
+        ) {
+            AddressListView(
+                modifier = Modifier.weight(1f),
+                lazyPagingItems = lazyPagingItems,
+                onEditClick = onUpdateAddressClick,
+            )
+            AddressPageBottomBar(onAddAddressClick)
+        }
+    } else {
+        Scaffold(
+            topBar = { AddressPageTopBar(onBackClick) },
+            bottomBar = { AddressPageBottomBar(onAddAddressClick) }
+        ) { innerPadding ->
+            AddressListView(
+                modifier = Modifier.padding(innerPadding),
+                lazyPagingItems = lazyPagingItems,
+                onEditClick = onUpdateAddressClick
+            )
+        }
     }
 }
 

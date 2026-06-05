@@ -45,6 +45,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberContainedSearchBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -228,6 +229,10 @@ private fun OrderPageContent(
         ) { page ->
             val tab = tabs[page]
             val lazyPagingItems = pagingDataFactory(tab.code).collectAsLazyPagingItems()
+
+            LaunchedEffect(Unit) {
+                lazyPagingItems.refresh()
+            }
 
             OrderListView(
                 lazyPagingItems = lazyPagingItems

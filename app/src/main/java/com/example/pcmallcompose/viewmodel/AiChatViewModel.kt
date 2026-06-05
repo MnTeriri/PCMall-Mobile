@@ -48,7 +48,7 @@ class AiChatViewModel @Inject constructor(
     private val objectMapper: ObjectMapper
 ) : ViewModel() {
     companion object {
-        const val TAG = "AiChatViewModel"
+        private const val TAG = "AiChatViewModel"
     }
 
     private val _uiState = MutableStateFlow(AiChatUiState())

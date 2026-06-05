@@ -102,6 +102,14 @@ fun MainActivityPage() {
             )
         }
 
+        composable<Screen.OrderCreate> {
+            OrderCreatePage(
+                onBackClick = { navController.popBackStack() },
+                onAddAddressClick = { navController.navigate(Screen.AddressEdit(true, "")) },
+                onUpdateAddressClick = { navController.navigate(Screen.AddressEdit(false, it.toJSONString())) },
+            )
+        }
+
         composable<Screen.Order> { backStackEntry ->
             val orderRoute: Screen.Order = backStackEntry.toRoute()
             OrderPage(
@@ -148,7 +156,8 @@ fun IndexPage(
                             restoreState = true
                         }
                     },
-                    onDetailClick = { mainNavController.navigate(Screen.GoodsDetail(it.toJSONString())) }
+                    onDetailClick = { mainNavController.navigate(Screen.GoodsDetail(it.toJSONString())) },
+                    onCreateOrderClick = { mainNavController.navigate(Screen.OrderCreate) }
                 )
             }
             composable<Screen.Myself> {

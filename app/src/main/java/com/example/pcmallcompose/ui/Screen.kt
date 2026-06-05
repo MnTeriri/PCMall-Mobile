@@ -34,6 +34,9 @@ sealed class Screen {
     data class AddressEdit(val isNewAddress: Boolean, val address: String) : Screen()
 
     @Serializable
+    data object OrderCreate : Screen()
+
+    @Serializable
     data class Order(val tab: OrderTab) : Screen() {
         enum class OrderTab(
             val code: Int,

@@ -30,7 +30,7 @@ class GoodsDetailViewModel @Inject constructor(
     private val userSession: UserSession
 ) : ViewModel() {
     companion object {
-        const val TAG = "GoodsDetailViewModel"
+        private const val TAG = "GoodsDetailViewModel"
     }
 
     private val _uiState = MutableStateFlow(GoodsDetailUiState())

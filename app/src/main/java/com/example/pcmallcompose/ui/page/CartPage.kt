@@ -95,6 +95,7 @@ fun CartPage(
     onAiClick: () -> Unit = {},
     onLoginClick: () -> Unit = {},
     onDetailClick: (goods: Goods) -> Unit = {},
+    onCreateOrderClick: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val userData = LocalUserData.current
@@ -178,7 +179,7 @@ fun CartPage(
                         val newState = if (isAllSelected) 0 else 1
                         viewModel.selectAllCart(userData.uid, newState)
                     },
-                    onCreateOrderClick = {}
+                    onCreateOrderClick = onCreateOrderClick
                 )
             }
         }

@@ -36,7 +36,7 @@ class OrderViewModel @Inject constructor(
     private val userSession: UserSession
 ) : ViewModel() {
     companion object {
-        const val TAG = "OrderViewModel"
+        private const val TAG = "OrderViewModel"
     }
 
     private val _uiState = MutableStateFlow(OrderUiState())

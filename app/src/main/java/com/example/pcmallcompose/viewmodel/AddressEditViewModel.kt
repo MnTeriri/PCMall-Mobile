@@ -27,7 +27,7 @@ class AddressEditViewModel @Inject constructor(
     private val addressService: AddressService
 ) : ViewModel() {
     companion object {
-        const val TAG = "AddressEditViewModel"
+        private const val TAG = "AddressEditViewModel"
     }
 
     private val _uiState = MutableStateFlow(AddressEditUiState())
