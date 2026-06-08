@@ -84,7 +84,6 @@ fun GoodsDetailPage(
     LaunchedEffect(uiState.isAddedToCart) {
         if (uiState.isAddedToCart) {
             MessageDialog(context, SweetAlertDialog.SUCCESS_TYPE, "已加入购物车！").show()
-            viewModel.errorMessageShown()
         }
     }
 

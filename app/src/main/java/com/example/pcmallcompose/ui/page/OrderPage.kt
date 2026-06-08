@@ -179,7 +179,6 @@ private fun OrderPageSearchBar(
     }
 }
 
-
 @Composable
 private fun OrderPageContent(
     modifier: Modifier = Modifier,

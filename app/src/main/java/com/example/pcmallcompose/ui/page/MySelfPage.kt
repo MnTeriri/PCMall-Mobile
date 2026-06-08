@@ -1,5 +1,6 @@
 package com.example.pcmallcompose.ui.page
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -30,16 +33,22 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import cn.pedant.SweetAlert.SweetAlertDialog
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.integration.compose.placeholder
@@ -47,7 +56,10 @@ import com.example.pcmallcompose.R
 import com.example.pcmallcompose.application.LocalUserData
 import com.example.pcmallcompose.core.model.User
 import com.example.pcmallcompose.core.network.di.NetworkModule
+import com.example.pcmallcompose.ui.ErrorMessage
 import com.example.pcmallcompose.ui.Screen
+import com.example.pcmallcompose.ui.dialog.MessageDialog
+import com.example.pcmallcompose.viewmodel.MySelfViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +68,32 @@ fun MySelfPage(
     onOrderClick: (Screen.Order.OrderTab) -> Unit = {},
     onAddressClick: () -> Unit = {},
 ) {
+    val context = LocalContext.current
+    val user = LocalUserData.current
+    val viewModel: MySelfViewModel = hiltViewModel()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // 登录状态变化时重新拉取订单数量
+    LaunchedEffect(user) {
+        viewModel.fetchOrderCounts()
+    }
+
+    // 错误消息
+    LaunchedEffect(uiState.errorMessage) {
+        when (val msg = uiState.errorMessage) {
+            is ErrorMessage.Dialog -> {
+                MessageDialog(context, SweetAlertDialog.WARNING_TYPE, msg.text).show()
+            }
+
+            is ErrorMessage.Toast -> {
+                Toast.makeText(context, msg.text, Toast.LENGTH_SHORT).show()
+            }
+
+            null -> {}
+        }
+        viewModel.errorMessageShown()
+    }
+
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = onLoginClick) {
@@ -72,7 +110,10 @@ fun MySelfPage(
             UserInformationCard(onLoginClick)
 
             //订单卡片
-            OrderInformationCard(onOrderClick)
+            OrderInformationCard(
+                orderCounts = uiState.orderCounts,
+                onOrderClick = onOrderClick
+            )
 
             // 服务卡片
             ServiceCard(
@@ -173,6 +214,7 @@ private fun UserInformation(user: User) {
 
 @Composable
 private fun OrderInformationCard(
+    orderCounts: Map<Screen.Order.OrderTab, Long> = emptyMap(),
     onOrderClick: (Screen.Order.OrderTab) -> Unit
 ) {
     data class OrderNavBarItem(
@@ -226,14 +268,28 @@ private fun OrderInformationCard(
             // 订单入口
             NavigationBar(containerColor = Color.White) {
                 items.forEach { item ->
+                    val count = orderCounts[item.tab] ?: 0L
                     NavigationBarItem(
                         selected = false,
                         onClick = { onOrderClick(item.tab) },
                         icon = {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(item.iconRes),
-                                contentDescription = null
-                            )
+                            BadgedBox(
+                                badge = {
+                                    if (count > 0) {
+                                        Badge(
+                                            containerColor = Color.Red,
+                                            contentColor = Color.White
+                                        ) {
+                                            Text("$count")
+                                        }
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = ImageVector.vectorResource(item.iconRes),
+                                    contentDescription = null
+                                )
+                            }
                         },
                         label = { Text(text = item.tab.label, fontSize = 12.sp) },
                         colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
