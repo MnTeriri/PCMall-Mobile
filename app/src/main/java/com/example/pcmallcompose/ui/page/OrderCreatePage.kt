@@ -63,6 +63,7 @@ import com.example.pcmallcompose.core.model.Address
 import com.example.pcmallcompose.core.model.Cart
 import com.example.pcmallcompose.core.network.di.NetworkModule
 import com.example.pcmallcompose.ui.ErrorMessage
+import com.example.pcmallcompose.ui.component.InfoRow
 import com.example.pcmallcompose.ui.dialog.MessageDialog
 import com.example.pcmallcompose.ui.theme.PriceColor
 import com.example.pcmallcompose.viewmodel.OrderCreateViewModel
@@ -110,7 +111,9 @@ fun OrderCreatePage(
     // 下单成功
     LaunchedEffect(uiState.isOrderCreated) {
         if (uiState.isOrderCreated) {
-            MessageDialog(context, SweetAlertDialog.SUCCESS_TYPE, "下单成功！").show()
+            MessageDialog(context, SweetAlertDialog.SUCCESS_TYPE, "下单成功！") {
+                onBackClick()
+            }.show()
         }
     }
 
@@ -361,34 +364,14 @@ private fun PriceSummaryCard(totalCount: Int, totalPrice: BigDecimal) {
         Column(
             modifier = Modifier.padding(horizontal = 15.dp, vertical = 5.dp)
         ) {
-            PriceRow(label = "商品总价", value = "¥ ${totalPrice.setScale(2)}", valueColor = PriceColor)
+            InfoRow(label = "商品总价", value = "¥ ${totalPrice.setScale(2)}", valueColor = PriceColor)
             HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFEEEEEE))
-            PriceRow(label = "商品总数", value = "$totalCount 件")
+            InfoRow(label = "商品总数", value = "$totalCount 件")
             HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFEEEEEE))
-            PriceRow(label = "运费", value = "包邮")
+            InfoRow(label = "运费", value = "包邮")
         }
     }
 }
-
-@Composable
-private fun PriceRow(
-    label: String,
-    value: String,
-    labelColor: Color = Color.Black,
-    valueColor: Color = Color.Black
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(45.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = label, fontSize = 16.sp, color = labelColor)
-        Text(text = value, fontSize = 16.sp, color = valueColor)
-    }
-}
-
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable

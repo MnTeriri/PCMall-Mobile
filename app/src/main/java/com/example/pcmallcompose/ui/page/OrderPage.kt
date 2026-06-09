@@ -1,17 +1,13 @@
 package com.example.pcmallcompose.ui.page
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -22,8 +18,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material3.AppBarWithSearch
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExpandedFullScreenSearchBar
@@ -33,7 +27,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
@@ -54,9 +47,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -67,21 +60,13 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import cn.hutool.core.date.DatePattern
 import cn.hutool.core.date.LocalDateTimeUtil
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
-import com.bumptech.glide.integration.compose.placeholder
-import com.example.pcmallcompose.R
+import cn.pedant.SweetAlert.SweetAlertDialog
 import com.example.pcmallcompose.core.model.Order
-import com.example.pcmallcompose.core.model.Order.OrderState.CANCELED
-import com.example.pcmallcompose.core.model.Order.OrderState.PENDING_PAYMENT
-import com.example.pcmallcompose.core.model.Order.OrderState.PENDING_RECEIPT
-import com.example.pcmallcompose.core.model.Order.OrderState.PENDING_SHIPMENT
-import com.example.pcmallcompose.core.model.Order.OrderState.RETURNED
-import com.example.pcmallcompose.core.model.Order.OrderState.RETURNING
-import com.example.pcmallcompose.core.model.Order.OrderState.SUCCESS
-import com.example.pcmallcompose.core.model.OrderGoods
-import com.example.pcmallcompose.core.network.di.NetworkModule
+import com.example.pcmallcompose.ui.ErrorMessage
 import com.example.pcmallcompose.ui.Screen
+import com.example.pcmallcompose.ui.component.OrderActionButtons
+import com.example.pcmallcompose.ui.component.OrderGoodsItemView
+import com.example.pcmallcompose.ui.dialog.MessageDialog
 import com.example.pcmallcompose.ui.theme.PriceColor
 import com.example.pcmallcompose.viewmodel.OrderViewModel
 import kotlinx.coroutines.delay
@@ -94,9 +79,35 @@ fun OrderPage(
     selectTab: Screen.Order.OrderTab = Screen.Order.OrderTab.ALL,
     onBackClick: () -> Unit = {},
     onAiClick: () -> Unit = {},
+    onOrderClick: (Order) -> Unit = {},
 ) {
+    val context = LocalContext.current
     val viewModel: OrderViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // 操作成功
+    LaunchedEffect(uiState.isSuccess) {
+        if (uiState.isSuccess) {
+            MessageDialog(context, SweetAlertDialog.SUCCESS_TYPE, "操作成功").show()
+            viewModel.successConsumed()
+        }
+    }
+
+    // 错误消息
+    LaunchedEffect(uiState.errorMessage) {
+        when (val msg = uiState.errorMessage) {
+            is ErrorMessage.Dialog -> {
+                MessageDialog(context, SweetAlertDialog.WARNING_TYPE, msg.text).show()
+            }
+
+            is ErrorMessage.Toast -> {
+                Toast.makeText(context, msg.text, Toast.LENGTH_SHORT).show()
+            }
+
+            null -> {}
+        }
+        viewModel.errorMessageShown()
+    }
 
     Scaffold(
         topBar = {
@@ -109,7 +120,13 @@ fun OrderPage(
         OrderPageContent(
             modifier = Modifier.padding(innerPadding),
             selectTab = selectTab,
-            pagingDataFactory = { viewModel.getOrderPagingData(it) }
+            pagingDataFactory = { viewModel.getOrderPagingData(it) },
+            onOrderClick = onOrderClick,
+            isLoading = uiState.isLoading,
+            onPayClick = { viewModel.payOrder(it) },
+            onSuccessClick = { viewModel.finishOrder(it) },
+            onCancelClick = { viewModel.cancelOrder(it) },
+            onRefundClick = { viewModel.refundOrder(it) },
         )
     }
 }
@@ -184,6 +201,12 @@ private fun OrderPageContent(
     modifier: Modifier = Modifier,
     selectTab: Screen.Order.OrderTab,
     pagingDataFactory: (Int) -> Flow<PagingData<Order>>,
+    onOrderClick: (Order) -> Unit,
+    isLoading: Boolean,
+    onPayClick: (String) -> Unit,
+    onSuccessClick: (String) -> Unit,
+    onCancelClick: (String) -> Unit,
+    onRefundClick: (String) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -234,7 +257,13 @@ private fun OrderPageContent(
             }
 
             OrderListView(
-                lazyPagingItems = lazyPagingItems
+                lazyPagingItems = lazyPagingItems,
+                onOrderClick = onOrderClick,
+                isLoading = isLoading,
+                onPayClick = onPayClick,
+                onSuccessClick = onSuccessClick,
+                onCancelClick = onCancelClick,
+                onRefundClick = onRefundClick,
             )
         }
     }
@@ -244,11 +273,12 @@ private fun OrderPageContent(
 @Composable
 private fun OrderListView(
     lazyPagingItems: LazyPagingItems<Order>,
-    onOrderClick: () -> Unit = {},
-    onPayClick: () -> Unit = {},
-    onConfirmClick: () -> Unit = {},
-    onCancelClick: () -> Unit = {},
-    onRefundClick: () -> Unit = {},
+    onOrderClick: (Order) -> Unit,
+    isLoading: Boolean,
+    onPayClick: (String) -> Unit,
+    onSuccessClick: (String) -> Unit,
+    onCancelClick: (String) -> Unit,
+    onRefundClick: (String) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     var isRefreshing by remember { mutableStateOf(false) }//是否在刷新
@@ -286,11 +316,12 @@ private fun OrderListView(
                 val order = lazyPagingItems[it]!!
                 OrderItemView(
                     order = order,
-                    onOrderClick = onOrderClick,
-                    onPayClick = onPayClick,
-                    onConfirmClick = onConfirmClick,
-                    onCancelClick = onCancelClick,
-                    onRefundClick = onRefundClick,
+                    isLoading = isLoading,
+                    onOrderClick = { onOrderClick(order) },
+                    onPayClick = { onPayClick(order.oid) },
+                    onSuccessClick = { onSuccessClick(order.oid) },
+                    onCancelClick = { onCancelClick(order.oid) },
+                    onRefundClick = { onRefundClick(order.oid) },
                 )
             }
         }
@@ -300,9 +331,10 @@ private fun OrderListView(
 @Composable
 private fun OrderItemView(
     order: Order,
+    isLoading: Boolean,
     onOrderClick: () -> Unit,
     onPayClick: () -> Unit,
-    onConfirmClick: () -> Unit,
+    onSuccessClick: () -> Unit,
     onCancelClick: () -> Unit,
     onRefundClick: () -> Unit,
 ) {
@@ -344,7 +376,7 @@ private fun OrderItemView(
 
             // ── 商品列表 ──
             order.goodsList.forEach { goods ->
-                OrderGoodsItemView(goods = goods)
+                OrderGoodsItemView(goods)
             }
 
             HorizontalDivider(
@@ -381,153 +413,16 @@ private fun OrderItemView(
             }
 
             OrderActionButtons(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
                 status = order.status,
+                isLoading = isLoading,
                 onPayClick = onPayClick,
+                onSuccessClick = onSuccessClick,
                 onCancelClick = onCancelClick,
-                onConfirmClick = onConfirmClick,
                 onRefundClick = onRefundClick,
             )
-        }
-    }
-}
-
-@OptIn(ExperimentalGlideComposeApi::class)
-@Composable
-fun OrderGoodsItemView(goods: OrderGoods) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(90.dp)
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        GlideImage(
-            model = "${NetworkModule.IMAGE_URL}${goods.image}",
-            modifier = Modifier.size(90.dp),
-            contentDescription = null,
-            failure = placeholder(R.drawable.test_image)
-        )
-
-        Spacer(Modifier.width(6.dp))
-
-        // 中间信息 — weight(1f) 吃掉图片和价格之间的所有剩余空间，不设固定宽度
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = "${goods.brand.bname} ${goods.gname}",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = goods.description,
-                fontSize = 13.sp,
-                color = Color.Gray,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-        }
-
-        Spacer(Modifier.width(6.dp))
-
-        Column(horizontalAlignment = Alignment.End) {
-            Text(
-                text = "¥${goods.price.setScale(2)}",
-                fontSize = 13.sp,
-                color = PriceColor,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "×${goods.count}",
-                fontSize = 11.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-        }
-    }
-}
-
-// ── 操作按钮（按状态决定显示哪些按钮）──
-@Composable
-private fun OrderActionButtons(
-    status: Order.OrderState,
-    onPayClick: () -> Unit,
-    onCancelClick: () -> Unit,
-    onConfirmClick: () -> Unit,
-    onRefundClick: () -> Unit,
-) {
-    if (status == CANCELED || status == RETURNING || status == RETURNED) {
-        return
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp),
-        horizontalArrangement = Arrangement.End
-    ) {
-        val buttonModifier = Modifier.size(90.dp, 35.dp)
-        val buttonPadding = PaddingValues(horizontal = 10.dp)
-
-        when (status) {
-            PENDING_PAYMENT -> {
-                OutlinedButton(
-                    onClick = onCancelClick,
-                    modifier = buttonModifier,
-                    contentPadding = buttonPadding
-                ) {
-                    Text("取消订单", fontSize = 13.sp)
-                }
-                Spacer(Modifier.width(8.dp))
-                Button(
-                    onClick = onPayClick,
-                    modifier = buttonModifier,
-                    contentPadding = buttonPadding,
-                    colors = ButtonDefaults.buttonColors(containerColor = PriceColor)
-                ) {
-                    Text("去付款", fontSize = 13.sp, color = Color.White)
-                }
-            }
-
-            PENDING_SHIPMENT -> {
-                OutlinedButton(
-                    onClick = onCancelClick,
-                    modifier = buttonModifier,
-                    contentPadding = buttonPadding
-                ) {
-                    Text("取消订单", fontSize = 13.sp)
-                }
-            }
-
-            PENDING_RECEIPT -> {
-                OutlinedButton(
-                    onClick = onRefundClick,
-                    modifier = buttonModifier,
-                    contentPadding = buttonPadding
-                ) {
-                    Text("申请售后", fontSize = 13.sp)
-                }
-                Spacer(Modifier.width(8.dp))
-                Button(
-                    onClick = onConfirmClick,
-                    modifier = buttonModifier,
-                    contentPadding = buttonPadding,
-                    colors = ButtonDefaults.buttonColors(containerColor = PriceColor)
-                ) {
-                    Text("确认签收", fontSize = 13.sp, color = Color.White)
-                }
-            }
-
-            SUCCESS -> {
-                OutlinedButton(
-                    onClick = onRefundClick,
-                    modifier = buttonModifier,
-                    contentPadding = buttonPadding
-                ) {
-                    Text("申请售后", fontSize = 13.sp)
-                }
-            }
         }
     }
 }

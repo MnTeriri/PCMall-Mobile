@@ -23,4 +23,7 @@ interface OrderDao {
 
     @Query("DELETE FROM `order` WHERE uid=:uid")
     suspend fun clearAll(uid: String)
+
+    @Query("UPDATE `order` SET status=:status WHERE oid=:oid")
+    suspend fun updateStatusByOid(oid: String, status: Order.OrderState)
 }

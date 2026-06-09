@@ -1,6 +1,7 @@
 package com.example.pcmallcompose.core.data.repository
 
 import com.example.pcmallcompose.core.data.apiCall
+import com.example.pcmallcompose.core.database.dao.OrderDao
 import com.example.pcmallcompose.core.model.Order
 import com.example.pcmallcompose.core.network.service.OrderService
 import jakarta.inject.Inject
@@ -8,7 +9,8 @@ import jakarta.inject.Singleton
 
 @Singleton
 class OrderRepository @Inject constructor(
-    private val service: OrderService
+    private val orderService: OrderService,
+    private val orderDao: OrderDao
 ) {
     suspend fun searchOrderList(
         searchValue: String,
@@ -17,7 +19,7 @@ class OrderRepository @Inject constructor(
         currentPage: Int,
         pageSize: Int
     ): Result<List<Order>> = apiCall {
-        service.searchOrderList(searchValue, uid, type, currentPage, pageSize).data ?: emptyList()
+        orderService.searchOrderList(searchValue, uid, type, currentPage, pageSize).data ?: emptyList()
     }
 
     suspend fun getRecordsFiltered(
@@ -25,26 +27,30 @@ class OrderRepository @Inject constructor(
         uid: String,
         type: Int
     ): Result<Long> = apiCall {
-        service.getRecordsFiltered(searchValue, uid, type).data ?: 0L
+        orderService.getRecordsFiltered(searchValue, uid, type).data ?: 0L
     }
 
     suspend fun createOrder(uid: String, aid: Int): Result<Unit> = apiCall {
-        service.createOrder(uid, aid)
+        orderService.createOrder(uid, aid)
     }
 
     suspend fun payOrder(oid: String): Result<Unit> = apiCall {
-        service.payOrder(oid)
-    }
+        orderService.payOrder(oid)
+        Unit
+    }.onSuccess { orderDao.updateStatusByOid(oid, Order.OrderState.PENDING_SHIPMENT) }
 
     suspend fun finishOrder(oid: String): Result<Unit> = apiCall {
-        service.finishOrder(oid)
-    }
+        orderService.finishOrder(oid)
+        Unit
+    }.onSuccess { orderDao.updateStatusByOid(oid, Order.OrderState.SUCCESS) }
 
     suspend fun cancelOrder(oid: String): Result<Unit> = apiCall {
-        service.cancelOrder(oid)
-    }
+        orderService.cancelOrder(oid)
+        Unit
+    }.onSuccess { orderDao.updateStatusByOid(oid, Order.OrderState.CANCELED) }
 
     suspend fun refundOrder(oid: String): Result<Unit> = apiCall {
-        service.refundOrder(oid)
-    }
+        orderService.refundOrder(oid)
+        Unit
+    }.onSuccess { orderDao.updateStatusByOid(oid, Order.OrderState.RETURNING) }
 }

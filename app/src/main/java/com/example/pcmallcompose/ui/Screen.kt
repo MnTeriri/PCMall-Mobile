@@ -37,6 +37,9 @@ sealed class Screen {
     data object OrderCreate : Screen()
 
     @Serializable
+    data class OrderDetail(val order: String) : Screen()
+
+    @Serializable
     data class Order(val tab: OrderTab) : Screen() {
         enum class OrderTab(
             val code: Int,

@@ -27,6 +27,7 @@ import com.alibaba.fastjson2.toJSONString
 import com.example.pcmallcompose.R
 import com.example.pcmallcompose.core.model.Address
 import com.example.pcmallcompose.core.model.Goods
+import com.example.pcmallcompose.core.model.Order
 import com.example.pcmallcompose.ui.Screen
 
 @Composable
@@ -88,11 +89,7 @@ fun MainActivityPage() {
         composable<Screen.AddressEdit> { backStackEntry ->
             val addressEditRoute: Screen.AddressEdit = backStackEntry.toRoute()
             val address = remember(addressEditRoute.address) {
-                if (addressEditRoute.address.isEmpty()) {
-                    null
-                } else {
-                    addressEditRoute.address.parseObject<Address>()
-                }
+                addressEditRoute.address.parseObject<Address>()
             }
 
             AddressEditPage(
@@ -110,12 +107,24 @@ fun MainActivityPage() {
             )
         }
 
+        composable<Screen.OrderDetail> { backStackEntry ->
+            val orderDetailRoute: Screen.OrderDetail = backStackEntry.toRoute()
+            val order = remember(orderDetailRoute.order) {
+                orderDetailRoute.order.parseObject<Order>()
+            }
+            OrderDetailPage(
+                order = order,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
         composable<Screen.Order> { backStackEntry ->
             val orderRoute: Screen.Order = backStackEntry.toRoute()
             OrderPage(
                 selectTab = orderRoute.tab,
                 onBackClick = { navController.popBackStack() },
-                onAiClick = { navController.navigate(Screen.AiChat) }
+                onAiClick = { navController.navigate(Screen.AiChat) },
+                onOrderClick = { navController.navigate(Screen.OrderDetail(it.toJSONString())) }
             )
         }
     }
