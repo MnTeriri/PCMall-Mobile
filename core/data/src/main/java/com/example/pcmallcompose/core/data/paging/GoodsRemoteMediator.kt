@@ -9,17 +9,17 @@ import androidx.paging.LoadType.REFRESH
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
+import com.example.pcmallcompose.core.data.repository.GoodsRepository
 import com.example.pcmallcompose.core.database.PCMallDatabase
 import com.example.pcmallcompose.core.database.entity.GoodsEntity
 import com.example.pcmallcompose.core.database.entity.RemoteKey
-import com.example.pcmallcompose.core.network.service.GoodsService
 
 @OptIn(ExperimentalPagingApi::class)
 class GoodsRemoteMediator(
     private val label: String,
     private val searchValue: String,
     private val database: PCMallDatabase,
-    private val goodsService: GoodsService
+    private val goodsRepository: GoodsRepository
 ) : RemoteMediator<Int, GoodsEntity>() {
     companion object {
         private const val TAG = "GoodsRemoteMediator"
@@ -39,7 +39,7 @@ class GoodsRemoteMediator(
                     remoteKey.currentPage + 1
                 }
             }
-            val data = goodsService.searchGoodsList(searchValue, loadKey, state.config.pageSize).data
+            val data = goodsRepository.searchGoodsList(searchValue, loadKey, state.config.pageSize).getOrNull()
             Log.d(TAG, "loadType : $loadType, loadPage : $loadKey, data : $data")
 
             database.withTransaction {

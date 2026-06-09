@@ -5,9 +5,9 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pcmallcompose.application.UserSession
+import com.example.pcmallcompose.core.data.ApiException
+import com.example.pcmallcompose.core.data.repository.AuthRepository
 import com.example.pcmallcompose.core.model.response.ResponseCode
-import com.example.pcmallcompose.core.network.service.LoginRegisterService
-import com.example.pcmallcompose.core.network.utils.RetrofitUtils
 import com.example.pcmallcompose.ui.ErrorMessage
 import com.example.pcmallcompose.utils.ImageUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
+import kotlin.time.Duration.Companion.milliseconds
 
 data class LoginUiState(
     val isLoading: Boolean = false,             // 验证码加载中
@@ -32,84 +32,64 @@ data class LoginUiState(
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginRegisterService: LoginRegisterService,
+    private val authRepository: AuthRepository,
     private val userSession: UserSession
 ) : ViewModel() {
     companion object {
         private const val TAG: String = "LoginViewModel"
     }
 
-    private val _uiState = MutableStateFlow(LoginUiState())//MutableStateFlow（可写，Kotlin类）
-    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow() //StateFlow（只读，Kotlin类）
+    private val _uiState = MutableStateFlow(LoginUiState()) // MutableStateFlow（可写，Kotlin类）
+    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow() // StateFlow（只读，Kotlin类）
 
     fun getCaptcha() {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isLoading = true, captchaImage = null, shouldRefreshCaptcha = false) }
-            try {
-                delay(1000)
-                val imageBitmap = ImageUtils.decodeImageString(loginRegisterService.getCaptcha().data!!)
-
-                _uiState.update { it.copy(isLoading = false, captchaImage = imageBitmap) }
-            } catch (e: HttpException) {
-                catchHttpException(e)
-            } catch (e: Exception) {
-                catchException(e)
-            }
+            delay(1000.milliseconds)
+            authRepository.getCaptcha()
+                .mapCatching { it?.let(ImageUtils::decodeImageString) }
+                .onSuccess { image ->
+                    _uiState.update { it.copy(isLoading = false, captchaImage = image) }
+                }
+                .onFailure { handleError(it) }
         }
     }
 
     fun login(uid: String, password: String, code: String, remember: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isLoggingIn = true, errorMessage = null) }
-            try {
-                val loginResponse = loginRegisterService.login(uid, password, code)
-                Log.d(TAG, "登录成功：$loginResponse")
-                userSession.onLogin(
-                    user = loginResponse.data,
-                    token = loginResponse.message,
-                    remember = remember
-                )
-                _uiState.update { it.copy(isLoggingIn = false, isUserLoggedIn = true) }
-            } catch (e: HttpException) {
-                catchHttpException(e)
-            } catch (e: Exception) {
-                catchException(e)
+            authRepository.login(uid, password, code)
+                .onSuccess { (user, token) ->
+                    Log.d(TAG, "登录成功 user: $user, token: $token")
+                    userSession.onLogin(user = user, token = token, remember = remember)
+                    _uiState.update { it.copy(isLoggingIn = false, isUserLoggedIn = true) }
+                }
+                .onFailure { handleError(it) }
+        }
+    }
+
+    private fun handleError(e: Throwable) {
+        when (e) {
+            is ApiException -> {
+                Log.w(TAG, e.toString(), e)
+                val (errorMessage, needRefresh) = when (e.code) {
+                    ResponseCode.CAPTCHA_ERROR.code -> ErrorMessage.Toast("验证码错误！") to true
+                    ResponseCode.ACCOUNT_ERROR.code -> ErrorMessage.Dialog("账号或密码错误！") to true
+                    else -> ErrorMessage.Toast(e.message) to true
+                }
+                _uiState.update {
+                    it.copy(
+                        isLoggingIn = false,
+                        isLoading = false,
+                        errorMessage = errorMessage,
+                        shouldRefreshCaptcha = needRefresh
+                    )
+                }
             }
-        }
-    }
-
-    private fun catchHttpException(e: HttpException) {
-        val response = RetrofitUtils.getErrorMessage(e)
-        if (response == null) {
-            catchException(e)
-            return
-        }
-
-        Log.w(TAG, "$e: $response", e)
-
-        val errorMessage = when (response.code) {
-            ResponseCode.CAPTCHA_ERROR.code -> ErrorMessage.Toast("验证码错误！")
-            ResponseCode.ACCOUNT_ERROR.code -> ErrorMessage.Dialog("账号或密码错误！")
-            else -> ErrorMessage.Toast(response.message)
-        }
-
-        _uiState.update {
-            it.copy(
-                isLoggingIn = false,
-                isLoading = false,
-                errorMessage = errorMessage,
-                shouldRefreshCaptcha = response.code == ResponseCode.CAPTCHA_ERROR.code,
-            )
-        }
-    }
-
-    private fun catchException(e: Exception) {
-        Log.e(TAG, e.toString(), e)
-        _uiState.update {
-            it.copy(
-                isLoading = false,
-                errorMessage = ErrorMessage.Toast("${e.message}")
-            )
+            else -> _uiState.update {
+                Log.e(TAG, e.toString(), e)
+                it.copy(isLoggingIn = false, isLoading = false, errorMessage = ErrorMessage.Toast("${e.message}"))
+            }
         }
     }
 

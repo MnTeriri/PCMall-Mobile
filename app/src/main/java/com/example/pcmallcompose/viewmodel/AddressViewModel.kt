@@ -10,10 +10,10 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import com.example.pcmallcompose.application.UserSession
 import com.example.pcmallcompose.core.data.paging.AddressRemoteMediator
+import com.example.pcmallcompose.core.data.repository.AddressRepository
 import com.example.pcmallcompose.core.database.PCMallDatabase
 import com.example.pcmallcompose.core.database.dao.AddressDao
 import com.example.pcmallcompose.core.model.Address
-import com.example.pcmallcompose.core.network.service.AddressService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.map
 class AddressViewModel @Inject constructor(
     private val database: PCMallDatabase,
     private val addressDao: AddressDao,
-    private val addressService: AddressService,
+    private val addressRepository: AddressRepository,
     private val userSession: UserSession
 ) : ViewModel() {
     companion object {
@@ -47,7 +47,7 @@ class AddressViewModel @Inject constructor(
 
         cachedFlow = Pager(
             config = PagingConfig(pageSize = 10, initialLoadSize = 30),
-            remoteMediator = AddressRemoteMediator(uid, database, addressService)
+            remoteMediator = AddressRemoteMediator(uid, database, addressRepository)
         ) {
             addressDao.pagingSource(uid)
         }.flow.cachedIn(viewModelScope).map { pagingData ->

@@ -10,10 +10,10 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import com.example.pcmallcompose.application.UserSession
 import com.example.pcmallcompose.core.data.paging.OrderRemoteMediator
+import com.example.pcmallcompose.core.data.repository.OrderRepository
 import com.example.pcmallcompose.core.database.PCMallDatabase
 import com.example.pcmallcompose.core.database.dao.OrderDao
 import com.example.pcmallcompose.core.model.Order
-import com.example.pcmallcompose.core.network.service.OrderService
 import com.example.pcmallcompose.ui.ErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
@@ -32,7 +32,7 @@ data class OrderUiState(
 class OrderViewModel @Inject constructor(
     private val database: PCMallDatabase,
     private val orderDao: OrderDao,
-    private val orderService: OrderService,
+    private val orderRepository: OrderRepository,
     private val userSession: UserSession
 ) : ViewModel() {
     companion object {
@@ -76,7 +76,7 @@ class OrderViewModel @Inject constructor(
     private fun createOrderPager(searchValue: String, uid: String, type: Int): Flow<PagingData<Order>> {
         return Pager(
             config = PagingConfig(pageSize = 10),
-            remoteMediator = OrderRemoteMediator(searchValue, uid, type, database, orderService)
+            remoteMediator = OrderRemoteMediator(searchValue, uid, type, database, orderRepository)
         ) {
             if (type == -1) {
                 orderDao.pagingSource(uid)

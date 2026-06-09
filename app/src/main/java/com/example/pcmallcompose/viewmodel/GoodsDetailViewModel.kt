@@ -4,9 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pcmallcompose.application.UserSession
+import com.example.pcmallcompose.core.data.ApiException
+import com.example.pcmallcompose.core.data.repository.CartRepository
 import com.example.pcmallcompose.core.model.response.ResponseCode
-import com.example.pcmallcompose.core.network.service.CartService
-import com.example.pcmallcompose.core.network.utils.RetrofitUtils
 import com.example.pcmallcompose.ui.ErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 
 data class GoodsDetailUiState(
     val isAddingToCart: Boolean = false,        // 加入购物车请求中
@@ -26,7 +25,7 @@ data class GoodsDetailUiState(
 
 @HiltViewModel
 class GoodsDetailViewModel @Inject constructor(
-    private val cartService: CartService,
+    private val cartRepository: CartRepository,
     private val userSession: UserSession
 ) : ViewModel() {
     companion object {
@@ -39,51 +38,32 @@ class GoodsDetailViewModel @Inject constructor(
     fun addToCart(goodsId: Int, uid: String) {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isAddingToCart = true, isAddedToCart = false, errorMessage = null) }
-            try {
-                cartService.addCart(goodsId, uid)
-                userSession.onCartChanged()
-                _uiState.update { it.copy(isAddingToCart = false, isAddedToCart = true, errorMessage = null) }
-            } catch (e: HttpException) {
-                catchHttpException(e)
-            } catch (e: Exception) {
-                catchException(e)
+            cartRepository.addCart(goodsId, uid)
+                .onSuccess {
+                    userSession.onCartChanged()
+                    _uiState.update { it.copy(isAddingToCart = false, isAddedToCart = true) }
+                }
+                .onFailure { handleError(it) }
+        }
+    }
+
+    private fun handleError(e: Throwable) {
+        when (e) {
+            is ApiException -> {
+                Log.w(TAG, e.toString(), e)
+                val errorMessage = when (e.code) {
+                    ResponseCode.CART_GOODS_ERROR.code -> ErrorMessage.Dialog("购物车商品状态异常")
+                    ResponseCode.GOODS_NOT_ENOUGH_ERROR.code -> ErrorMessage.Dialog("商品库存不足")
+                    ResponseCode.GOODS_OFF_SHELF_ERROR.code -> ErrorMessage.Dialog("该商品已下架")
+                    else -> ErrorMessage.Toast(e.message)
+                }
+                _uiState.update { it.copy(isAddingToCart = false, isAddedToCart = false, errorMessage = errorMessage) }
             }
-        }
-    }
 
-    private fun catchHttpException(e: HttpException) {
-        val response = RetrofitUtils.getErrorMessage(e)
-        if (response == null) {
-            catchException(e)
-            return
-        }
-
-        Log.w(TAG, "$e: $response", e)
-
-        val errorMessage = when (response.code) {
-            ResponseCode.CART_GOODS_ERROR.code -> ErrorMessage.Dialog("购物车商品状态异常")
-            ResponseCode.GOODS_NOT_ENOUGH_ERROR.code -> ErrorMessage.Dialog("商品库存不足")
-            ResponseCode.GOODS_OFF_SHELF_ERROR.code -> ErrorMessage.Dialog("该商品已下架")
-            else -> ErrorMessage.Toast(response.message)
-        }
-
-        _uiState.update {
-            it.copy(
-                isAddingToCart = false,
-                isAddedToCart = false,
-                errorMessage = errorMessage
-            )
-        }
-    }
-
-    private fun catchException(e: Exception) {
-        Log.e(TAG, e.toString(), e)
-        _uiState.update {
-            it.copy(
-                isAddingToCart = false,
-                isAddedToCart = false,
-                errorMessage = ErrorMessage.Toast("${e.message}")
-            )
+            else -> {
+                Log.e(TAG, e.toString(), e)
+                _uiState.update { it.copy(isAddingToCart = false, isAddedToCart = false, errorMessage = ErrorMessage.Toast("${e.message}")) }
+            }
         }
     }
 

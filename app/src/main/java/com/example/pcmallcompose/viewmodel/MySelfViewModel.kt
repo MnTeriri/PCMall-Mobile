@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pcmallcompose.application.UserSession
-import com.example.pcmallcompose.core.network.service.OrderService
-import com.example.pcmallcompose.core.network.utils.RetrofitUtils
+import com.example.pcmallcompose.core.data.ApiException
+import com.example.pcmallcompose.core.data.repository.OrderRepository
 import com.example.pcmallcompose.ui.ErrorMessage
 import com.example.pcmallcompose.ui.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 
 data class MySelfUiState(
     val orderCounts: Map<Screen.Order.OrderTab, Long> = emptyMap(),
@@ -27,7 +26,7 @@ data class MySelfUiState(
 
 @HiltViewModel
 class MySelfViewModel @Inject constructor(
-    private val orderService: OrderService,
+    private val orderRepository: OrderRepository,
     private val userSession: UserSession
 ) : ViewModel() {
     companion object {
@@ -55,37 +54,26 @@ class MySelfViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             val countMap = mutableMapOf<Screen.Order.OrderTab, Long>()
-            try {
-                val deferred = TABS_WITH_BADGE.map { tab ->
-                    async {
-                        tab to (orderService.getRecordsFiltered("", uid, tab.code).data ?: 0L)
-                    }
+            val deferred = TABS_WITH_BADGE.map { tab ->
+                async {
+                    tab to orderRepository.getRecordsFiltered("", uid, tab.code).getOrDefault(0L)
                 }
-                deferred.awaitAll().forEach { (tab, count) ->
-                    countMap[tab] = count
-                }
-            } catch (e: HttpException) {
-                catchHttpException(e)
-            } catch (e: Exception) {
-                catchException(e)
             }
+            deferred.awaitAll().forEach { (tab, count) -> countMap[tab] = count }
             _uiState.update { it.copy(orderCounts = countMap) }
         }
     }
 
-    private fun catchHttpException(e: HttpException) {
-        val response = RetrofitUtils.getErrorMessage(e)
-        if (response == null) {
-            catchException(e)
-            return
-        }
-        Log.w(TAG, "$e: $response", e)
-        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast(response.message)) }
-    }
-
-    private fun catchException(e: Exception) {
+    private fun handleError(e: Throwable) {
         Log.e(TAG, e.toString(), e)
-        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast("${e.message}")) }
+        val msg = if (e is ApiException) {
+            Log.w(TAG, e.toString(), e)
+            e.message
+        } else {
+            Log.e(TAG, e.toString(), e)
+            e.message.orEmpty()
+        }
+        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast(msg)) }
     }
 
     fun errorMessageShown() {

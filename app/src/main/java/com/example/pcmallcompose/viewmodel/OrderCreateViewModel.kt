@@ -4,12 +4,12 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pcmallcompose.application.UserSession
+import com.example.pcmallcompose.core.data.ApiException
+import com.example.pcmallcompose.core.data.repository.AddressRepository
+import com.example.pcmallcompose.core.data.repository.CartRepository
+import com.example.pcmallcompose.core.data.repository.OrderRepository
 import com.example.pcmallcompose.core.model.Address
 import com.example.pcmallcompose.core.model.Cart
-import com.example.pcmallcompose.core.network.service.AddressService
-import com.example.pcmallcompose.core.network.service.CartService
-import com.example.pcmallcompose.core.network.service.OrderService
-import com.example.pcmallcompose.core.network.utils.RetrofitUtils
 import com.example.pcmallcompose.ui.ErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 
 data class OrderCreateUiState(
     val defaultAddress: Address? = null,
@@ -30,9 +29,9 @@ data class OrderCreateUiState(
 
 @HiltViewModel
 class OrderCreateViewModel @Inject constructor(
-    private val orderService: OrderService,
-    private val cartService: CartService,
-    private val addressService: AddressService,
+    private val orderRepository: OrderRepository,
+    private val cartRepository: CartRepository,
+    private val addressRepository: AddressRepository,
     private val userSession: UserSession
 ) : ViewModel() {
     companion object {
@@ -49,14 +48,9 @@ class OrderCreateViewModel @Inject constructor(
             return
         }
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val data = addressService.searchDefaultAddress(uid).data
-                _uiState.update { it.copy(defaultAddress = data) }
-            } catch (e: HttpException) {
-                catchHttpException(e)
-            } catch (e: Exception) {
-                catchException(e)
-            }
+            addressRepository.searchDefaultAddress(uid)
+                .onSuccess { data -> _uiState.update { it.copy(defaultAddress = data) } }
+                .onFailure { handleError(it) }
         }
     }
 
@@ -67,14 +61,9 @@ class OrderCreateViewModel @Inject constructor(
             return
         }
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val data = cartService.searchSelectCart(uid).data ?: emptyList()
-                _uiState.update { it.copy(selectCarts = data) }
-            } catch (e: HttpException) {
-                catchHttpException(e)
-            } catch (e: Exception) {
-                catchException(e)
-            }
+            cartRepository.searchSelectCart(uid)
+                .onSuccess { data -> _uiState.update { it.copy(selectCarts = data) } }
+                .onFailure { handleError(it) }
         }
     }
 
@@ -89,32 +78,25 @@ class OrderCreateViewModel @Inject constructor(
             return
         }
         viewModelScope.launch(Dispatchers.IO) {
-            _uiState.update { it.copy(isOrderCreated = false) }
-            try {
-                orderService.createOrder(uid, aid)
-                userSession.onCartChanged()
-                _uiState.update { it.copy(isOrderCreated = true) }
-            } catch (e: HttpException) {
-                catchHttpException(e)
-            } catch (e: Exception) {
-                catchException(e)
-            }
+            orderRepository.createOrder(uid, aid)
+                .onSuccess {
+                    userSession.onCartChanged()
+                    _uiState.update { it.copy(isOrderCreated = true) }
+                }
+                .onFailure { handleError(it) }
         }
     }
 
-    private fun catchHttpException(e: HttpException) {
-        val response = RetrofitUtils.getErrorMessage(e)
-        if (response == null) {
-            catchException(e)
-            return
-        }
-        Log.w(TAG, "$e: $response", e)
-        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast(response.message)) }
-    }
-
-    private fun catchException(e: Exception) {
+    private fun handleError(e: Throwable) {
         Log.e(TAG, e.toString(), e)
-        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast("${e.message}")) }
+        val msg = if (e is ApiException) {
+            Log.w(TAG, e.toString(), e)
+            e.message
+        } else {
+            Log.e(TAG, e.toString(), e)
+            e.message.orEmpty()
+        }
+        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast(msg)) }
     }
 
     fun errorMessageShown() {

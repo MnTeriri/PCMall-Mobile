@@ -9,16 +9,16 @@ import androidx.paging.LoadType.REFRESH
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
+import com.example.pcmallcompose.core.data.repository.CartRepository
 import com.example.pcmallcompose.core.database.PCMallDatabase
 import com.example.pcmallcompose.core.database.entity.CartEntity
 import com.example.pcmallcompose.core.database.entity.RemoteKey
-import com.example.pcmallcompose.core.network.service.CartService
 
 @OptIn(ExperimentalPagingApi::class)
 class CartRemoteMediator(
     private val uid: String,
     private val database: PCMallDatabase,
-    private val cartService: CartService
+    private val cartRepository: CartRepository
 ) : RemoteMediator<Int, CartEntity>() {
     companion object {
         private const val TAG = "CartRemoteMediator"
@@ -43,7 +43,7 @@ class CartRemoteMediator(
                     remoteKey.currentPage + 1
                 }
             }
-            val data = cartService.searchAllCart(uid, loadKey, state.config.pageSize).data
+            val data = cartRepository.searchAllCart(uid, loadKey, state.config.pageSize).getOrNull()
             Log.d(TAG, "loadType : $loadType, loadPage : $loadKey, data : $data")
 
             // 在事务中存储加载的数据和下一个 key，确保它们始终保持一致。

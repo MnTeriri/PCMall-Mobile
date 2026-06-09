@@ -9,16 +9,16 @@ import androidx.paging.LoadType.REFRESH
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
+import com.example.pcmallcompose.core.data.repository.AddressRepository
 import com.example.pcmallcompose.core.database.PCMallDatabase
 import com.example.pcmallcompose.core.database.entity.AddressEntity
 import com.example.pcmallcompose.core.database.entity.RemoteKey
-import com.example.pcmallcompose.core.network.service.AddressService
 
 @OptIn(ExperimentalPagingApi::class)
 class AddressRemoteMediator(
     private val uid: String,
     private val database: PCMallDatabase,
-    private val addressService: AddressService
+    private val addressRepository: AddressRepository
 ) : RemoteMediator<Int, AddressEntity>() {
 
     companion object {
@@ -36,7 +36,7 @@ class AddressRemoteMediator(
                 PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 APPEND -> return MediatorResult.Success(endOfPaginationReached = true) //第一次加载就是所有，没有APPEND
             }
-            val data = addressService.searchAddressList(uid).data
+            val data = addressRepository.searchAddressList(uid).getOrNull()
             Log.d(TAG, "loadType : $loadType, loadPage : $loadKey, data : $data")
 
             database.withTransaction {

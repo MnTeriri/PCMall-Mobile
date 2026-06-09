@@ -10,13 +10,13 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
 import com.example.pcmallcompose.application.UserSession
+import com.example.pcmallcompose.core.data.ApiException
 import com.example.pcmallcompose.core.data.paging.CartRemoteMediator
+import com.example.pcmallcompose.core.data.repository.CartRepository
 import com.example.pcmallcompose.core.database.PCMallDatabase
 import com.example.pcmallcompose.core.database.dao.CartDao
 import com.example.pcmallcompose.core.model.Cart
 import com.example.pcmallcompose.core.model.response.ResponseCode
-import com.example.pcmallcompose.core.network.service.CartService
-import com.example.pcmallcompose.core.network.utils.RetrofitUtils
 import com.example.pcmallcompose.ui.ErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
@@ -29,7 +29,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 
 data class CartUiState(
     val errorMessage: ErrorMessage? = null,      // 加减选操作的瞬态反馈
@@ -40,7 +39,7 @@ data class CartUiState(
 class CartViewModel @Inject constructor(
     private val database: PCMallDatabase,
     private val cartDao: CartDao,
-    private val cartService: CartService,
+    private val cartRepository: CartRepository,
     private val userSession: UserSession
 ) : ViewModel() {
     companion object {
@@ -69,7 +68,7 @@ class CartViewModel @Inject constructor(
         cachedKey = key
         cachedFlow = Pager(
             config = PagingConfig(pageSize = 10, initialLoadSize = 30),
-            remoteMediator = CartRemoteMediator(uid, database, cartService)
+            remoteMediator = CartRemoteMediator(uid, database, cartRepository)
         ) {
             cartDao.pagingSource(uid)
         }.flow.cachedIn(viewModelScope).map { pagingData ->
@@ -80,102 +79,64 @@ class CartViewModel @Inject constructor(
 
     fun addCartCount(cartId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                cartService.addCartCount(cartId)
-                cartDao.addCartCount(cartId)
-            } catch (e: HttpException) {
-                catchHttpException(e)
-            } catch (e: Exception) {
-                catchException(e)
-            }
+            cartRepository.addCartCount(cartId).onFailure { handleError(it) }
         }
     }
 
     fun subCartCount(cartId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                cartService.subCartCount(cartId)
-                cartDao.subCartCount(cartId)
-            } catch (e: HttpException) {
-                catchHttpException(e)
-            } catch (e: Exception) {
-                catchException(e)
-            }
+            cartRepository.subCartCount(cartId).onFailure { handleError(it) }
         }
     }
 
     fun selectCart(cartId: Int, isSelect: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                cartService.selectCart(cartId, isSelect)
-                cartDao.updateSelectCart(cartId, isSelect)
-            } catch (e: HttpException) {
-                catchHttpException(e)
-            } catch (e: Exception) {
-                catchException(e)
-            }
+            cartRepository.selectCart(cartId, isSelect).onFailure { handleError(it) }
         }
     }
 
     fun selectAllCart(uid: String, isSelect: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                cartService.selectAllCart(uid, isSelect)
-                _uiState.update { it.copy(shouldRefresh = true) }
-            } catch (e: HttpException) {
-                catchHttpException(e)
-            } catch (e: Exception) {
-                catchException(e)
-            }
+            cartRepository.selectAllCart(uid, isSelect)
+                .onSuccess { _uiState.update { it.copy(shouldRefresh = true) } }
+                .onFailure { handleError(it) }
         }
     }
 
     fun deleteCart(cartId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                cartService.deleteCart(cartId)
-                cartDao.deleteById(cartId)
-            } catch (e: HttpException) {
-                catchHttpException(e)
-            } catch (e: Exception) {
-                catchException(e)
+            cartRepository.deleteCart(cartId).onFailure { handleError(it) }
+        }
+    }
+
+    private fun handleError(e: Throwable) {
+        when (e) {
+            is ApiException -> {
+                Log.w(TAG, e.toString(), e)
+                val errorMessage = when (e.code) {
+                    ResponseCode.ENTITY_NOT_FOUND.code -> {
+                        _uiState.update { it.copy(shouldRefresh = true) }
+                        ErrorMessage.Dialog("查询信息失败")
+                    }
+
+                    ResponseCode.CART_MIN_COUNT_ERROR.code -> ErrorMessage.Dialog("已达最小数量")
+                    ResponseCode.GOODS_NOT_ENOUGH_ERROR.code -> ErrorMessage.Dialog("商品库存不足")
+                    ResponseCode.GOODS_OFF_SHELF_ERROR.code -> ErrorMessage.Dialog("该商品已下架")
+                    ResponseCode.CART_GOODS_ERROR.code -> ErrorMessage.Dialog("购物车状态异常")
+                    else -> ErrorMessage.Toast(e.message)
+                }
+                _uiState.update { it.copy(errorMessage = errorMessage) }
+            }
+
+            else -> {
+                Log.e(TAG, e.toString(), e)
+                _uiState.update { it.copy(errorMessage = ErrorMessage.Toast("${e.message}")) }
             }
         }
     }
 
     fun refreshConsumed() {
         _uiState.update { it.copy(shouldRefresh = false) }
-    }
-
-    private fun catchHttpException(e: HttpException) {
-        val response = RetrofitUtils.getErrorMessage(e)
-        if (response == null) {
-            catchException(e)
-            return
-        }
-
-        Log.w(TAG, "$e: $response", e)
-
-        val errorMessage = when (response.code) {
-            ResponseCode.ENTITY_NOT_FOUND.code -> {
-                _uiState.update { it.copy(shouldRefresh = true) }
-                ErrorMessage.Dialog("查询信息失败")
-            }
-            ResponseCode.CART_MIN_COUNT_ERROR.code -> ErrorMessage.Dialog("已达最小数量")
-            ResponseCode.GOODS_NOT_ENOUGH_ERROR.code -> ErrorMessage.Dialog("商品库存不足")
-            ResponseCode.GOODS_OFF_SHELF_ERROR.code -> ErrorMessage.Dialog("该商品已下架")
-            ResponseCode.CART_GOODS_ERROR.code -> ErrorMessage.Dialog("购物车状态异常")
-            else -> ErrorMessage.Toast(response.message)
-        }
-
-        _uiState.update { it.copy(errorMessage = errorMessage) }
-    }
-
-    private fun catchException(e: Exception) {
-        Log.e(TAG, e.toString(), e)
-        _uiState.update {
-            it.copy(errorMessage = ErrorMessage.Toast("${e.message}"))
-        }
     }
 
     fun errorMessageShown() {

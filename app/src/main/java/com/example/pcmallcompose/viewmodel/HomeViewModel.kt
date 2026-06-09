@@ -9,13 +9,12 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import com.example.pcmallcompose.core.data.ApiException
 import com.example.pcmallcompose.core.data.paging.GoodsRemoteMediator
+import com.example.pcmallcompose.core.data.repository.GoodsRepository
 import com.example.pcmallcompose.core.database.PCMallDatabase
 import com.example.pcmallcompose.core.database.dao.GoodsDao
 import com.example.pcmallcompose.core.model.Goods
-import com.example.pcmallcompose.core.network.service.GoodsService
-import com.example.pcmallcompose.core.network.service.ImageService
-import com.example.pcmallcompose.core.network.utils.RetrofitUtils
 import com.example.pcmallcompose.ui.ErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
@@ -27,7 +26,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 
 data class HomeUiState(
     val adImageList: List<String> = emptyList(),
@@ -38,8 +36,7 @@ data class HomeUiState(
 class HomeViewModel @Inject constructor(
     private val database: PCMallDatabase,
     private val goodsDao: GoodsDao,
-    private val goodsService: GoodsService,
-    private val imageService: ImageService
+    private val goodsRepository: GoodsRepository
 ) : ViewModel() {
     companion object {
         private const val TAG: String = "HomeViewModel"
@@ -52,12 +49,7 @@ class HomeViewModel @Inject constructor(
     @OptIn(ExperimentalPagingApi::class)
     val goodsPagingFlow: Flow<PagingData<Goods>> = Pager(
         config = PagingConfig(pageSize = 10, initialLoadSize = 30),
-        remoteMediator = GoodsRemoteMediator(
-            label = "goods_home",
-            searchValue = "",
-            database = database,
-            goodsService = goodsService
-        )
+        remoteMediator = GoodsRemoteMediator("goods_home", "", database, goodsRepository)
     ) {
         goodsDao.pagingSource("goods_home", "")
     }.flow.cachedIn(viewModelScope).map { pagingData ->
@@ -68,12 +60,7 @@ class HomeViewModel @Inject constructor(
     fun getGoodsPagingData(label: String, searchValue: String): Flow<PagingData<Goods>> {
         return Pager(
             config = PagingConfig(pageSize = 10, initialLoadSize = 30),
-            remoteMediator = GoodsRemoteMediator(
-                label = label,
-                searchValue = searchValue,
-                database = database,
-                goodsService = goodsService
-            )
+            remoteMediator = GoodsRemoteMediator(label, searchValue, database, goodsRepository)
         ) {
             database.goodsDao().pagingSource(label, searchValue)
         }.flow.cachedIn(viewModelScope).map { pagingData ->
@@ -83,30 +70,23 @@ class HomeViewModel @Inject constructor(
 
     fun getADImageList() {
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val data = imageService.getADImageList().data
-                _uiState.update { it.copy(adImageList = data ?: emptyList()) }
-            } catch (e: HttpException) {
-                catchHttpException(e)
-            } catch (e: Exception) {
-                catchException(e)
-            }
+            goodsRepository.getADImageList()
+                .onSuccess { data ->
+                    _uiState.update { it.copy(adImageList = data) }
+                }
+                .onFailure { handleError(it) }
         }
     }
 
-    private fun catchHttpException(e: HttpException) {
-        val response = RetrofitUtils.getErrorMessage(e)
-        if (response == null) {
-            catchException(e)
-            return
+    private fun handleError(e: Throwable) {
+        val msg = if (e is ApiException) {
+            Log.w(TAG, e.toString(), e)
+            e.message
+        } else {
+            Log.e(TAG, e.toString(), e)
+            e.message.orEmpty()
         }
-        Log.w(TAG, "$e: $response", e)
-        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast(response.message)) }
-    }
-
-    private fun catchException(e: Exception) {
-        Log.e(TAG, e.toString(), e)
-        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast("${e.message}")) }
+        _uiState.update { it.copy(errorMessage = ErrorMessage.Toast(msg)) }
     }
 
     fun errorMessageShown() {
