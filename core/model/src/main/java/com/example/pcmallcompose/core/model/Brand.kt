@@ -10,6 +10,7 @@ import java.time.LocalDateTime
 data class Brand(
     val id: Int, //品牌id
     val bname: String,//品牌名称
+    val image: String,
     @field:JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @field:JsonDeserialize(using = LocalDateTimeDeserializer::class)
     @field:JsonSerialize(using = LocalDateTimeSerializer::class)
@@ -18,6 +19,5 @@ data class Brand(
     @field:JsonDeserialize(using = LocalDateTimeDeserializer::class)
     @field:JsonSerialize(using = LocalDateTimeSerializer::class)
     val updateTime: LocalDateTime? = null,//修改时间
-    val image: String,
     val isDelete: Int, //是否删除（0正常 1删除）
 )
