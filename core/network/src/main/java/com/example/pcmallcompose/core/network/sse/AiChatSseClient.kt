@@ -54,8 +54,9 @@ class AiChatSseClient @Inject constructor(
 
             // 出错时传递异常
             override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
-                Log.e(TAG, "SSE 连接失败", t)
-                close(t)
+                val error = t ?: Exception("SSE 失败 code=${response?.code}")
+                Log.e(TAG, "SSE 连接失败", error)
+                close(error)
             }
 
             // 流结束时关闭 Flow

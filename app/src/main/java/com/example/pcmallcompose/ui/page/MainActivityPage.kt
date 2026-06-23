@@ -74,7 +74,13 @@ fun MainActivityPage() {
         composable<Screen.AiChat> {
             AiChatPage(
                 onBackClick = { navController.popBackStack() },
-                onCloseClick = { navController.popBackStack() }
+                onCloseClick = { navController.popBackStack() },
+                onLoginClick = {
+                    navController.navigate(Screen.Login) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
             )
         }
 
@@ -157,6 +163,7 @@ fun IndexPage(
             }
             composable<Screen.Cart> {
                 CartPage(
+                    isIndexPage = true,
                     onBackClick = { mainNavController.popBackStack() },
                     onAiClick = { mainNavController.navigate(Screen.AiChat) },
                     onLoginClick = {
@@ -178,7 +185,9 @@ fun IndexPage(
                         }
                     },
                     onOrderClick = { mainNavController.navigate(Screen.Order(it)) },
-                    onAddressClick = { mainNavController.navigate(Screen.Address) }
+                    onAiClick = { mainNavController.navigate(Screen.AiChat) },
+                    onAddressClick = { mainNavController.navigate(Screen.Address) },
+                    onCartClick = { }
                 )
             }
         }

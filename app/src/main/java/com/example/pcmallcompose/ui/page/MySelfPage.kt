@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ButtonDefaults
@@ -66,7 +67,9 @@ import com.example.pcmallcompose.viewmodel.MySelfViewModel
 fun MySelfPage(
     onLoginClick: () -> Unit = {},
     onOrderClick: (Screen.Order.OrderTab) -> Unit = {},
+    onAiClick: () -> Unit = {},
     onAddressClick: () -> Unit = {},
+    onCartClick: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val user = LocalUserData.current
@@ -117,7 +120,9 @@ fun MySelfPage(
 
             // 服务卡片
             ServiceCard(
-                onAddressClick = onAddressClick
+                onAiClick = onAiClick,
+                onAddressClick = onAddressClick,
+                onCartClick = onCartClick
             )
         }
     }
@@ -311,17 +316,17 @@ private fun ServiceCard(
 ) {
     data class ServiceNavBarItem(
         val label: String,
-        val iconRes: Int,
+        val imageVector: ImageVector,
         val onClick: () -> Unit,
     )
 
     val items = listOf(
-        ServiceNavBarItem("AI导购", R.drawable.ic_order_pay, onAiClick),
-        ServiceNavBarItem("地址管理", R.drawable.ic_order_pay, onAddressClick),
-        ServiceNavBarItem("购物车", R.drawable.ic_order_pay, onCartClick),
-        ServiceNavBarItem("修改密码", R.drawable.ic_order_pay, onPasswordClick),
-        ServiceNavBarItem("售后服务", R.drawable.ic_order_pay, onServiceClick),
-        ServiceNavBarItem("退出登录", R.drawable.ic_order_pay, onLogoutClick)
+        ServiceNavBarItem("AI导购", Icons.Default.SupportAgent, onAiClick),
+        ServiceNavBarItem("地址管理",ImageVector.vectorResource(R.drawable.ic_order_pay), onAddressClick),
+        ServiceNavBarItem("购物车",  ImageVector.vectorResource(R.drawable.ic_bottom_cart), onCartClick),
+        ServiceNavBarItem("修改密码", ImageVector.vectorResource(R.drawable.ic_order_pay), onPasswordClick),
+        ServiceNavBarItem("售后服务", ImageVector.vectorResource(R.drawable.ic_order_pay), onServiceClick),
+        ServiceNavBarItem("退出登录", ImageVector.vectorResource(R.drawable.ic_order_pay), onLogoutClick)
     )
 
     Card(
@@ -352,7 +357,7 @@ private fun ServiceCard(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = ImageVector.vectorResource(item.iconRes),
+                            imageVector = item.imageVector,
                             contentDescription = null,
                             modifier = Modifier.size(22.dp),
                             tint = Color.DarkGray

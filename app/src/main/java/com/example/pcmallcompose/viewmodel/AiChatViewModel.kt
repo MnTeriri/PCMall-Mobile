@@ -3,11 +3,13 @@ package com.example.pcmallcompose.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import com.example.pcmallcompose.application.UserSession
 import com.example.pcmallcompose.core.database.dao.ChatHistoryDao
 import com.example.pcmallcompose.core.database.entity.ChatHistoryEntity
 import com.example.pcmallcompose.core.model.ChatHistory
@@ -29,6 +31,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -45,7 +48,8 @@ data class AiChatUiState(
 class AiChatViewModel @Inject constructor(
     private val chatHistoryDao: ChatHistoryDao,
     private val aiChatSseClient: AiChatSseClient,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val userSession: UserSession
 ) : ViewModel() {
     companion object {
         private const val TAG = "AiChatViewModel"
@@ -54,12 +58,29 @@ class AiChatViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AiChatUiState())
     val uiState: StateFlow<AiChatUiState> = _uiState.asStateFlow()
 
-    val chatHistoryPagingFlow: Flow<PagingData<ChatHistory>> = Pager(
-        config = PagingConfig(pageSize = 10),
-    ) {
-        chatHistoryDao.pagingSource()
-    }.flow.cachedIn(viewModelScope).map { pagingData ->
-        pagingData.map { it.toChatHistory() }
+    private var cachedKey: String = ""
+    private var cachedFlow: Flow<PagingData<ChatHistory>> = flowOf(PagingData.empty())
+
+    @OptIn(ExperimentalPagingApi::class)
+    fun getChatHistoryData(): Flow<PagingData<ChatHistory>> {
+        val uid = userSession.user.value?.uid
+        if (uid.isNullOrEmpty()) {
+            return flowOf(PagingData.empty())
+        }
+
+        if (uid == cachedKey) {
+            return cachedFlow
+        }
+
+        cachedKey = uid
+        cachedFlow = Pager(
+            config = PagingConfig(pageSize = 10),
+        ) {
+            chatHistoryDao.pagingSource(uid)
+        }.flow.cachedIn(viewModelScope).map { pagingData ->
+            pagingData.map { it.toChatHistory() }
+        }
+        return cachedFlow
     }
 
     private fun handleAiChatEvent(
@@ -86,12 +107,15 @@ class AiChatViewModel @Inject constructor(
     }
 
     fun chat(message: String) {
+        val uid = userSession.user.value?.uid ?: return
+
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isChatting = true, streamingContent = "", errorMessage = null) }
 
             // 1. 插入用户消息
             val userHistoryEntity = ChatHistoryEntity(
                 type = ChatHistoryType.USER,
+                uid = uid,
                 content = message,
                 chatStatus = ChatStatus.FINISH,
                 createTime = LocalDateTime.now()
@@ -101,6 +125,7 @@ class AiChatViewModel @Inject constructor(
             // 2. 插入空占位行，拿到自增 ID
             val placeholderEntity = ChatHistoryEntity(
                 type = ChatHistoryType.AI,
+                uid = uid,
                 content = "",
                 chatStatus = ChatStatus.CHATTING,
                 createTime = LocalDateTime.now()
@@ -110,7 +135,7 @@ class AiChatViewModel @Inject constructor(
             val builder = StringBuilder()
 
             try {
-                aiChatSseClient.chat("000000000", "123123", message).collect {
+                aiChatSseClient.chat(uid, "123123", message).collect {
                     handleAiChatEvent(builder, placeholderEntity, it)
                 }
                 // 3. 流结束，保存完整 AI 回复到 Room
@@ -128,7 +153,6 @@ class AiChatViewModel @Inject constructor(
             } catch (e: HttpException) {
                 catchHttpException(e)
             } catch (e: Exception) {
-                Log.e(TAG, "$e: ${e.message}", e)
                 chatHistoryDao.insertOrReplace(
                     placeholderEntity.copy(
                         id = placeholderId,

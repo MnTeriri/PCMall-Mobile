@@ -12,6 +12,6 @@ interface ChatHistoryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrReplace(chatHistoryEntity: ChatHistoryEntity): Long
 
-    @Query("SELECT * FROM chat_history ORDER BY id DESC")
-    fun pagingSource(): PagingSource<Int, ChatHistoryEntity>
+    @Query("SELECT * FROM chat_history WHERE uid=:uid ORDER BY id DESC")
+    fun pagingSource(uid: String): PagingSource<Int, ChatHistoryEntity>
 }

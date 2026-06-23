@@ -3,7 +3,6 @@ package com.example.pcmallcompose.ui.page
 import android.widget.Toast
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,7 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.PersonOutline
 import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Remove
@@ -79,6 +77,7 @@ import com.example.pcmallcompose.core.model.Goods
 import com.example.pcmallcompose.core.model.Goods.GoodsState
 import com.example.pcmallcompose.core.network.di.NetworkModule
 import com.example.pcmallcompose.ui.ErrorMessage
+import com.example.pcmallcompose.ui.component.LoginPrompt
 import com.example.pcmallcompose.ui.dialog.MessageDialog
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import com.example.pcmallcompose.ui.theme.PriceColor
@@ -90,7 +89,7 @@ import java.math.BigDecimal
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartPage(
-    isIndexPage: Boolean = true,
+    isIndexPage: Boolean = false,
     onBackClick: () -> Unit = {},
     onAiClick: () -> Unit = {},
     onLoginClick: () -> Unit = {},
@@ -185,10 +184,7 @@ fun CartPage(
         }
     ) { innerPadding ->
         if (userData == null) {
-            EmptyCartLoginView(
-                modifier = Modifier.padding(innerPadding),
-                onLoginClick = onLoginClick
-            )
+            LoginPrompt(text = "登录后查看购物车", onLoginClick = onLoginClick)
         } else {
             CartListView(
                 modifier = Modifier.padding(innerPadding),
@@ -306,40 +302,6 @@ fun CartPageBottomBar(
         }
     }
 }
-
-@Composable
-private fun EmptyCartLoginView(
-    modifier: Modifier = Modifier,
-    onLoginClick: () -> Unit
-) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                imageVector = Icons.Filled.PersonOutline,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = Color.Gray
-            )
-            Spacer(Modifier.height(16.dp))
-            Text(
-                text = "登录后查看购物车",
-                fontSize = 15.sp,
-                color = Color.Gray
-            )
-            Spacer(Modifier.height(12.dp))
-            Button(onClick = onLoginClick) {
-                Text("去登录")
-            }
-        }
-    }
-}
-
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable

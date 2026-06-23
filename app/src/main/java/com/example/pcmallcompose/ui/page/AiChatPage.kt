@@ -69,11 +69,13 @@ import cn.hutool.core.date.DatePattern
 import cn.hutool.core.date.LocalDateTimeUtil
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.example.pcmallcompose.application.LocalUserData
 import com.example.pcmallcompose.core.model.ChatHistory
 import com.example.pcmallcompose.core.model.ChatHistory.ChatHistoryType
 import com.example.pcmallcompose.core.model.ChatHistory.ChatStatus
 import com.example.pcmallcompose.core.model.Goods
 import com.example.pcmallcompose.core.network.di.NetworkModule
+import com.example.pcmallcompose.ui.component.LoginPrompt
 import com.example.pcmallcompose.ui.theme.AssistantMessageColor
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import com.example.pcmallcompose.ui.theme.UserMessageColor
@@ -87,8 +89,10 @@ import kotlinx.coroutines.flow.Flow
 @Composable
 fun AiChatPage(
     onBackClick: () -> Unit = {},
-    onCloseClick: () -> Unit = {}
+    onCloseClick: () -> Unit = {},
+    onLoginClick: () -> Unit = {},
 ) {
+    val userData = LocalUserData.current
     val viewModel: AiChatViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -100,17 +104,23 @@ fun AiChatPage(
             )
         },
         bottomBar = {
-            AiChatPageInputBar(
-                isChatting = uiState.isChatting,
-                onChatClick = { viewModel.chat(it) }
-            )
+            if (userData != null) {
+                AiChatPageInputBar(
+                    isChatting = uiState.isChatting,
+                    onChatClick = { viewModel.chat(it) }
+                )
+            }
         }
     ) { innerPadding ->
-        AiChatHistoryListView(
-            modifier = Modifier.padding(innerPadding),
-            streamingContent = uiState.streamingContent,
-            pagingFlow = viewModel.chatHistoryPagingFlow
-        )
+        if (userData == null) {
+            LoginPrompt(text = "登录后使用 AI 导购", onLoginClick = onLoginClick)
+        } else {
+            AiChatHistoryListView(
+                modifier = Modifier.padding(innerPadding),
+                streamingContent = uiState.streamingContent,
+                pagingFlow = viewModel.getChatHistoryData()
+            )
+        }
     }
 }
 

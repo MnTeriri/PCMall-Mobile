@@ -12,6 +12,7 @@ import java.time.LocalDateTime
 @Entity(tableName = "chat_history")
 data class ChatHistoryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @ColumnInfo(name = "uid") val uid: String,
     @ColumnInfo(name = "type") val type: ChatHistoryType,
     @ColumnInfo(name = "content") val content: String,
     @ColumnInfo(name = "recommends") var recommends: List<Goods> = emptyList(),
@@ -28,12 +29,14 @@ data class ChatHistoryEntity(
 
     companion object {
         @JvmStatic
-        fun fromChatHistory(chatHistory: ChatHistory): ChatHistoryEntity = ChatHistoryEntity(
-            type = chatHistory.type,
-            content = chatHistory.content,
-            recommends = chatHistory.recommends,
-            chatStatus = chatHistory.chatStatus,
-            createTime = chatHistory.createTime
-        )
+        fun fromChatHistory(chatHistory: ChatHistory, uid: String): ChatHistoryEntity =
+            ChatHistoryEntity(
+                type = chatHistory.type,
+                uid = uid,
+                content = chatHistory.content,
+                recommends = chatHistory.recommends,
+                chatStatus = chatHistory.chatStatus,
+                createTime = chatHistory.createTime
+            )
     }
 }

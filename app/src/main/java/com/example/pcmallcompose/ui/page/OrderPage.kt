@@ -61,9 +61,11 @@ import androidx.paging.compose.itemKey
 import cn.hutool.core.date.DatePattern
 import cn.hutool.core.date.LocalDateTimeUtil
 import cn.pedant.SweetAlert.SweetAlertDialog
+import com.example.pcmallcompose.application.LocalUserData
 import com.example.pcmallcompose.core.model.Order
 import com.example.pcmallcompose.ui.ErrorMessage
 import com.example.pcmallcompose.ui.Screen
+import com.example.pcmallcompose.ui.component.LoginPrompt
 import com.example.pcmallcompose.ui.component.OrderActionButtons
 import com.example.pcmallcompose.ui.component.OrderGoodsItemView
 import com.example.pcmallcompose.ui.dialog.MessageDialog
@@ -81,6 +83,7 @@ fun OrderPage(
     onAiClick: () -> Unit = {},
     onOrderClick: (Order) -> Unit = {},
 ) {
+    val userData = LocalUserData.current
     val context = LocalContext.current
     val viewModel: OrderViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -117,17 +120,21 @@ fun OrderPage(
             )
         }
     ) { innerPadding ->
-        OrderPageContent(
-            modifier = Modifier.padding(innerPadding),
-            selectTab = selectTab,
-            pagingDataFactory = { viewModel.getOrderPagingData(it) },
-            onOrderClick = onOrderClick,
-            isLoading = uiState.isLoading,
-            onPayClick = { viewModel.payOrder(it) },
-            onSuccessClick = { viewModel.finishOrder(it) },
-            onCancelClick = { viewModel.cancelOrder(it) },
-            onRefundClick = { viewModel.refundOrder(it) },
-        )
+        if (userData == null) {
+            LoginPrompt(text = "登录后使用订单管理", onLoginClick = {})
+        } else {
+            OrderPageContent(
+                modifier = Modifier.padding(innerPadding),
+                selectTab = selectTab,
+                pagingDataFactory = { viewModel.getOrderPagingData(it) },
+                onOrderClick = onOrderClick,
+                isLoading = uiState.isLoading,
+                onPayClick = { viewModel.payOrder(it) },
+                onSuccessClick = { viewModel.finishOrder(it) },
+                onCancelClick = { viewModel.cancelOrder(it) },
+                onRefundClick = { viewModel.refundOrder(it) },
+            )
+        }
     }
 }
 

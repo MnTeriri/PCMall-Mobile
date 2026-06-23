@@ -53,7 +53,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import com.example.pcmallcompose.application.LocalUserData
 import com.example.pcmallcompose.core.model.Address
+import com.example.pcmallcompose.ui.component.LoginPrompt
 import com.example.pcmallcompose.ui.theme.PCMallComposeTheme
 import com.example.pcmallcompose.viewmodel.AddressViewModel
 import kotlinx.coroutines.delay
@@ -66,6 +68,7 @@ fun AddressPage(
     onAddAddressClick: () -> Unit = {},
     onUpdateAddressClick: (Address) -> Unit = {},
 ) {
+    val userData = LocalUserData.current
     val viewModel: AddressViewModel = hiltViewModel()
     val lazyPagingItems = viewModel.getAddressPagingData().collectAsLazyPagingItems()
 
@@ -90,13 +93,21 @@ fun AddressPage(
     } else {
         Scaffold(
             topBar = { AddressPageTopBar(onBackClick) },
-            bottomBar = { AddressPageBottomBar(onAddAddressClick) }
+            bottomBar = {
+                if (userData != null) {
+                    AddressPageBottomBar(onAddAddressClick)
+                }
+            }
         ) { innerPadding ->
-            AddressListView(
-                modifier = Modifier.padding(innerPadding),
-                lazyPagingItems = lazyPagingItems,
-                onEditClick = onUpdateAddressClick
-            )
+            if (userData == null) {
+                LoginPrompt(text = "登录后使用地址管理", onLoginClick = {})
+            } else {
+                AddressListView(
+                    modifier = Modifier.padding(innerPadding),
+                    lazyPagingItems = lazyPagingItems,
+                    onEditClick = onUpdateAddressClick
+                )
+            }
         }
     }
 }

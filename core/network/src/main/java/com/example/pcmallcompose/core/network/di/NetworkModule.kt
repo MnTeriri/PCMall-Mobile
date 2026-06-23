@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
     private const val TAG = "NetworkModule"
-    const val BASE_URL: String = "http://10.9.22.254:10000/api/"
+    const val BASE_URL: String = "http://10.9.210.80:10000/api/"
     const val IMAGE_URL = BASE_URL + "image/"
 
     @Singleton
